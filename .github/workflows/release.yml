@@ -41,7 +41,9 @@ jobs:
           Compress-Archive -Path stage/corridorkey -DestinationPath "release/corridorkey-$version-windows-x64.zip"
           choco install innosetup --yes --no-progress
           if ($LASTEXITCODE -ne 0) { throw 'Inno Setup installation failed' }
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DPluginVersion=$version" "/DStageDir=$PWD\stage\corridorkey" packaging/windows/installer.iss
+          $compiler = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $compiler) { throw 'Inno Setup compiler was not found' }
+          & $compiler.FullName "/DPluginVersion=$version" "/DStageDir=$PWD\stage\corridorkey" packaging/windows/installer.iss
           if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
