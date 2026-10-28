@@ -18,9 +18,10 @@ bool obs_module_load(void)
 {
 	const auto host_version = obs_get_version();
 	const auto host_major = (host_version >> 24) & 0xff;
+	const auto host_minor = (host_version >> 16) & 0xff;
 	blog(LOG_INFO, "[corridorkey] OBS host %s; compiled against API %u.%u", obs_get_version_string(),
-	     LIBOBS_API_MAJOR_VER, LIBOBS_API_MINOR_VER);
-	if (host_major < 30 || host_major > 33) {
+	     static_cast<unsigned>(LIBOBS_API_MAJOR_VER), static_cast<unsigned>(LIBOBS_API_MINOR_VER));
+	if (host_major < 30 || (host_major == 30 && host_minor < 2) || host_major > 33) {
 		blog(LOG_WARNING,
 		     "[corridorkey] unreviewed OBS version; continuing with pass-through. "
 		     "Report compatibility issues at https://github.com/MinersWin/CorridorKey-for-OBS/issues");

@@ -39,6 +39,11 @@ jobs:
           $version = (Get-Content buildspec.json -Raw | ConvertFrom-Json).version
           New-Item -ItemType Directory -Force release | Out-Null
           Compress-Archive -Path stage/corridorkey -DestinationPath "release/corridorkey-$version-windows-x64.zip"
+          New-Item -ItemType Directory -Force stage_legacy/corridorkey/bin/64bit | Out-Null
+          Copy-Item -LiteralPath stage/corridorkey/data -Destination stage_legacy/corridorkey/data -Recurse
+          Copy-Item -Path stage/corridorkey/*.dll -Destination stage_legacy/corridorkey/bin/64bit
+          Copy-Item -Path stage/corridorkey/*.pdb -Destination stage_legacy/corridorkey/bin/64bit -ErrorAction SilentlyContinue
+          Compress-Archive -Path stage_legacy/corridorkey -DestinationPath "release/corridorkey-$version-windows-x64-legacy.zip"
           choco install innosetup --yes --no-progress
           if ($LASTEXITCODE -ne 0) { throw 'Inno Setup installation failed' }
           $compiler = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -72,7 +77,7 @@ jobs:
           Version: $version
           Architecture: amd64
           Maintainer: Moritz Mantel <admin@moritz-mantel.de>
-          Depends: obs-studio (>= 30.0), libc6 (>= 2.38), libstdc++6 (>= 13.1), libqt6widgets6t64 (>= 6.4)
+          Depends: obs-studio (>= 30.2), libc6 (>= 2.38), libstdc++6 (>= 13.1), libqt6widgets6t64 (>= 6.4)
           Section: video
           Priority: optional
           Homepage: https://github.com/MinersWin/CorridorKey-for-OBS
@@ -109,4 +114,4 @@ jobs:
           sha256sum ./* > SHA256SUMS.txt
           gh release create "$RELEASE_TAG" ./* --verify-tag --draft --prerelease \
             --title "CorridorKey $RELEASE_TAG" \
-            --notes 'Pre-alpha pass-through foundation. No inference engine or models are included. Install only with OBS Studio closed. OBS 30 and newer are expected to work; see the README compatibility matrix and report problems through GitHub issues.'
+            --notes 'Pre-alpha pass-through foundation. No inference engine or models are included. Install only with OBS Studio closed. Use the modern Windows zip for OBS 33+, or the legacy zip for OBS 30.2-32; the installer selects one layout. Ubuntu 24.04 packages target compatible OBS 30.2-32 installations. See the README compatibility matrix and report problems through GitHub issues.'

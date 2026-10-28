@@ -11,6 +11,8 @@ option(CORRIDORKEY_USE_BUNDLED_SDK "Bootstrap the selected OBS SDK on Windows" O
 set(CORRIDORKEY_OBS_SDK "baseline" CACHE STRING "Reproducible SDK download set: baseline or current")
 set_property(CACHE CORRIDORKEY_OBS_SDK PROPERTY STRINGS baseline current)
 set(CORRIDORKEY_ORT_ROOT "" CACHE PATH "Use an existing ONNX Runtime SDK instead of downloading one")
+set(CORRIDORKEY_WINDOWS_LAYOUT "MODERN" CACHE STRING "Windows install layout: MODERN (OBS 33+) or LEGACY (OBS 30.2-32)")
+set_property(CACHE CORRIDORKEY_WINDOWS_LAYOUT PROPERTY STRINGS MODERN LEGACY)
 
 include(compilerconfig)
 include(defaults)
@@ -24,8 +26,8 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE CORRIDORKEY_VERSION="${
 # OBS's SameMajorVersion package check would reject newer SDKs if a version were
 # passed to find_package. Use the documented API baseline without an upper bound.
 find_package(libobs REQUIRED)
-if(DEFINED libobs_VERSION AND libobs_VERSION VERSION_LESS 30.0)
-  message(FATAL_ERROR "Use OBS SDK 30.0 or newer; runtime compatibility is checked by capabilities")
+if(DEFINED libobs_VERSION AND libobs_VERSION VERSION_LESS 30.2)
+  message(FATAL_ERROR "Use OBS SDK 30.2 or newer; runtime compatibility is checked by capabilities")
 endif()
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
 

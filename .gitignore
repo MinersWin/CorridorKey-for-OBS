@@ -4,7 +4,7 @@
 .venv/
 build*/
 release/
-stage/
+stage*/
 CMakeUserPresets.json
 cmake/.CMakeBuildNumber
 .vs/

@@ -23,12 +23,28 @@ function(set_target_properties_plugin target)
 
   set_target_properties(${target} PROPERTIES VERSION 0 SOVERSION ${PLUGIN_VERSION})
 
-  install(TARGETS ${target} RUNTIME DESTINATION "${target}/bin/64bit" LIBRARY DESTINATION "${target}/bin/64bit")
+  if(CORRIDORKEY_WINDOWS_LAYOUT STREQUAL "MODERN")
+    set(_module_destination "${target}")
+    set(_obsolete_destination "${target}/bin/64bit")
+  elseif(CORRIDORKEY_WINDOWS_LAYOUT STREQUAL "LEGACY")
+    set(_module_destination "${target}/bin/64bit")
+    set(_obsolete_destination "${target}")
+  else()
+    message(FATAL_ERROR "CORRIDORKEY_WINDOWS_LAYOUT must be MODERN or LEGACY")
+  endif()
+
+  # Remove only this plugin's alternate module/PDB, preserving data and caches.
+  # Keep CMAKE_INSTALL_PREFIX evaluated at installation time for --prefix staging.
+  install(
+    CODE
+      "file(REMOVE \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${_obsolete_destination}/${target}.dll\" \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${_obsolete_destination}/${target}.pdb\")"
+  )
+  install(TARGETS ${target} RUNTIME DESTINATION "${_module_destination}" LIBRARY DESTINATION "${_module_destination}")
 
   install(
     FILES "$<TARGET_PDB_FILE:${target}>"
     CONFIGURATIONS RelWithDebInfo Debug Release
-    DESTINATION "${target}/bin/64bit"
+    DESTINATION "${_module_destination}"
     OPTIONAL
   )
 

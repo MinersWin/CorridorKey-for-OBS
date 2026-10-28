@@ -30,9 +30,53 @@ RestartApplications=no
 SetupMutex=CorridorKeyInstaller
 
 [Files]
-Source: "{#StageDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#StageDir}\corridorkey.dll"; DestDir: "{app}"; Check: UseModernLayout; Flags: ignoreversion
+Source: "{#StageDir}\corridorkey.dll"; DestDir: "{app}\bin\64bit"; Check: UseLegacyLayout; Flags: ignoreversion
+Source: "{#StageDir}\corridorkey.pdb"; DestDir: "{app}"; Check: UseModernLayout; Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#StageDir}\corridorkey.pdb"; DestDir: "{app}\bin\64bit"; Check: UseLegacyLayout; Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#StageDir}\data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[InstallDelete]
+Type: files; Name: "{app}\corridorkey.dll"
+Type: files; Name: "{app}\corridorkey.pdb"
+Type: files; Name: "{app}\bin\64bit\corridorkey.dll"
+Type: files; Name: "{app}\bin\64bit\corridorkey.pdb"
+Type: files; Name: "{autopf}\obs-studio\obs-plugins\64bit\corridorkey.dll"
+Type: files; Name: "{autopf}\obs-studio\obs-plugins\64bit\corridorkey.pdb"
 
 [Code]
+var
+  HostPage: TInputOptionWizardPage;
+
+function UseModernLayout(): Boolean;
+begin
+  Result := HostPage.SelectedValueIndex = 0;
+end;
+
+function UseLegacyLayout(): Boolean;
+begin
+  Result := not UseModernLayout();
+end;
+
+procedure InitializeWizard();
+var
+  Root, Version: String;
+  Major: Integer;
+begin
+  HostPage := CreateInputOptionPage(wpLicense, 'OBS Studio version',
+    'Choose the OBS installation that will use CorridorKey.',
+    'The default OBS installation is detected when available. For a custom installation, select its version range. Portable installations use the zip package.',
+    True, False);
+  HostPage.Add('OBS Studio 33 or newer');
+  HostPage.Add('OBS Studio 30.2 to 32');
+  HostPage.SelectedValueIndex := 0;
+  Root := ExpandConstant('{autopf}\obs-studio');
+  if GetVersionNumbersString(Root + '\bin\64bit\obs64.exe', Version) then begin
+    Major := StrToIntDef(Copy(Version, 1, Pos('.', Version) - 1), 33);
+    if Major < 33 then HostPage.SelectedValueIndex := 1;
+  end;
+end;
+
 function OBSIsRunning(): Boolean;
 var
   Locator, Services, Processes: Variant;
