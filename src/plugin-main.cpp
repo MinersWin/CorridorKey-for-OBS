@@ -16,6 +16,17 @@ MODULE_EXPORT const char *obs_module_description(void)
 
 bool obs_module_load(void)
 {
+	const auto host_version = obs_get_version();
+	const auto host_major = (host_version >> 24) & 0xff;
+	blog(LOG_INFO, "[corridorkey] OBS host %s; compiled against API %u.%u", obs_get_version_string(),
+	     LIBOBS_API_MAJOR_VER, LIBOBS_API_MINOR_VER);
+	if (host_major < 30 || host_major > 33) {
+		blog(LOG_WARNING,
+		     "[corridorkey] unreviewed OBS version; continuing with pass-through. "
+		     "Report compatibility issues at https://github.com/MinersWin/CorridorKey-for-OBS/issues");
+	}
+	// New optional APIs must be resolved at runtime before use. Keep pass-through
+	// available if inference, a provider, or a future UI capability is unavailable.
 	corridorkey::register_filter();
 	blog(LOG_INFO, "[corridorkey] loaded (version %s; pass-through foundation)", CORRIDORKEY_VERSION);
 	return true;

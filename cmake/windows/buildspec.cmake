@@ -10,7 +10,8 @@ function(_check_dependencies_windows)
   set(arch ${CMAKE_VS_PLATFORM_NAME})
   set(platform windows-${arch})
 
-  set(dependencies_dir "${CMAKE_CURRENT_SOURCE_DIR}/.deps")
+  # Keep SDK installations separate: current headers must not leak into releases.
+  set(dependencies_dir "${CMAKE_CURRENT_SOURCE_DIR}/.deps/${CORRIDORKEY_OBS_SDK}")
   set(prebuilt_filename "windows-deps-VERSION-ARCH-REVISION.zip")
   set(prebuilt_destination "obs-deps-VERSION-ARCH")
   set(qt6_filename "windows-deps-qt6-VERSION-ARCH-REVISION.zip")

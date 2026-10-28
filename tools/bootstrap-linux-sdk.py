@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Build the pinned OBS development SDK on Ubuntu 24.04, without installing a host."""
+"""Build the current OBS SDK on Ubuntu 24.04 without replacing the host.
+
+Additional apt packages: python3 extra-cmake-modules libsimde-dev uthash-dev
+libjansson-dev libx11-dev libx11-xcb-dev libxcb1-dev libxcb-xinput-dev libdrm-dev
+libegl1-mesa-dev libgl1-mesa-dev libglib2.0-dev uuid-dev zlib1g-dev.
+"""
 
 import hashlib
 import json
@@ -54,7 +59,7 @@ def main():
     run("make", f"-j{min(os.cpu_count() or 2, 4)}", cwd=ffmpeg)
     run("make", "install", cwd=ffmpeg)
 
-    obs_spec = SPEC["dependencies"]["obs-studio"]
+    obs_spec = SPEC["currentDependencies"]["obs-studio"]
     version = obs_spec["version"]
     obs = unpack(
         f"{obs_spec['baseUrl']}/{version}.zip",

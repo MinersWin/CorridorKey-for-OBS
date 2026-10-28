@@ -24,7 +24,7 @@ hardware validation is available.
 
 ## Requirements
 
-- OBS Studio **33.0.0 or later** (current build ABI baseline).
+- OBS Studio **30 or newer** is the intended compatibility range; see the matrix below.
 - Windows 10/11 x64, or Ubuntu 24.04 x86_64 with a compatible OBS installation.
 - The Qt 6 libraries provided by OBS on Windows, or the distribution on Linux.
 - Future inference builds will require a supported GPU and separately downloaded
@@ -36,8 +36,11 @@ build as pass-through. **Manage models...** remains disabled until the dialog ex
 ## Build
 
 The CMake infrastructure is based on the [official OBS plugin template](https://github.com/obsproject/obs-plugintemplate/tree/3e7d7ac3b5342cd7d9b88890b9c70b472d1520fc).
-`buildspec.json` pins OBS 33.0.0 and the matching 2026-10-23 OBS dependency and Qt 6
-archives, with SHA-256 checks. C++20, Qt and the frontend API are enabled.
+`buildspec.json` records reproducible SDK downloads with SHA-256 checks: OBS
+30.0.2 and its matching OBS dependencies/Qt 6 for release builds, plus current
+stable OBS 33.0.0 and 2026-10-23 dependencies for compile checks. These are build
+inputs, not an exact-version runtime restriction. C++20, Qt and the frontend API
+are enabled. Compatible external SDKs are supported.
 
 ### Windows x64
 
@@ -56,29 +59,58 @@ With OBS closed, copy `stage/corridorkey` to
 The release zip uses this same layout; the installer includes an uninstaller.
 Neither package contains Qt, OBS, GPU runtimes or models.
 
+To compile-check the current SDK, use a separate build directory:
+
+```powershell
+cmake --preset windows-x64 -B build_current -DCORRIDORKEY_OBS_SDK=current
+cmake --build build_current --config RelWithDebInfo --parallel
+```
+
+Release artifacts always use the baseline SDK. To supply another compatible SDK,
+set `CORRIDORKEY_USE_BUNDLED_SDK=OFF` and `CMAKE_PREFIX_PATH` to its installation.
+
 ### Ubuntu 24.04 x86_64
 
-Install a compatible OBS development package, or build the pinned SDK as CI does.
-The Ubuntu archive and the official OBS PPA currently provide older versions on
-24.04. The SDK bootstrap builds OBS 33 and a minimal FFmpeg 8 dependency locally;
-it does not install or replace your OBS application:
+Use Ubuntu 24.04's OBS development package for the baseline build:
 
 ```sh
 sudo apt-get update
-sudo apt-get install -y build-essential cmake ninja-build pkg-config python3 \
-  qt6-base-dev extra-cmake-modules libsimde-dev uthash-dev libjansson-dev \
-  libx11-dev libx11-xcb-dev libxcb1-dev libxcb-xinput-dev libdrm-dev \
-  libegl1-mesa-dev libgl1-mesa-dev libglib2.0-dev uuid-dev zlib1g-dev
-python3 tools/bootstrap-linux-sdk.py
-cmake --preset ubuntu-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk"
+sudo apt-get install -y build-essential cmake ninja-build pkg-config \
+  qt6-base-dev libobs-dev obs-studio
+cmake --preset ubuntu-x86_64
 cmake --build --preset ubuntu-x86_64 --parallel
 DESTDIR="$PWD/stage" cmake --install build_x86_64 --prefix /usr
 ```
 
 Linux uses an installed or locally built OBS SDK rather than Windows dependency
-archives; CMake requires SDK version 33.0 or newer. The resulting package needs
-a separately installed OBS 33 host on Ubuntu 24.04; the stock 24.04 package is
-insufficient. Build against the oldest supported SDK when widening compatibility.
+archives, with no upper version limit. For an optional current-SDK check,
+`tools/bootstrap-linux-sdk.py` builds OBS 33 and minimal FFmpeg 8 into
+`.deps/linux-sdk`, without replacing the host. Install its additional SDK build
+dependencies listed in the script, then pass that prefix through `CMAKE_PREFIX_PATH`.
+
+## Compatibility
+
+| Platform / host | Intended support | Verification in this foundation |
+| --- | --- | --- |
+| Windows x64, OBS 30.x–32.x | Expected to work; release SDK baseline 30.0.2 | C++20 objects compiled against 30.0.2 headers with Clang; full MSVC build and runtime validation pending |
+| Windows x64, OBS 33.x | Expected to work | C++20 objects compiled against 33.0.0 headers with Clang; current-SDK MSVC job configured; runtime validation pending |
+| Ubuntu 24.04 x86_64, OBS 30+ | Expected to work | Baseline build job configured; first hosted run and runtime validation pending |
+| Newer/unknown OBS releases | Load with a warning when the ABI remains compatible | Untested; retain pass-through if optional capabilities are unavailable |
+| GPU providers, models, other distros | Planned; no inference in this build | Not tested |
+
+The filter uses longstanding OBS APIs. It logs the host version; an unreviewed
+version alone never causes rejection. Future optional APIs must be resolved at
+runtime, and missing inference/provider capabilities must leave pass-through
+available. A genuine host ABI break may still prevent loading before plugin
+initialization. No exact Qt, ORT or GPU-driver version whitelist is imposed.
+Build download pins are separate from runtime compatibility. Qt must have the
+host-compatible ABI; future inference will negotiate ORT's versioned C API and
+check actual provider/device capabilities before use.
+
+Please [open an issue](https://github.com/MinersWin/CorridorKey-for-OBS/issues/new/choose)
+with your OBS version, platform, GPU, driver, backend and OBS log when something
+fails. Runtime support remains provisional until the corresponding matrix entry
+records an actual test.
 
 ### Optional inference dependency
 

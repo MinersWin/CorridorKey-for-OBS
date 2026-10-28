@@ -1,6 +1,34 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 include_guard(GLOBAL)
 
+if(CORRIDORKEY_ORT_ROOT)
+  find_path(
+    _ort_include
+    NAMES onnxruntime_c_api.h
+    PATHS "${CORRIDORKEY_ORT_ROOT}"
+    PATH_SUFFIXES include include/onnxruntime/core/session
+    NO_DEFAULT_PATH
+    REQUIRED
+  )
+  find_library(
+    _ort_library
+    NAMES onnxruntime
+    PATHS "${CORRIDORKEY_ORT_ROOT}"
+    PATH_SUFFIXES lib lib64
+    NO_DEFAULT_PATH
+    REQUIRED
+  )
+  add_library(CorridorKey::OnnxRuntime UNKNOWN IMPORTED GLOBAL)
+  set_target_properties(
+    CorridorKey::OnnxRuntime
+    PROPERTIES IMPORTED_LOCATION "${_ort_library}" INTERFACE_INCLUDE_DIRECTORIES "${_ort_include}"
+  )
+  return()
+endif()
+
+# These pins select reproducible downloads, not the versions accepted at runtime.
+# The engine must negotiate ORT's versioned C API and inspect available EPs;
+# unsupported EPs fall back rather than rejecting a driver or version string.
 set(CORRIDORKEY_ORT_VERSION "1.31.1")
 set(_ort_release "https://github.com/microsoft/onnxruntime/releases/download/v${CORRIDORKEY_ORT_VERSION}")
 

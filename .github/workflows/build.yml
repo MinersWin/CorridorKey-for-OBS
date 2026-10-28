@@ -10,34 +10,35 @@ permissions:
 jobs:
   windows:
     runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [baseline, current]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Configure
-        run: cmake --preset windows-ci-x64
+        run: cmake --preset windows-ci-x64 -DCORRIDORKEY_OBS_SDK=${{ matrix.sdk }}
       - name: Build
         run: cmake --build --preset windows-ci-x64 --parallel 4
       - name: Stage
         run: cmake --install build_x64 --config RelWithDebInfo --prefix stage
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: windows-x64-stage
+          name: windows-x64-${{ matrix.sdk }}-stage
           path: stage/
           if-no-files-found: error
   linux:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Install SDK build tools
+      - name: Install OBS SDK and build tools
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake ninja-build pkg-config \
-            python3 qt6-base-dev extra-cmake-modules libsimde-dev uthash-dev \
-            libjansson-dev libx11-dev libx11-xcb-dev libxcb1-dev libxcb-xinput-dev \
-            libdrm-dev libegl1-mesa-dev libgl1-mesa-dev libglib2.0-dev uuid-dev zlib1g-dev
-      - name: Build pinned OBS SDK
-        run: python3 tools/bootstrap-linux-sdk.py
+            qt6-base-dev libobs-dev obs-studio
+          dpkg-query -W libobs-dev obs-studio qt6-base-dev
       - name: Configure
-        run: cmake --preset ubuntu-ci-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk"
+        run: cmake --preset ubuntu-ci-x86_64
       - name: Build
         run: cmake --build --preset ubuntu-ci-x86_64 --parallel 4
       - name: Stage

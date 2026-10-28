@@ -4,6 +4,10 @@
 `CORRIDORKEY_FETCH_ONNXRUNTIME=ON` prepares **ONNX Runtime 1.31.1**. It is `OFF`
 by default, including CI and release packages. The filter has no engine and does
 not yet link the imported `CorridorKey::OnnxRuntime` target or package the runtime.
+The download pin is for reproducibility, not an exact-version runtime whitelist.
+Set `CORRIDORKEY_ORT_ROOT` to use another compatible installed SDK without a
+download. The eventual engine must negotiate ORT's versioned C API, inspect EP
+availability, and retain pass-through when a runtime or device is unsupported.
 
 - **Windows x64 / DirectML:** official GitHub releases publish CPU and CUDA
   binaries, not DirectML binaries. This scaffold downloads the official pinned
@@ -23,7 +27,7 @@ cmake --build build_x64 --target corridorkey-onnxruntime --config Release
 ```
 
 ```sh
-cmake --preset ubuntu-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk" \
+cmake --preset ubuntu-x86_64 \
   -DCORRIDORKEY_FETCH_ONNXRUNTIME=ON -DCORRIDORKEY_ORT_LINUX_PROVIDER=CUDA12
 ```
 

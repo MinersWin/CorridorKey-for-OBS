@@ -57,8 +57,8 @@ obs_properties_t *filter_properties(void *)
 
 	auto *refiner = obs_properties_add_bool(properties, "edge_refiner", obs_module_text("Refiner.Label"));
 	obs_property_set_long_description(refiner, obs_module_text("Refiner.Help"));
-	auto *manager =
-		obs_properties_add_button(properties, "manage_models", obs_module_text("Models.Manage"), manage_models);
+	auto *manager = obs_properties_add_button2(properties, "manage_models", obs_module_text("Models.Manage"),
+						   manage_models, nullptr);
 	obs_property_set_enabled(manager, false);
 	obs_property_set_long_description(manager, obs_module_text("Models.Help"));
 
