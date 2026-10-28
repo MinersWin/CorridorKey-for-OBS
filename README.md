@@ -9,6 +9,8 @@ on the image. Do not use this version for production keying.
 A native OBS Studio video filter for neural background keying on Windows x64
 and Linux x86_64. No model weights or derived graphs are included.
 
+See [design specifications](docs/design/) for the planned architecture, models, interface and implementation backlog.
+
 ## Planned features
 
 - CorridorKey 2.0 and CorridorKey 1.0, with Facecam 60, Balanced and Quality profiles.
