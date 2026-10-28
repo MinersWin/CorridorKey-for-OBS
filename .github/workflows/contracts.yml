@@ -14,7 +14,7 @@ jobs:
         os: [windows-2022, ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Configure without OBS or optional inference runtimes
         run: cmake -S . -B build-contracts -DCORRIDORKEY_BUILD_PLUGIN=OFF -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
       - name: Build
