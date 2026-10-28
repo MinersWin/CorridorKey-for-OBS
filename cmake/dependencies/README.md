@@ -1,21 +1,22 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # Optional ONNX Runtime scaffold
 
-`CORRIDORKEY_FETCH_ONNXRUNTIME=ON` prepares **ONNX Runtime 1.31.1**. It is `OFF`
+`CORRIDORKEY_FETCH_ONNXRUNTIME=ON` prepares ONNX Runtime 1.31.1. It is `OFF`
 by default, including CI and release packages. The filter has no engine and does
 not yet link the imported `CorridorKey::OnnxRuntime` target or package the runtime.
-The download pin is for reproducibility, not an exact-version runtime whitelist.
+The pin makes downloads reproducible. Runtime compatibility depends on the C API
+and available providers.
 Set `CORRIDORKEY_ORT_ROOT` to use another compatible installed SDK without a
 download. The eventual engine must negotiate ORT's versioned C API, inspect EP
 availability, and retain pass-through when a runtime or device is unsupported.
 
-- **Windows x64 / DirectML:** official GitHub releases publish CPU and CUDA
+- Windows x64 / DirectML: official GitHub releases publish CPU and CUDA
   binaries, not DirectML binaries. This scaffold downloads the official pinned
   release source archive, verifies SHA-256, and builds its shared DirectML runtime
   through an external CMake project. It needs the VS toolchain, a recent SDK and
   network access for upstream's pinned build dependencies, including DirectML's
   separately licensed NuGet package. No vendor runtime is bundled by this plugin.
-- **Linux x86_64:** choose `CORRIDORKEY_ORT_LINUX_PROVIDER=CPU`, `CUDA12` or
+- Linux x86_64: choose `CORRIDORKEY_ORT_LINUX_PROVIDER=CPU`, `CUDA12` or
   `CUDA13`. Each official GitHub release archive is pinned with its published
   SHA-256 digest. CUDA variants require compatible user-installed CUDA/cuDNN
   libraries. CPU is the default for dependency development, not a performance

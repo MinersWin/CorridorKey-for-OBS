@@ -6,7 +6,7 @@ body:
     id: problem
     attributes:
       label: Problem and steps to reproduce
-      description: Include what you expected and what happened.
+      description: Describe what happened, what you expected and how to reproduce it.
     validations:
       required: true
   - type: input
@@ -50,6 +50,6 @@ body:
     id: log
     attributes:
       label: OBS log
-      description: Help > Log Files > Upload Current Log File, or paste the relevant log after removing personal data.
+      description: Use Help > Log Files > Upload Current Log File, or paste the relevant part of the log. Check it for personal data before sharing.
     validations:
       required: true

@@ -18,13 +18,22 @@ and Linux x86_64. No model weights or derived graphs are included.
   AMD MIGraphX where available, and DirectML as the Windows fallback.
 - Live processing and input-to-output delay, with optional audio sync adjustment.
 
-These are development goals, not capabilities of the current build. CPU execution
-is intended for debugging. AMD support will be marked community-tested until
-hardware validation is available.
+CPU execution is intended for debugging. AMD providers still need hardware testing.
+
+```mermaid
+flowchart LR
+  input[OBS source] --> filter[CorridorKey filter]
+  filter --> passthrough[Current build: pass-through] --> output[OBS output]
+  filter -. planned .-> prep[GPU preprocessing]
+  prep -.-> model[CorridorKey 2.0 or 1.0]
+  model -.-> refiner[Optional edge refiner]
+  refiner -.-> composite[Despill and composite]
+  composite -.-> output
+```
 
 ## Requirements
 
-- OBS Studio **30 or newer** is the intended compatibility range; see the matrix below.
+- OBS Studio **30.2 or newer**, subject to the compatibility checks below.
 - Windows 10/11 x64, or Ubuntu 24.04 x86_64 with a compatible OBS installation.
 - The Qt 6 libraries provided by OBS on Windows, or the distribution on Linux.
 - Future inference builds will require a supported GPU and separately downloaded
@@ -37,10 +46,10 @@ build as pass-through. **Manage models...** remains disabled until the dialog ex
 
 The CMake infrastructure is based on the [official OBS plugin template](https://github.com/obsproject/obs-plugintemplate/tree/3e7d7ac3b5342cd7d9b88890b9c70b472d1520fc).
 `buildspec.json` records reproducible SDK downloads with SHA-256 checks: OBS
-30.0.2 and its matching OBS dependencies/Qt 6 for release builds, plus current
+30.2.0 and its matching OBS dependencies/Qt 6 for release builds, plus current
 stable OBS 33.0.0 and 2026-10-23 dependencies for compile checks. These are build
 inputs, not an exact-version runtime restriction. C++20, Qt and the frontend API
-are enabled. Compatible external SDKs are supported.
+are enabled. You can also supply a compatible external SDK.
 
 ### Windows x64
 
@@ -56,8 +65,22 @@ cmake --install build_x64 --config RelWithDebInfo --prefix "$PWD/stage"
 
 With OBS closed, copy `stage/corridorkey` to
 `C:/ProgramData/obs-studio/plugins/corridorkey`. Do not install into a running OBS.
-The release zip uses this same layout; the installer includes an uninstaller.
+The default install rules and Windows zip target OBS 33+: the module sits at
+`corridorkey/corridorkey.dll`, beside `data/`. For OBS 30.2â€“32, use the `-legacy.zip`
+asset, or configure with `-DCORRIDORKEY_WINDOWS_LAYOUT=LEGACY` to place the module
+in `corridorkey/bin/64bit/`. CMake installs remove the alternate module copy.
+The installer detects OBS in its default location and lets you choose the host
+range for a custom installation. It installs one layout, removes obsolete module
+copies from both ProgramData layouts and the default Program Files location,
+and includes an uninstaller. Remove any custom-location older copies manually.
 Neither package contains Qt, OBS, GPU runtimes or models.
+
+Do not install both zip layouts together. When upgrading manually, remove the
+old `corridorkey.dll` before copying the new layout. In portable OBS 33+, use
+`plugins/corridorkey/{corridorkey.dll,data/}` inside the portable installation.
+Portable OBS 30.2â€“32 uses `obs-plugins/64bit/corridorkey.dll` and
+`data/obs-plugins/corridorkey/`. The installer targets installed OBS, not portable
+copies. See [OBS's migration guide](https://obsproject.com/kb/legacy-plugin-developer-info).
 
 To compile-check the current SDK, use a separate build directory:
 
@@ -71,22 +94,31 @@ set `CORRIDORKEY_USE_BUNDLED_SDK=OFF` and `CMAKE_PREFIX_PATH` to its installatio
 
 ### Ubuntu 24.04 x86_64
 
-Use Ubuntu 24.04's OBS development package for the baseline build:
+Ubuntu 24.04 remains a supported build lane for compatible OBS 30.2â€“32 hosts
+from the distribution/backports or the OBS PPA. The stock initial 30.0 package
+is below the intended floor. CI builds the exact baseline SDK from source against
+Ubuntu's FFmpeg libraries, independently of the installed OBS application:
 
 ```sh
 sudo apt-get update
-sudo apt-get install -y build-essential cmake ninja-build pkg-config \
-  qt6-base-dev libobs-dev obs-studio
-cmake --preset ubuntu-x86_64
+sudo apt-get install -y build-essential cmake ninja-build pkg-config python3 \
+  qt6-base-dev extra-cmake-modules libsimde-dev uthash-dev libjansson-dev \
+  libx11-dev libx11-xcb-dev libxcb1-dev libxcb-xinput-dev libdrm-dev \
+  libegl1-mesa-dev libgl1-mesa-dev libglib2.0-dev uuid-dev zlib1g-dev \
+  libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev
+python3 tools/bootstrap-linux-sdk.py --sdk baseline
+cmake --preset ubuntu-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk-baseline"
 cmake --build --preset ubuntu-x86_64 --parallel
 DESTDIR="$PWD/stage" cmake --install build_x86_64 --prefix /usr
 ```
 
 Linux uses an installed or locally built OBS SDK rather than Windows dependency
-archives, with no upper version limit. For an optional current-SDK check,
-`tools/bootstrap-linux-sdk.py` builds OBS 33 and minimal FFmpeg 8 into
-`.deps/linux-sdk`, without replacing the host. Install its additional SDK build
-dependencies listed in the script, then pass that prefix through `CMAKE_PREFIX_PATH`.
+archives, with no upper version limit. An already installed SDK 30.2+ may also be
+used directly. For an optional current-SDK check, pass `--sdk current` to build
+OBS 33 and minimal FFmpeg 8 into `.deps/linux-sdk-current`, then use that prefix.
+This does not install an OBS host. OBS 33 itself dropped upstream Ubuntu 24.04
+and Qt 6.4â€“6.9 support; its host needs a compatible newer distro/Qt stack. The
+24.04 release lane does not advertise an OBS 33 host on the stock 24.04 stack.
 
 ### Optional inference dependency
 
@@ -99,17 +131,17 @@ it does not add inference to this filter or bundle that runtime in releases.
 
 Use clang-format 19.1.7 and gersemi 0.22.2. CI checks all tracked C/C++ and CMake
 files. Release tags must match `v` plus `buildspec.json`'s version. A `v*` tag builds
-Windows zip/installer and Linux deb/tar.xz assets into a **draft** GitHub Release.
+Windows modern/legacy zips, an installer and Linux deb/tar.xz assets into a **draft** GitHub Release.
 The workflow uses the repository's automatic token; no custom secrets are needed.
 
 ## Compatibility
 
 | Platform / host | Intended support | Verification in this foundation |
 | --- | --- | --- |
-| Windows x64, OBS 30.x–32.x | 30.0.2 tested; 31.x–32.x expected | Diagnostic Clang build loaded, filter active on a color source; full MSVC build pending |
-| Windows x64, OBS 33.x | 33.0.0 tested | The same baseline diagnostic DLL loaded with the filter active; current-SDK MSVC job configured |
-| Ubuntu 24.04 x86_64, OBS 30+ | Expected to work | Baseline build job configured; first hosted run and runtime validation pending |
-| Newer/unknown OBS releases | Load with a warning when the ABI remains compatible | Untested; retain pass-through if optional capabilities are unavailable |
+| Windows x64, OBS 30.2â€“32.x | 30.2.0 hardware-tested; 31.xâ€“32.x expected | MSVC build loaded in the legacy portable layout with a color source/filter |
+| Windows x64, OBS 33.x | 33.0.0 hardware-tested | Baseline MSVC DLL loaded from the modern ProgramData layout exactly once; the current-SDK build also passed |
+| Ubuntu 24.04 x86_64, OBS 30.2â€“32 | Expected to work | Baseline build job configured; first hosted run and runtime validation pending |
+| Newer/unknown OBS releases | Load with a warning when the ABI remains compatible | Simulated version 99 loaded and retained pass-through; real newer hosts remain untested |
 | GPU providers, models, other distros | Planned; no inference in this build | Not tested |
 
 The filter uses longstanding OBS APIs. It logs the host version; an unreviewed
@@ -126,7 +158,7 @@ with your OBS version, platform, GPU, driver, backend and OBS log when something
 fails. Runtime support remains provisional until the corresponding matrix entry
 records an actual test.
 See [local validation notes](docs/VALIDATION.md) for the compiler, logs and limits
-of these diagnostic tests. They do not establish release-package readiness.
+of these tests. Installer execution, Linux compilation and hosted CI remain pending.
 
 ## Licensing
 
