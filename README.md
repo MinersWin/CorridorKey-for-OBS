@@ -88,12 +88,26 @@ archives, with no upper version limit. For an optional current-SDK check,
 `.deps/linux-sdk`, without replacing the host. Install its additional SDK build
 dependencies listed in the script, then pass that prefix through `CMAKE_PREFIX_PATH`.
 
+### Optional inference dependency
+
+`CORRIDORKEY_FETCH_ONNXRUNTIME` defaults to `OFF`. See
+[the dependency notes](cmake/dependencies/README.md) for the pinned Linux CPU/CUDA
+archives and the Windows DirectML source build. Enabling this prepares a runtime;
+it does not add inference to this filter or bundle that runtime in releases.
+
+### Formatting and packages
+
+Use clang-format 19.1.7 and gersemi 0.22.2. CI checks all tracked C/C++ and CMake
+files. Release tags must match `v` plus `buildspec.json`'s version. A `v*` tag builds
+Windows zip/installer and Linux deb/tar.xz assets into a **draft** GitHub Release.
+The workflow uses the repository's automatic token; no custom secrets are needed.
+
 ## Compatibility
 
 | Platform / host | Intended support | Verification in this foundation |
 | --- | --- | --- |
-| Windows x64, OBS 30.x–32.x | Expected to work; release SDK baseline 30.0.2 | C++20 objects compiled against 30.0.2 headers with Clang; full MSVC build and runtime validation pending |
-| Windows x64, OBS 33.x | Expected to work | C++20 objects compiled against 33.0.0 headers with Clang; current-SDK MSVC job configured; runtime validation pending |
+| Windows x64, OBS 30.x–32.x | 30.0.2 tested; 31.x–32.x expected | Diagnostic Clang build loaded, filter active on a color source; full MSVC build pending |
+| Windows x64, OBS 33.x | 33.0.0 tested | The same baseline diagnostic DLL loaded with the filter active; current-SDK MSVC job configured |
 | Ubuntu 24.04 x86_64, OBS 30+ | Expected to work | Baseline build job configured; first hosted run and runtime validation pending |
 | Newer/unknown OBS releases | Load with a warning when the ABI remains compatible | Untested; retain pass-through if optional capabilities are unavailable |
 | GPU providers, models, other distros | Planned; no inference in this build | Not tested |
@@ -111,20 +125,8 @@ Please [open an issue](https://github.com/MinersWin/CorridorKey-for-OBS/issues/n
 with your OBS version, platform, GPU, driver, backend and OBS log when something
 fails. Runtime support remains provisional until the corresponding matrix entry
 records an actual test.
-
-### Optional inference dependency
-
-`CORRIDORKEY_FETCH_ONNXRUNTIME` defaults to `OFF`. See
-[the dependency notes](cmake/dependencies/README.md) for the pinned Linux CPU/CUDA
-archives and the Windows DirectML source build. Enabling this prepares a runtime;
-it does not add inference to this filter or bundle that runtime in releases.
-
-### Formatting and packages
-
-Use clang-format 19.1.7 and gersemi 0.22.2. CI checks all tracked C/C++ and CMake
-files. Release tags must match `v` plus `buildspec.json`'s version. A `v*` tag builds
-Windows zip/installer and Linux deb/tar.xz assets into a **draft** GitHub Release.
-The workflow uses the repository's automatic token; no custom secrets are needed.
+See [local validation notes](docs/VALIDATION.md) for the compiler, logs and limits
+of these diagnostic tests. They do not establish release-package readiness.
 
 ## Licensing
 
