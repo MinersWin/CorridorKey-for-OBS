@@ -1,0 +1,14 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+
+CorridorKey for OBS
+Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
+
+Plugin code: GPL-3.0-or-later. See LICENSE and LICENSE-EXCEPTION.md.
+Build scaffolding is adapted from obsproject/obs-plugintemplate,
+commit 3e7d7ac3b5342cd7d9b88890b9c70b472d1520fc (GPL-2.0-or-later),
+distributed here under GPL-3.0-or-later. Copyright its respective contributors.
+The GPU additional permission applies only where the relevant holders grant it.
+
+CorridorKey models are not included. CorridorKey is the work of Corridor
+Digital LLC / Niko Pueringer. Separate model terms apply; see
+THIRD_PARTY_NOTICES.md. This is an independent OBS integration.

@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.ico binary

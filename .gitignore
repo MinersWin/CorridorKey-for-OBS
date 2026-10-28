@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+.cache/
+.deps/
+.venv/
+build*/
+release/
+stage/
+CMakeUserPresets.json
+cmake/.CMakeBuildNumber
+.vs/
+.idea/
+*.user
+*.onnx
+*.safetensors
+*.pt
+*.pth
+*.npz
+*.engine
+*.plan
+/models/
+*.mp4
+*.mkv
+*.mov
+*.avi
+*.webm
+__pycache__/

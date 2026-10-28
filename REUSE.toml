@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+version = 1
+
+[[annotations]]
+path = ["buildspec.json", "CMakePresets.json"]
+SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
+SPDX-License-Identifier = "GPL-3.0-or-later"
