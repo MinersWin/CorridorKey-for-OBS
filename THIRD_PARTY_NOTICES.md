@@ -12,6 +12,8 @@ relinking obligations.
 | OBS plugin template | GPL-2.0-or-later, used under GPL-3.0-or-later | CMake and formatting scaffolding; [upstream](https://github.com/obsproject/obs-plugintemplate/tree/3e7d7ac3b5342cd7d9b88890b9c70b472d1520fc) |
 | Qt 6 Core and Widgets | LGPL-3.0 / GPL, or commercial licence | Dynamically linked UI framework supplied by OBS or the distribution; [Qt licensing](https://www.qt.io/licensing/open-source-lgpl-obligations) |
 | ONNX Runtime | MIT | Optional inference runtime, currently disabled; [Microsoft](https://github.com/microsoft/onnxruntime/blob/v1.31.1/LICENSE) |
+| doctest 2.4.11 | MIT | Test-only framework, fetched by SHA-256; copyright Viktor Kirilov; [licence](https://github.com/doctest/doctest/blob/v2.4.11/LICENSE.txt). Not linked into the plugin. |
+| ONNX 1.17.0 | Apache-2.0 | Development/CI graph fixture generator and checker; [licence](https://github.com/onnx/onnx/blob/v1.17.0/LICENSE). Not shipped with the plugin. Its Python dependencies retain their package notices. |
 | FFmpeg | LGPL-2.1-or-later by default; builds with GPL components have additional GPL requirements | Linux SDK dependency: distribution libraries for OBS 30.2, minimal 8.0 build for the optional OBS 33 check; not bundled in plugin packages; [FFmpeg licensing](https://ffmpeg.org/legal.html) |
 
 The default packages do not bundle Qt, OBS or ONNX Runtime. Optional future
