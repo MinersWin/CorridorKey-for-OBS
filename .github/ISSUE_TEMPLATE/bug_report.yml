@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: Bug report
+description: Report a reproducible problem with the plugin.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and steps to reproduce
+      description: Include what you expected and what happened.
+    validations:
+      required: true
+  - type: input
+    id: plugin
+    attributes:
+      label: CorridorKey version or commit
+    validations:
+      required: true
+  - type: input
+    id: obs
+    attributes:
+      label: OBS Studio version
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and version
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU model
+    validations:
+      required: true
+  - type: input
+    id: driver
+    attributes:
+      label: GPU driver version
+    validations:
+      required: true
+  - type: input
+    id: backend
+    attributes:
+      label: Backend / execution provider
+      description: For the foundation build, enter pass-through.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: OBS log
+      description: Help > Log Files > Upload Current Log File, or paste the relevant log after removing personal data.
+    validations:
+      required: true
