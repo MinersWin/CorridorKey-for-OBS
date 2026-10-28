@@ -43,7 +43,7 @@ All dimensions below are **H×W**. F/B/Q means Facecam 60 / Balanced / Quality. 
 | Subject ROI | Off; full user crop | On | On |
 | Stage 2 | Off | Off | Every frame |
 | Refiner | v12, on | v12, on | v12, on |
-| Tile budget | 256 | 512 | 768 |
+| Tile budget | 384 | 512 | 768 |
 | Target key rate | Up to 60 FPS, capped by OBS | Follow OBS | Follow OBS |
 | MoGe interval / motion | 3 / 0.05 | 3 / 0.05 | 3 / 0.05 |
 | RVM memory | On | On | On |
@@ -60,7 +60,7 @@ All dimensions below are **H×W**. F/B/Q means Facecam 60 / Balanced / Quality. 
 
 For CK1, choose **Custom** automatically on first selection, starting with a proposed 384×384 static grid, chroma hint, RGB guided reconstruction and refiner off. Offer tested CK1 grid choices 256/384/512 when the manifest supplies them. These are design defaults pending CK1 export evaluation. Per-pipeline saved settings avoid overwriting the user's CK2 setup. The v12 refiner becomes selectable for CK1 only with an explicit experimental capability and evaluated package; it is trained on CK2 outputs.
 
-The specified 0.05 motion threshold supersedes the Lua/CLI 0.035 default. Radius 2 and epsilon 5e-4 are authoritative. The shipped Facecam tile budget remains 256 until a measured reason supports 384.
+The specified 0.05 motion threshold supersedes the Lua/CLI 0.035 default. Radius 2 and epsilon 5e-4 are authoritative. The shipped Facecam tile budget is 384: against 256 tiles it measured 5–9 % lower edge error for about 0.5 ms more on the reference GPU.
 
 ## Controls: model and performance
 
@@ -77,7 +77,7 @@ The specified 0.05 motion threshold supersedes the Lua/CLI 0.035 default. Radius
 | `preset` → grid + ROI | Grid | A; installed static variants; CK2 256×512, 512×512, 512×768, 512×1024 | 256×512 / 512² / 512² | The model's working size, not the camera size. Larger grids use more time and memory. |
 | `roi_enabled` | Subject crop | A; boolean, CK2 | Off / On / On | Focus the model on the foreground inside your manual crop. |
 | `stage2_interval` | Detail interval | A for Off/Every; E for 2-4 | 0 / 0 / 1 | Off uses Stage 1. Values above 1 reuse detail and may leave trails. |
-| `refiner_max_tiles` | Tile budget | A; manifest batches, originally 64-1536 in steps of 64 | 256 / 512 / 768 | More native-resolution edge tiles can improve hair but take longer. Only installed graph batches are available. |
+| `refiner_max_tiles` | Tile budget | A; manifest batches, originally 64-1536 in steps of 64 | 384 / 512 / 768 | More native-resolution edge tiles can improve hair but take longer. Only installed graph batches are available. |
 | `guided_scale` | Guide scale | E; 1.0 / 0.5, only for paths that implement it | 1.0 | Reduce the legacy guided pass resolution. It does not reduce the refiner's native tile sampling. |
 | `aspect_fix` | Keep aspect | E; boolean | Off | Preserve source proportions in the model grid. May change results from measured presets. |
 | `moge_interval` | Geometry rate | E; 1-8 accepted frames, step 1; CK2 | 3 | Refresh geometry at this interval, or earlier when motion exceeds the threshold. |
