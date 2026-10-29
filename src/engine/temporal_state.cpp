@@ -57,10 +57,8 @@ SequenceState::SequenceState(Extent grid, bool quality, Graphs graphs)
 }
 void SequenceState::reset()
 {
-	for (auto &[stage, graph] : graphs_) {
-		(void)stage;
-		graph->reset_transform();
-	}
+	// Temporal resets overwrite state at the same device addresses. Only a changed
+	// sampling transform needs recapture; recapturing after a slow frame loops forever.
 	std::fill(recurrent_.values.begin(), recurrent_.values.end(), 0.f);
 	moge_valid_ = false;
 	key_.reset();
@@ -102,7 +100,7 @@ LowResolutionResult SequenceState::process(const InputFrame &input, std::stop_to
 		throw std::invalid_argument("CK2 requires ordered unique frames");
 	if (!key_)
 		next_roi_ = input.transform.user_crop;
-	if (key_ && key_->transform != input.transform) {
+	if (captured_transform_ && *captured_transform_ != input.transform) {
 		for (auto &[stage, graph] : graphs_) {
 			(void)stage;
 			graph->reset_transform();
@@ -110,6 +108,7 @@ LowResolutionResult SequenceState::process(const InputFrame &input, std::stop_to
 		std::fill(recurrent_.values.begin(), recurrent_.values.end(), 0.f);
 		moge_valid_ = false;
 	}
+	captured_transform_ = input.transform;
 	try {
 		auto rgb = planar_rgb(input.analysis);
 		auto thumb = resize_area(rgb, {32, 32});

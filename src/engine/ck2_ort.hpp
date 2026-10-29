@@ -9,7 +9,7 @@ class OrtGraph final : public Graph {
 public:
 	OrtGraph(std::unique_ptr<ort::Session>, Stage, Extent, bool cuda_device = false,
 		 std::function<std::unique_ptr<ort::Session>()> recreate = {},
-		 std::function<std::unique_ptr<ort::Session>()> fallback = {});
+		 std::function<std::unique_ptr<ort::Session>(const std::string &, std::stop_token)> fallback = {});
 	Tensors run(const Inputs &, std::stop_token) override;
 	std::map<std::string, std::size_t> finish_profile();
 	void reset_transform() override;
@@ -17,7 +17,8 @@ public:
 private:
 	std::unique_ptr<ort::Session> session_;
 	std::unique_ptr<PersistentBindings> bindings_;
-	std::function<std::unique_ptr<ort::Session>()> recreate_, fallback_;
+	std::function<std::unique_ptr<ort::Session>()> recreate_;
+	std::function<std::unique_ptr<ort::Session>(const std::string &, std::stop_token)> fallback_;
 	bool device_ = false;
 	bool recapture_ = false;
 	Tensors inputs_, outputs_;
@@ -29,6 +30,7 @@ struct RuntimeConfig {
 	std::filesystem::path cache, profiles;
 	bool capture = true;
 	std::function<void(const std::string &)> info;
+	std::function<void(const ProbeResult &)> record_probe;
 };
 Ck2Prepared prepare_ort(const PrepareRequest &, const RuntimeConfig &);
 #ifdef CORRIDORKEY_CK2_DEV
