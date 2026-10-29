@@ -90,7 +90,8 @@ CacheLease::CacheLease(const fs::path &root, const CacheIdentity &identity, bool
 		std::random_device random;
 		for (int attempt = 0; attempt < 8; ++attempt) {
 			// Provider cache filenames are long; the identity already belongs to shared_.
-			path_ = absolute_root /
+			// Use the long-path form of the root (shared_ is already prefixed on Windows).
+			path_ = shared_.parent_path() /
 				(".working-" + std::to_string(random()) + "-" + std::to_string(random()));
 			if (fs::create_directory(path_))
 				break;
