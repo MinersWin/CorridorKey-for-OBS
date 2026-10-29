@@ -359,7 +359,13 @@ Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 	check(api.CreateIoBinding(state.session, &state.binding));
 	check(api.CreateRunOptions(&state.run_options));
 }
-Session::~Session() = default;
+Session::~Session()
+{
+	// A failed fence can leave ORT work in flight as well as our conversion work.
+	// Keep the provider, runtime library and model lease alive with that queue.
+	if (impl_ && impl_->dml_context && impl_->dml_context->failed())
+		(void)impl_.release();
+}
 std::shared_ptr<dml::Context> Session::dml_context() const
 {
 	return impl_->dml_context;
@@ -422,6 +428,8 @@ void Session::close()
 {
 	GpuActivity activity;
 	std::lock_guard lock(impl_->mutex);
+	if (impl_->dml_context && impl_->dml_context->failed())
+		return;
 	impl_->close();
 }
 void Session::run_bound(std::span<const std::pair<std::string, const OrtValue *>> inputs,
