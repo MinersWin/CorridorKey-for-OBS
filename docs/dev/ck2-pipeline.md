@@ -81,7 +81,10 @@ not describe this revision's input contract.
 foreground, the source/crop/ROI transform, next ROI and stage timings. `FrameResult`
 accepts matching half-grid maps from Stage 1 or full-grid maps from Stage 2.
 W08's staged transport uploads the corresponding texture size and reconstructs
-against the retained native frame. Guided coefficients, colour deltas, push-pull,
+against the retained native frame. The reconstruction working grid matches that
+texture size; Stage 1 first reduces guide RGB to its half grid. See
+[quality parity](quality-parity.md) for the correction and measured differences.
+Guided coefficients, colour deltas, push-pull,
 finishing/despill and crop mapping run through W08. There is no CPU upsample in
 this handoff. W13 can insert learned native-tile refinement before reconstruction.
 
@@ -144,6 +147,7 @@ corridorkey_ck2_validate CONFIG clip HEIGHT INPUT.npy REPORT.json BACKEND [quali
 
 Stages are `moge`, `rvm`, `stage1nomask`, `stage2nomask`. Clip input is FP32 NCHW
 sRGB at the selected grid. It writes low-resolution alpha beside the JSON report.
+It also writes planar straight sRGB foreground to `.fg.f32` beside the report.
 The grid-only clip harness disables ROI because it has no native image to recrop.
 Graph parity uses every `in_*` and compares every `out_*` from `.ref.npz`.
 Chain parity runs the same RGB three times from zero state, matching the exporter's

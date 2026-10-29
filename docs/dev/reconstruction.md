@@ -7,9 +7,13 @@ outputs: straight sRGB foreground `(1,3,h,w)` and linear alpha `(1,1,h,w)`.
 This does not load or validate a neural model.
 
 [CK2 integration](ck2-pipeline.md) feeds Stage 1 half-grid or Stage 2 full-grid
-maps into this interface. Sampling uses the model texture's own dimensions and
-bilinear interpolation before solving at the analysis-grid resolution. The
-smaller-texture GPU fixture checks this against an explicitly expanded reference.
+maps into this interface. Reconstruction runs on the decoded model grid. For
+Stage 1, the RGB guide is bilinearly reduced from the analysis grid before
+computing moments and foreground deltas. Expanding Stage 1 outputs to the
+analysis grid first caused edge halos and cancelled native detail; see
+[quality parity](quality-parity.md). Full-grid and half-grid scratch maps are
+preallocated and share one native raw target. The higher-resolution-guide GPU
+fixture checks the reduction against an independently averaged reference.
 
 ## Passes and ownership
 
@@ -24,7 +28,7 @@ remain valid until the next `prepare()` call; W13 must consume them before then.
 | P0 | `capture.effect:Capture` | OBS floating-point linear premultiplied input | Native FP32 sRGB-domain premultiplied RGBA, including source alpha |
 | P1 | `capture.effect:Downscale` | Retained native frame, normalized sampled ROI | Straight sRGB grid; staged RGBA8 analysis for the diagnostic worker |
 | P3 | Transport upload | Validated foreground and alpha | Packed FP32 RGBA on the inference grid; no colour decoding constants |
-| P4 | `Solve`, `Box` | Guide RGB, model alpha | Smoothed `(aR,aG,aB,b)` coefficients |
+| P4 | `Solve`, `Box` | RGB sampled on the model grid, model alpha | Smoothed `(aR,aG,aB,b)` coefficients |
 | P5 | `Delta`, `BackgroundSeed`, `Pull`, `SeedTop`, `Push`, `EncodeBackground` | Grid RGB, model foreground/alpha | sRGB foreground delta and background estimate |
 | P6 | `Band`, `Box` | Model alpha, lower threshold, gain | Dilated, alpha-weighted, feathered uncertainty |
 | P7 | `Reconstruct` | Native RGB, coefficients, delta, optional background | Native straight sRGB foreground and raw alpha |
@@ -61,7 +65,7 @@ flowchart LR
 
 The colour guided filter uses the local linear model from
 [He, Sun and Tang, *Guided Image Filtering*](https://kaiminghe.github.io/publications/eccv10guidedfilter.pdf).
-Each grid pixel accumulates RGB/alpha moments over a radius-two box. Windows
+Each model-grid pixel accumulates RGB/alpha moments over a radius-two box. Windows
 truncate at image borders and divide by their actual sample count. A local RGB
 origin reduces cancellation in FP32 on constant or nearly constant guides.
 The symmetric covariance matrix receives `epsilon = 5e-4` on its diagonal.
@@ -77,8 +81,9 @@ coordinates and avoids hardware texture-filter weight quantization.
 The foreground delta is `model_foreground - guide_RGB`. Its native contribution
 is full strength below alpha 0.90, interpolates toward `unmix_inner` between 0.90
 and 0.99, and uses `unmix_inner` above 0.99. The expert compositing-equation mode
-instead estimates foreground from the native RGB and background, with an alpha
-denominator floor of `1e-4`.
+instead decodes the native RGB and background to linear light, solves
+`F = (I - (1-alpha) B) / alpha`, then encodes foreground to sRGB before blending
+the correction. Its alpha denominator floor is `1e-4`.
 
 Background confidence is `(1-alpha)^4`. The seed stores linear RGB times
 confidence and confidence itself. A 2 x 2 average pyramid includes partial edge
@@ -284,7 +289,7 @@ local binder parity check; that check verifies weight binding, not reconstructed
 model output. Live screenshots require the dedicated CorridorKey Test
 collection. Installed-OBS testing must acquire the shared lock first.
 
-Real neural-model parity, learned refinement, Linux runtime/fence behaviour,
-AMD/Intel hardware, HDR reconstruction and GPU execution-time measurements remain
-unverified. The synthetic fixture checks reconstruction and colour handling;
-it does not establish hair-keying quality on real footage.
+The later [quality-parity evaluation](quality-parity.md) compares real CK2
+reconstruction with the research engine. Learned refinement, Linux runtime/fence
+behaviour, AMD/Intel hardware, HDR reconstruction and GPU execution-time
+measurements remain unverified.
