@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <algorithm>
 #ifdef _WIN32
 #define NOMINMAX
 #include <d3d12.h>
@@ -66,6 +67,9 @@ struct Session::Impl {
 	std::vector<TensorSpec> inputs, outputs;
 	Device device;
 	bool profiling = false, cache_ready = false;
+	bool persistent_io = false, capture = false;
+	std::map<std::string, std::size_t> profile_result;
+	std::vector<std::pair<std::string, const OrtValue *>> bound_inputs, bound_outputs;
 	std::mutex mutex;
 	void close()
 	{
@@ -105,6 +109,12 @@ Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 	// EP registration and device enumeration share the process-wide environment.
 	std::lock_guard loader_guard(runtime_control_mutex());
 	auto &state = *impl_;
+	state.persistent_io = config.persistent_io;
+	state.capture = config.bundle.backend == Backend::tensorrt &&
+			config.options.contains("trt_cuda_graph_enable") &&
+			config.options.at("trt_cuda_graph_enable") == "1";
+	if (state.capture && !state.persistent_io)
+		throw std::runtime_error("TensorRT capture requires persistent device I/O");
 	state.model_lease = std::move(config.model_lease);
 	state.runtime = Runtime::load(config.bundle);
 	const auto &runtime = *state.runtime;
@@ -382,17 +392,49 @@ void Session::run_bound(std::span<const std::pair<std::string, const OrtValue *>
 		throw std::runtime_error("Inference cancelled");
 	if (inputs.size() != impl_->inputs.size() || outputs.size() != impl_->outputs.size())
 		throw std::runtime_error("All static graph tensors must be bound");
-	api.ClearBoundInputs(impl_->binding);
-	api.ClearBoundOutputs(impl_->binding);
+	if (impl_->capture) {
+		if (!impl_->bound_inputs.empty() &&
+		    (!std::equal(inputs.begin(), inputs.end(), impl_->bound_inputs.begin(),
+				 impl_->bound_inputs.end()) ||
+		     !std::equal(outputs.begin(), outputs.end(), impl_->bound_outputs.begin(),
+				 impl_->bound_outputs.end())))
+			throw std::runtime_error("Captured I/O changed; recreate the session before rebinding");
+		if (impl_->bound_inputs.empty()) {
+			for (auto values : {inputs, outputs})
+				for (const auto &[name, value] : values) {
+					(void)name;
+					const OrtMemoryInfo *memory = nullptr;
+					const char *domain = nullptr;
+					int ordinal = -1;
+					rt.check(api.GetTensorMemoryInfo(value, &memory));
+					rt.check(api.MemoryInfoGetName(memory, &domain));
+					rt.check(api.MemoryInfoGetId(memory, &ordinal));
+					if (!domain || std::string_view(domain) != "Cuda" ||
+					    ordinal != impl_->device.ordinal)
+						throw std::runtime_error(
+							"Captured I/O must reside on the selected CUDA device");
+				}
+		}
+	}
 	rt.check(api.RunOptionsUnsetTerminate(impl_->run_options));
 	std::stop_callback cancel(stop, [&] {
 		if (auto status = api.RunOptionsSetTerminate(impl_->run_options))
 			api.ReleaseStatus(status);
 	});
-	for (const auto &[name, value] : inputs)
-		rt.check(api.BindInput(impl_->binding, name.c_str(), value));
-	for (const auto &[name, value] : outputs)
-		rt.check(api.BindOutput(impl_->binding, name.c_str(), value));
+	if (!impl_->persistent_io ||
+	    !std::equal(inputs.begin(), inputs.end(), impl_->bound_inputs.begin(), impl_->bound_inputs.end()) ||
+	    !std::equal(outputs.begin(), outputs.end(), impl_->bound_outputs.begin(), impl_->bound_outputs.end())) {
+		api.ClearBoundInputs(impl_->binding);
+		api.ClearBoundOutputs(impl_->binding);
+		impl_->bound_inputs.clear();
+		impl_->bound_outputs.clear();
+		for (const auto &[name, value] : inputs)
+			rt.check(api.BindInput(impl_->binding, name.c_str(), value));
+		for (const auto &[name, value] : outputs)
+			rt.check(api.BindOutput(impl_->binding, name.c_str(), value));
+		impl_->bound_inputs.assign(inputs.begin(), inputs.end());
+		impl_->bound_outputs.assign(outputs.begin(), outputs.end());
+	}
 	rt.check(api.SynchronizeBoundInputs(impl_->binding));
 	rt.check(api.RunWithBinding(impl_->session, impl_->run_options, impl_->binding));
 	rt.check(api.SynchronizeBoundOutputs(impl_->binding));
@@ -401,9 +443,13 @@ void Session::run_bound(std::span<const std::pair<std::string, const OrtValue *>
 std::map<std::string, std::size_t> Session::finish_profile()
 {
 	std::lock_guard lock(impl_->mutex);
+	return finish_profile_unlocked();
+}
+std::map<std::string, std::size_t> Session::finish_profile_unlocked()
+{
 	std::map<std::string, size_t> partitions;
 	if (!impl_->profiling || !impl_->session)
-		return partitions;
+		return impl_->profile_result;
 	const auto &rt = runtime();
 	const auto &api = rt.api();
 	OrtAllocator *allocator = nullptr;
@@ -421,6 +467,7 @@ std::map<std::string, std::size_t> Session::finish_profile()
 		if (!provider.empty())
 			++partitions[provider];
 	}
+	impl_->profile_result = partitions;
 	return partitions;
 }
 } // namespace corridorkey::ort

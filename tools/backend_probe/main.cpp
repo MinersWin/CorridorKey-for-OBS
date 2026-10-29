@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "util/utf8_path.hpp"
 #include "engine/ort_session.hpp"
+#include "engine/ck2_bindings.hpp"
 #include "engine/providers/process.hpp"
 #include <nlohmann/json.hpp>
 #include <algorithm>
@@ -51,6 +52,7 @@ json execute(const json &job)
 	config.obs_adapter.stable_id = job.value("adapter", "");
 	config.require_adapter_match = job.value("require_adapter_match", true);
 	config.prebuilt_context = job.value("prebuilt_context", false);
+	config.persistent_io = job.value("persistent_io", false);
 	config.precision = static_cast<Precision>(job.value("precision", static_cast<int>(Precision::fp32)));
 	if (config.precision != Precision::fp32 && config.precision != Precision::fp16 &&
 	    config.precision != Precision::bf16)
@@ -93,12 +95,19 @@ json execute(const json &job)
 		{"advisory",
 		 "This result validates only the supplied standard-op fixture; model and transport validation are separate. Unknown/newer runtime combinations are attempted."}};
 	if (mode == "build") {
+		if (config.bundle.backend == Backend::tensorrt && config.options.contains("trt_cuda_graph_enable") &&
+		    config.options.at("trt_cuda_graph_enable") == "1") {
+			ck2::PersistentBindings bindings(session, true);
+			bindings.run();
+			bindings.run();
+			result["capture_warmed"] = true;
+		}
 		result["advisory"] =
-			"Static graph compilation only; numerical parity and first-run kernels remain unverified";
+			"Static graph compiled; capture requests also ran twice with persistent device buffers. Numerical parity remains unverified.";
 		session.finish_build();
 		session.close();
 		result["detail"] =
-			"Session compilation completed; first-run JIT and model parity still require validation";
+			"Session preparation completed; model parity and live transport still require validation";
 		return result;
 	}
 	if (session.inputs().size() != 1 || session.outputs().size() != 1 ||

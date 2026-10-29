@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <random>
+#include <algorithm>
 
 namespace corridorkey::ort {
 GraphAttempt compile_in_helper(const SessionConfig &config, const CompilerConfig &compiler, std::stop_token stop)
@@ -50,6 +51,7 @@ GraphAttempt compile_in_helper(const SessionConfig &config, const CompilerConfig
 			{"adapter", config.obs_adapter.stable_id},
 			{"require_adapter_match", config.require_adapter_match},
 			{"prebuilt_context", config.prebuilt_context},
+			{"persistent_io", config.persistent_io},
 			{"precision", static_cast<int>(config.precision == Precision::automatic ? Precision::fp32
 												: config.precision)},
 			{"options", config.options},
@@ -116,6 +118,8 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 			request.obs_adapter = config.obs_adapter;
 			request.precision = config.precision;
 			request.package_id = config.bundle.id;
+			// Large runtime bundles must finish hash verification before the fixture runs.
+			request.timeout = std::min(compiler.timeout, std::chrono::milliseconds(60000));
 			auto tested = probe.probe(request, stop);
 			if (tested.failure || !tested.provider.available || !tested.provider.tested ||
 			    !tested.provider.matches_obs_adapter || !tested.provider.permits_live_inference) {
@@ -130,10 +134,14 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 						result.provider = tested.provider;
 					} catch (const std::bad_alloc &) {
 						attempt.failure = error(ErrorCode::out_of_memory);
-					} catch (...) {
+					} catch (const std::exception &e) {
 						attempt.failure = error(ErrorCode::backend_unavailable);
 						attempt.detail =
 							"In-process preparation failed after graph compilation; check runtime collision or changed device state";
+						const std::string reason = e.what();
+						if (reason.starts_with("Runtime library collision:"))
+							attempt.detail =
+								reason; // Loader supplies only a library basename.
 					}
 				}
 			}
