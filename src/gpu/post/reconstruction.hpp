@@ -20,7 +20,7 @@ public:
 	Reconstruction &operator=(const Reconstruction &) = delete;
 	bool available() const noexcept { return valid_; }
 	bool prepare(gs_texture_t *native, gs_texture_t *guide, gs_texture_t *model, const Settings &settings,
-		     const Crop &roi);
+		     const Crop &roi, bool refinement = false);
 	bool finish(gs_texrender_t *output, gs_texture_t *native, const Settings &settings, const Crop &roi,
 		    int debug_view = 0, gs_texture_t *refined = nullptr);
 	void present(gs_texture_t *output);

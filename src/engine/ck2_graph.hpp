@@ -13,7 +13,7 @@ struct Tensor {
 };
 using Tensors = std::map<std::string, Tensor>;
 using Inputs = std::map<std::string, const Tensor *>;
-enum class Stage { moge, rvm, stage1, stage2 };
+enum class Stage { moge, rvm, stage1, stage2, refiner };
 std::string graph_name(Stage, Extent);
 Tensors input_contract(Stage, Extent);
 Tensors output_contract(Stage, Extent);
@@ -35,7 +35,7 @@ struct StageTimes {
 	bool moge_refreshed = false;
 };
 // W08 consumes decoded, straight sRGB foreground and linear alpha in sampled_roi.
-// W13 can refine these maps with native RGB before reconstruction.
+// W13 refines the native reconstruction before final despill and levels.
 struct LowResolutionResult {
 	Tensor alpha, foreground;
 	FrameTransform transform;

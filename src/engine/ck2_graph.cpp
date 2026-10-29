@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "ck2_graph.hpp"
+#include "refiner_stage.hpp"
 #include <algorithm>
+#include <bit>
 #include <cmath>
 #include <stdexcept>
 
@@ -19,6 +21,10 @@ Tensor::Tensor(std::vector<std::int64_t> dimensions, float fill) : shape(std::mo
 }
 std::string graph_name(Stage stage, Extent grid)
 {
+	if (stage == Stage::refiner) {
+		refiner::input_atlas(grid.width);
+		return "refiner_b" + std::to_string(grid.width);
+	}
 	const char *name = stage == Stage::moge     ? "moge"
 			   : stage == Stage::rvm    ? "rvm"
 			   : stage == Stage::stage1 ? "stage1nomask"
@@ -27,10 +33,16 @@ std::string graph_name(Stage stage, Extent grid)
 }
 Tensors input_contract(Stage stage, Extent grid)
 {
+	if (stage == Stage::refiner) {
+		refiner::input_atlas(grid.width);
+		return {{"x", Tensor({grid.width, 11, 52, 52})}};
+	}
 	const std::int64_t h = grid.height, w = grid.width;
 	if (w != 512 || (h != 256 && h != 512))
 		throw std::invalid_argument("CK2 supports 256x512 and 512x512 exports");
 	switch (stage) {
+	case Stage::refiner:
+		break;
 	case Stage::moge:
 		return {{"rgb_moge", Tensor({1, 3, h * 7 / 32, w * 7 / 32})}};
 	case Stage::rvm:
@@ -50,6 +62,9 @@ Tensors output_contract(Stage stage, Extent grid)
 {
 	const std::int64_t h = grid.height, w = grid.width;
 	switch (stage) {
+	case Stage::refiner:
+		refiner::input_atlas(grid.width);
+		return {{"alpha", Tensor({grid.width, 1, 52, 52})}, {"fg", Tensor({grid.width, 3, 52, 52})}};
 	case Stage::moge:
 		return {{"moge_feat", Tensor({1, 1, 768, h / 64, w / 64})}};
 	case Stage::rvm:
@@ -69,7 +84,7 @@ void check_tensor(const Tensor &actual, const Tensor &expected, bool unit_range)
 	if (actual.shape != expected.shape || actual.values.size() != expected.values.size())
 		throw std::runtime_error("CK2 tensor shape mismatch");
 	for (float v : actual.values)
-		if (!std::isfinite(v) || (unit_range && (v < 0 || v > 1)))
+		if ((std::bit_cast<std::uint32_t>(v) & 0x7f800000U) == 0x7f800000U || (unit_range && (v < 0 || v > 1)))
 			throw std::runtime_error("CK2 tensor has invalid values");
 }
 Tensor planar_rgb(const Image &image)

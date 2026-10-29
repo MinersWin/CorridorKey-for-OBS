@@ -195,6 +195,36 @@ TEST_CASE("CK2 area preprocessing and half pixel reconstruction")
 	line.values = {0, 1};
 	CHECK(ck2::resize_bilinear(line, {4, 1}).values == std::vector<float>{0, .25f, .75f, 1});
 }
+TEST_CASE("CK2 factory-provided refiner keeps its model leased after pipeline replacement")
+{
+	struct Lease final : ModelReadLease {};
+	struct Idle final : ck2::Graph {
+		ck2::Tensors run(const ck2::Inputs &, std::stop_token) override { return {}; }
+	};
+	auto observed = std::make_shared<Observation>();
+	std::weak_ptr<const ModelReadLease> lease;
+	Ck2Pipeline pipeline([&](const PrepareRequest &) {
+		auto model = std::make_shared<ReadyModel>();
+		model->lease = std::make_shared<Lease>();
+		lease = model->lease;
+		auto prepared = Ck2Prepared{graphs(observed), Backend::fake, "test", model};
+		prepared.graphs.emplace(ck2::Stage::refiner, std::make_unique<Idle>());
+		return prepared;
+	});
+	FramePool pool;
+	auto input = frame(pool, 1);
+	PrepareRequest request;
+	request.instance = 1;
+	request.generation = pool.generation();
+	request.settings = input.settings;
+	REQUIRE_FALSE(pipeline.prepare(request));
+	auto stage = pipeline.refiner_stage();
+	REQUIRE(stage);
+	pipeline.shutdown();
+	CHECK_FALSE(lease.expired());
+	stage.reset();
+	CHECK(lease.expired());
+}
 TEST_CASE("CK2 pipeline retains input lease and rejects duplicate submissions")
 {
 	auto observed = std::make_shared<Observation>();

@@ -27,7 +27,11 @@ bool Ck2Pipeline::supports(const Settings &settings)
 {
 	return settings.quality.model == ModelFamily::ck2 && !settings.quality.aspect_fix &&
 	       !settings.experimental.head_pass && !settings.experimental.stagger_stages &&
-	       settings.hint.ck2_mode == HintMode::off;
+	       settings.hint.ck2_mode == HintMode::off &&
+	       (!settings.quality.refiner_enabled || (refiner::supported_budget(settings.quality.refiner_max_tiles) &&
+						      (settings.quality.guide_mode == GuideMode::refiner ||
+						       settings.quality.guide_mode == GuideMode::rgb_guided) &&
+						      settings.quality.unmix_mode == UnmixMode::delta));
 }
 Error Ck2Pipeline::prepare(const PrepareRequest &request)
 {
@@ -39,6 +43,14 @@ Error Ck2Pipeline::prepare(const PrepareRequest &request)
 		return error(ErrorCode::cancelled);
 	try {
 		auto prepared = factory_(request);
+		auto model = prepared.model ? prepared.model : request.model;
+		std::shared_ptr<refiner::Stage> refinement;
+		if (auto found = prepared.graphs.find(ck2::Stage::refiner); found != prepared.graphs.end()) {
+			refinement = std::make_shared<refiner::Stage>(std::move(found->second),
+								      request.settings->quality.refiner_max_tiles,
+								      model ? model->lease : nullptr);
+			prepared.graphs.erase(found);
+		}
 		auto sequence = std::make_unique<ck2::SequenceState>(
 			request.settings->quality.grid, request.settings->quality.profile == Profile::quality,
 			std::move(prepared.graphs));
@@ -50,7 +62,8 @@ Error Ck2Pipeline::prepare(const PrepareRequest &request)
 			return error(ErrorCode::stale_generation);
 		clear();
 		sequence_ = std::move(sequence);
-		model_ = request.model;
+		refiner_ = std::move(refinement);
+		model_ = std::move(model);
 		instance_ = request.instance;
 		preparation_stop_ = request.cancellation;
 		diagnostics_.generation = request.generation;
@@ -218,6 +231,7 @@ void Ck2Pipeline::shutdown() noexcept
 	std::lock_guard lock(mutex_);
 	clear();
 	sequence_.reset();
+	refiner_.reset();
 	model_.reset();
 	diagnostics_.lifecycle = Lifecycle::stopped;
 }
@@ -245,5 +259,10 @@ std::string Ck2Pipeline::detail() const
 {
 	std::lock_guard lock(mutex_);
 	return detail_;
+}
+std::shared_ptr<refiner::Stage> Ck2Pipeline::refiner_stage() const
+{
+	std::lock_guard lock(mutex_);
+	return refiner_;
 }
 } // namespace corridorkey

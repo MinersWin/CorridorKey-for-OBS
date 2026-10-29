@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+target_sources(corridorkey_core PRIVATE src/engine/refiner_stage.cpp)
+if(BUILD_TESTING)
+  target_sources(corridorkey_contract_tests PRIVATE tests/refiner_test.cpp)
+endif()
+if(TARGET corridorkey)
+  target_sources(corridorkey PRIVATE src/gpu/post/refiner.cpp)
+endif()
+if(TARGET corridorkey_post_probe)
+  target_sources(corridorkey_post_probe PRIVATE src/gpu/post/refiner.cpp src/obs/gpu_fence.cpp)
+endif()

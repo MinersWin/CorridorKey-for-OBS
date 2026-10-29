@@ -21,6 +21,7 @@ uniform float4 user_cut;
 uniform float4 finish_params; // contrast, offset, black, white
 uniform float4 reconstruction_params; // epsilon, inner correction, despill, band gain
 uniform float band_low;
+uniform float band_high;
 uniform int radius;
 uniform int view;
 uniform bool linear_output;
@@ -151,7 +152,7 @@ float4 Band(Vertex v) : TARGET
     for (int y = -2; y <= 2; ++y) {
         for (int x = -2; x <= 2; ++x) {
             float a = saturate(clean(sample_Network(v.uv + float2(x, y) * texel).a));
-            uncertain = max(uncertain, (a > band_low && a < 1.0 - band_low) ? 1.0 : 0.0);
+            uncertain = max(uncertain, (a > band_low && a < band_high) ? 1.0 : 0.0);
             near_alpha = max(near_alpha, a);
         }
     }
@@ -198,6 +199,15 @@ float4 SeedTop(Vertex v) : TARGET
 {
     float4 p = image.Sample(point_clamp, v.uv);
     return float4(p.a > 0.000001 ? p.rgb / p.a : float3(0.0, 0.0, 0.0), 1.0);
+}
+float4 SeedRefiner(Vertex v) : TARGET
+{
+    float4 sum = float4(0.0, 0.0, 0.0, 0.0);
+    for (int y = 0; y < int(input_size.y); ++y) for (int x = 0; x < int(input_size.x); ++x)
+        sum += image.SampleLevel(point_clamp, (float2(x, y) + 0.5) / input_size, 0.0);
+    float3 estimate = sum.rgb / max(sum.a, 0.000001);
+    float4 p = image.SampleLevel(point_clamp, v.uv, 0.0);
+    return float4(p.rgb + (1.0 - saturate(p.a)) * estimate, 1.0);
 }
 float4 EncodeBackground(Vertex v) : TARGET
 {
@@ -256,6 +266,7 @@ technique Reduce { pass { vertex_shader = VS(v); pixel_shader = Reduce(v); } }
 technique Pull { pass { vertex_shader = VS(v); pixel_shader = Pull(v); } }
 technique Push { pass { vertex_shader = VS(v); pixel_shader = Push(v); } }
 technique SeedTop { pass { vertex_shader = VS(v); pixel_shader = SeedTop(v); } }
+technique SeedRefiner { pass { vertex_shader = VS(v); pixel_shader = SeedRefiner(v); } }
 technique EncodeBackground { pass { vertex_shader = VS(v); pixel_shader = EncodeBackground(v); } }
 technique Reconstruct { pass { vertex_shader = VS(v); pixel_shader = Reconstruct(v); } }
 technique Finish { pass { vertex_shader = VS(v); pixel_shader = Finish(v); } }

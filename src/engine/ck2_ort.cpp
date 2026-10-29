@@ -47,8 +47,8 @@ void verify_manifest(const std::filesystem::path &path, Stage stage, Extent grid
 		throw std::runtime_error("CK2 graph manifest too large");
 	std::ifstream stream(path);
 	const auto manifest = Json::parse(stream);
-	if (manifest.at("graph") != graph_name(stage, grid) || manifest.at("H") != grid.height ||
-	    manifest.at("W") != grid.width)
+	if (manifest.at("graph") != graph_name(stage, grid) ||
+	    (stage != Stage::refiner && (manifest.at("H") != grid.height || manifest.at("W") != grid.width)))
 		throw std::runtime_error("CK2 graph identity differs from requested profile");
 	auto check = [&](const char *name, const Tensors &expected) {
 		const auto &specs = manifest.at(name);
@@ -139,16 +139,21 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 {
 	if (!request.model || !request.model->lease)
 		throw std::runtime_error("No verified, leased CK2 model is ready");
-	const auto grid = request.settings->quality.grid;
+	const auto analysis_grid = request.settings->quality.grid;
 	const bool quality = request.settings->quality.profile == Profile::quality;
 	RecordedProbe probe(runtime);
 	Ck2Prepared result;
+	result.model = request.model;
 	std::filesystem::path selected_core;
 	std::ostringstream description;
 	// Stage graphs decide whether the pipeline can run before loading foundations.
-	for (auto stage : {Stage::stage1, Stage::stage2, Stage::rvm, Stage::moge}) {
+	for (auto stage : {Stage::stage1, Stage::stage2, Stage::rvm, Stage::moge, Stage::refiner}) {
 		if (stage == Stage::stage2 && !quality)
 			continue;
+		if (stage == Stage::refiner && !request.settings->quality.refiner_enabled)
+			continue;
+		const auto grid = stage == Stage::refiner ? Extent{request.settings->quality.refiner_max_tiles, 52}
+							  : analysis_grid;
 		const auto name = graph_name(stage, grid);
 		const auto preparing_at = Clock::now();
 		if (runtime.info)
@@ -265,7 +270,9 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 				      std::make_unique<OrtGraph>(std::move(prepared.session), stage, grid, device,
 								 std::move(recreate), std::move(fallback)));
 	}
-	result.detail = description.str() + "Native reconstruction; learned edge refinement is unavailable.";
+	result.detail = description.str() + (request.settings->quality.refiner_enabled
+						     ? "Native edge refinement; staged tile atlas."
+						     : "Native reconstruction; edge refinement off.");
 	return result;
 }
 #ifdef CORRIDORKEY_CK2_DEV
@@ -293,7 +300,8 @@ DevelopmentConfig read_development_config(const std::filesystem::path &path)
 	return result;
 }
 std::shared_ptr<const ReadyModel> development_model(const std::filesystem::path &directory, Extent grid, bool quality,
-						    const std::filesystem::path &release_fixture)
+						    const std::filesystem::path &release_fixture,
+						    unsigned refiner_budget)
 {
 	struct LocalLease final : ModelReadLease {};
 	auto model = std::make_shared<ReadyModel>();
@@ -306,10 +314,12 @@ std::shared_ptr<const ReadyModel> development_model(const std::filesystem::path 
 		model->key.revision = release.at("revision").get<std::string>();
 	}
 	std::string identity;
-	for (auto stage : {Stage::moge, Stage::rvm, Stage::stage1, Stage::stage2}) {
+	for (auto stage : {Stage::moge, Stage::rvm, Stage::stage1, Stage::stage2, Stage::refiner}) {
 		if (stage == Stage::stage2 && !quality)
 			continue;
-		const auto name = graph_name(stage, grid);
+		if (stage == Stage::refiner && !refiner_budget)
+			continue;
+		const auto name = graph_name(stage, stage == Stage::refiner ? Extent{refiner_budget, 52} : grid);
 		GraphArtifact artifact;
 		artifact.role = name;
 		artifact.graph_path = directory / (name + ".onnx");

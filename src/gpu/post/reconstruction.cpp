@@ -54,6 +54,7 @@ Reconstruction::Reconstruction(Extent native, Extent grid, const char *path, Rec
 	set("radius", 2);
 	set("view", 0);
 	set("band_low", 0.004f);
+	set("band_high", 0.996f);
 	for (const char *name : {"linear_output", "use_refined", "equation_unmix", "bilinear_alpha"})
 		set(name, 0);
 	solve_ = allocate(grid);
@@ -145,7 +146,7 @@ bool Reconstruction::draw(gs_texrender_t *target, Extent extent, const char *tec
 	return true;
 }
 bool Reconstruction::prepare(gs_texture_t *native, gs_texture_t *guide, gs_texture_t *model, const Settings &settings,
-			     const Crop &roi)
+			     const Crop &roi, bool refinement)
 {
 	if (!valid_ || !native || !guide || !model)
 		return false;
@@ -157,6 +158,7 @@ bool Reconstruction::prepare(gs_texture_t *native, gs_texture_t *guide, gs_textu
 		 std::clamp(finite(q.despill_strength, 0), 0.0f, 1.0f), finite(q.refiner_band_gain, 10));
 	set("reconstruction_params", params);
 	set("band_low", std::clamp(finite(q.refiner_band_lo, 0.004f), 0.0f, 0.5f));
+	set("band_high", refinement ? 0.996f : 1.0f - std::clamp(finite(q.refiner_band_lo, 0.004f), 0.0f, 0.5f));
 	texture("guide_image", guide);
 	texture("model_image", model);
 	vec2 model_dimensions;
@@ -177,19 +179,27 @@ bool Reconstruction::prepare(gs_texture_t *native, gs_texture_t *guide, gs_textu
 	if (!draw(coefficients_, grid_, "Box") || !draw(delta_, grid_, "Delta") || !draw(band_raw_, grid_, "Band"))
 		return false;
 	texture("image", gs_texrender_get_texture(band_raw_));
-	set("radius", 1);
+	set("radius", refinement && q.refiner_band_gain <= 0 ? 0 : 1);
 	if (!draw(band_, grid_, "Box") || !draw(pull_[0], grid_, "BackgroundSeed"))
 		return false;
-	for (std::size_t i = 1; i < levels_.size(); ++i) {
+	std::size_t last = levels_.size() - 1;
+	if (refinement)
+		for (std::size_t i = 0; i < levels_.size(); ++i)
+			if (std::min(levels_[i].width, levels_[i].height) <= 4) {
+				last = i;
+				break;
+			}
+	for (std::size_t i = 1; i <= last; ++i) {
 		size(levels_[i - 1]);
 		texture("image", gs_texrender_get_texture(pull_[i - 1]));
 		if (!draw(pull_[i], levels_[i], "Pull"))
 			return false;
 	}
-	texture("image", gs_texrender_get_texture(pull_.back()));
-	if (!draw(push_.back(), levels_.back(), "SeedTop"))
+	texture("image", gs_texrender_get_texture(pull_[last]));
+	size(levels_[last]);
+	if (!draw(push_[last], levels_[last], refinement ? "SeedRefiner" : "SeedTop"))
 		return false;
-	for (std::size_t i = levels_.size() - 1; i-- > 0;) {
+	for (std::size_t i = last; i-- > 0;) {
 		texture("image", gs_texrender_get_texture(pull_[i]));
 		texture("coarse_image", gs_texrender_get_texture(push_[i + 1]));
 		vec2 dimensions;

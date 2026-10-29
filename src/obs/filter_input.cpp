@@ -82,6 +82,7 @@ struct FilterInput::Impl {
 #ifdef CORRIDORKEY_CK2_DEV
 	std::unique_ptr<Ck2Pipeline> real;
 	std::string prepared_key;
+	std::vector<std::shared_ptr<refiner::Stage>> retained_refiners;
 #endif
 	std::stop_source preparation;
 	Crop capture_roi, completed_roi;
@@ -95,6 +96,11 @@ struct FilterInput::Impl {
 	std::optional<InputFrame> staged_input;
 	std::optional<FrameResult> completed_result;
 	std::vector<float> completed_pixels;
+	std::optional<FrameResult> publishing_result;
+	std::vector<float> publishing_pixels;
+	std::shared_ptr<refiner::Stage> completed_refiner, publishing_refiner;
+	Crop publishing_roi;
+	TimePoint publishing_started{};
 	TimePoint publication_started{};
 	std::atomic<bool> transfer_queued{false}, input_available{false};
 	SettingsSnapshot worker_settings;
@@ -354,35 +360,54 @@ struct FilterInput::Impl {
 		std::unique_lock mailbox(mailbox_mutex, std::try_to_lock);
 		if (!mailbox.owns_lock())
 			return;
-		if (!completed_result)
+		if (!publishing_result) {
+			if (!completed_result)
+				return;
+			publishing_result = std::move(completed_result);
+			completed_result.reset();
+			publishing_pixels.swap(completed_pixels);
+			publishing_refiner = std::move(completed_refiner);
+			publishing_roi = completed_roi;
+			publishing_started = publication_started;
+		}
+		auto &result = publishing_result;
+		const bool stale = !active() || !transport ||
+				   !presentable(*result, instance, pool.generation(), last_presented, obs_now(),
+						std::chrono::milliseconds(settings->context.stale_timeout_ms));
+		if (stale && (!transport || !transport->refining())) {
+			result.reset();
 			return;
-		auto result = std::move(completed_result);
-		completed_result.reset();
-		if (!active() || !transport ||
-		    !presentable(*result, instance, pool.generation(), last_presented, obs_now(),
-				 std::chrono::milliseconds(settings->context.stale_timeout_ms)))
-			return;
+		}
 		const auto start = obs_now();
 		GraphicsScope graphics;
-		const bool uploaded = transport->upload(*result, completed_pixels, debug_view);
-		result->timings.output_transfer += obs_now() - publication_started;
+		const bool uploaded = transport->upload(*result, publishing_pixels, debug_view, publishing_refiner);
 		post_timings.record(obs_now() - start, {});
-		if (!uploaded) {
-			failure = ErrorCode::device_lost;
+		if (transport->refining())
+			return;
+		result->timings.output_transfer += obs_now() - publishing_started;
+		if (!uploaded || stale) {
+			if (!uploaded)
+				failure = ErrorCode::device_lost;
 			const auto index = result->input.lease.id().index;
 			retired[index] = std::move(result);
+			result.reset();
 			return;
 		}
 		retire_presented();
 		result->input.lease.transition(FrameState::presenting);
 		last_presented = result->identity.sequence;
 		presented = std::move(result);
-		capture_roi = completed_roi;
+		result.reset();
+		capture_roi = publishing_roi;
 		++published;
 		failure = ErrorCode::none;
 	}
 	void work(Generation &prepared)
 	{
+#ifdef CORRIDORKEY_CK2_DEV
+		// The last session reference is released here, so graphics never joins an inference worker.
+		std::erase_if(retained_refiners, [](const auto &stage) { return stage.use_count() == 1; });
+#endif
 		std::stop_token stop;
 		const auto work_start = obs_now();
 		const auto generation = pool.generation();
@@ -413,12 +438,14 @@ struct FilterInput::Impl {
 						 std::to_string(snapshot->quality.grid.height) + ":" +
 						 std::to_string(static_cast<int>(snapshot->quality.profile)) + ":" +
 						 std::to_string(static_cast<int>(snapshot->backend.backend)) + ":" +
+						 std::to_string(snapshot->quality.refiner_max_tiles) + ":" +
 						 snapshot->quality.model_revision;
 				if (!Ck2Pipeline::supports(*snapshot)) {
 					problem = error(ErrorCode::unsupported);
 					std::lock_guard lock(mutex);
 					model_detail = "CK2 settings request an unsupported stage or input transform.";
-				} else if (real && key == prepared_key) {
+				} else if (real && key == prepared_key &&
+					   (!snapshot->quality.refiner_enabled || real->refiner_stage())) {
 					pipeline = real.get();
 					problem = real->reset(generation, ResetReason::explicit_reset);
 				} else {
@@ -434,7 +461,10 @@ struct FilterInput::Impl {
 							request.model = ck2::development_model(
 								config.models, request.settings->quality.grid,
 								request.settings->quality.profile == Profile::quality,
-								config.release_fixture);
+								config.release_fixture,
+								request.settings->quality.refiner_enabled
+									? request.settings->quality.refiner_max_tiles
+									: 0);
 							request.transport.adapter = config.adapter;
 							return ck2::prepare_ort(request, config.runtime);
 						},
@@ -447,6 +477,8 @@ struct FilterInput::Impl {
 						     "[corridorkey:w09] preparation: %s", model_detail.c_str());
 					}
 					if (!problem) {
+						if (auto stage = replacement->refiner_stage())
+							retained_refiners.push_back(std::move(stage));
 						real = std::move(replacement);
 						pipeline = real.get();
 						prepared_key = key;
@@ -518,6 +550,9 @@ struct FilterInput::Impl {
 				completed_pixels.swap(rgba);
 				publication_started = obs_now();
 				completed_roi = next_roi;
+#ifdef CORRIDORKEY_CK2_DEV
+				completed_refiner = real && pipeline == real.get() ? real->refiner_stage() : nullptr;
+#endif
 			}
 			input = std::move(staged_input);
 			staged_input.reset();
@@ -573,14 +608,29 @@ struct FilterInput::Impl {
 		bool drained = false;
 		while (!drained) {
 			graphics_task([&] {
+				if (publishing_result) {
+					if (transport && transport->refining())
+						transport->upload(*publishing_result, publishing_pixels, debug_view,
+								  publishing_refiner);
+					if (!transport || !transport->refining()) {
+						const auto index = publishing_result->input.lease.id().index;
+						retired[index] = std::move(publishing_result);
+						publishing_result.reset();
+					}
+				}
 				retire_presented();
 				collect();
 				if (pool.in_use() == 0) {
 					transport.reset();
+					publishing_refiner.reset();
+					completed_refiner.reset();
 					drained = true;
 				}
 			});
 		}
+#ifdef CORRIDORKEY_CK2_DEV
+		retained_refiners.clear();
+#endif
 	}
 };
 FilterInput::FilterInput(obs_source_t *source) : impl_(std::make_unique<Impl>(source)) {}
