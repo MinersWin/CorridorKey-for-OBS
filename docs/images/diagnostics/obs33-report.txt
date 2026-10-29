@@ -1,0 +1,269 @@
+CorridorKey diagnostics
+```json
+{
+  "active_fps_api": true,
+  "architecture": "x86_64",
+  "cache": {
+    "bytes": 0,
+    "measured": true,
+    "path": "<model-cache>"
+  },
+  "canvas": [
+    1920,
+    1080
+  ],
+  "commit": "f8ae5e5-dirty",
+  "fps": 30.000000300000007,
+  "gpus": [
+    {
+      "adapter": "luid:00000000:000139de",
+      "architecture": "",
+      "device_id": 11269,
+      "driver": "32.0.16.1692",
+      "name": "NVIDIA GeForce RTX 5070 Ti",
+      "vendor_id": 4318,
+      "vram_bytes": 16774070272
+    },
+    {
+      "adapter": "luid:00000000:0001b72c",
+      "architecture": "",
+      "device_id": 11269,
+      "driver": "32.0.16.1692",
+      "name": "NVIDIA GeForce RTX 5070 Ti",
+      "vendor_id": 4318,
+      "vram_bytes": 16774070272
+    }
+  ],
+  "instances": [
+    {
+      "backend": "fake (synthetic)",
+      "error": "CK-OK",
+      "lifecycle": 3,
+      "model": "",
+      "model_revision": "",
+      "selection_reason": "pipeline ready",
+      "settings": {
+        "alpha_contrast": 1.0499999523162842,
+        "alpha_offset": 0.0,
+        "aspect_fix": false,
+        "auto_sync": false,
+        "backend": "auto",
+        "bg_color_rgb": 4278190080,
+        "bypass": false,
+        "chroma_hint_quality": 0.75,
+        "clip_black": 0.0,
+        "clip_white": 1.0,
+        "cut_bottom": 0.0,
+        "cut_left": 0.0,
+        "cut_right": 0.0,
+        "cut_top": 0.0,
+        "despill_strength": 0.6499999761581421,
+        "external_hint_quality": 0.5,
+        "external_hint_soft": 0,
+        "grid": "512x512",
+        "guide_mode": "refiner",
+        "guided_eps": 0.0005000000237487257,
+        "guided_radius": 2,
+        "guided_scale": "1",
+        "head_max_tiles": 256,
+        "head_min_gain": 1.2999999523162842,
+        "head_pass": false,
+        "head_size": 512,
+        "hint_mode": "off",
+        "hint_refresh": 1,
+        "hint_similarity": 0.4000000059604645,
+        "hint_smoothness": 0.10000000149011612,
+        "hint_source": "chroma",
+        "model_id": "ck2",
+        "moge_interval": 3,
+        "moge_motion_threshold": 0.05000000074505806,
+        "obs_view": "key",
+        "precision": "auto",
+        "profile": "balanced",
+        "refiner_band_gain": 10.0,
+        "refiner_band_lo": 0.004000000189989805,
+        "refiner_enabled": true,
+        "refiner_max_tiles": 512,
+        "roi_enabled": true,
+        "roi_padding": 0.20000000298023224,
+        "roi_smoothing": 0.800000011920929,
+        "screen_color": "green",
+        "settings_version": 2,
+        "stage2_interval": "0",
+        "stagger_s1_s2": false,
+        "stale_timeout_ms": 250,
+        "sync_limit_ms": 250,
+        "sync_trim_ms": 0,
+        "target_fps": "0",
+        "temporal_hint_quality": 0.0,
+        "transport": "auto",
+        "unmix_inner": 1.0,
+        "unmix_mode": "delta",
+        "use_rvm_temporal": true,
+        "view_mode": "transparent"
+      },
+      "source_size": [
+        1280,
+        720
+      ],
+      "timing": {
+        "age_median_ms": 166.6641,
+        "age_p95_ms": 199.9898,
+        "completed": 84,
+        "dropped": 94,
+        "inference_median_ms": 33.1544,
+        "input_transfer_median_ms": 35.4273,
+        "keyed_fps": 14.093998229914627,
+        "output_transfer_median_ms": 25.9428,
+        "queue_median_ms": 0.0006,
+        "repeated": 79,
+        "submitted": 84
+      },
+      "transport": "staged grid"
+    }
+  ],
+  "kernel": "winnt 10.0.26200",
+  "models": [
+    {
+      "error": "CK-OK",
+      "graphs": [],
+      "hash_scope": "expected manifest hashes; model manager verifies before Ready",
+      "id": "ck2-balanced",
+      "installed_bytes": 0,
+      "revision": "",
+      "state": "Not installed",
+      "verification": "not ready"
+    },
+    {
+      "error": "CK-OK",
+      "graphs": [],
+      "hash_scope": "expected manifest hashes; model manager verifies before Ready",
+      "id": "refiner-v12",
+      "installed_bytes": 0,
+      "revision": "",
+      "state": "Not installed",
+      "verification": "not ready"
+    },
+    {
+      "error": "CK-OK",
+      "graphs": [],
+      "hash_scope": "expected manifest hashes; model manager verifies before Ready",
+      "id": "ck1",
+      "installed_bytes": 0,
+      "revision": "",
+      "state": "Not installed",
+      "verification": "not ready"
+    },
+    {
+      "error": "CK-OK",
+      "graphs": [],
+      "hash_scope": "expected manifest hashes; model manager verifies before Ready",
+      "id": "modnet",
+      "installed_bytes": 0,
+      "revision": "",
+      "state": "Not installed",
+      "verification": "not ready"
+    },
+    {
+      "error": "CK-OK",
+      "graphs": [],
+      "hash_scope": "expected manifest hashes; model manager verifies before Ready",
+      "id": "mediapipe",
+      "installed_bytes": 0,
+      "revision": "",
+      "state": "Not installed",
+      "verification": "not ready"
+    }
+  ],
+  "obs": "33.0.0",
+  "os": "Windows 11 Version 25H2",
+  "plugin": "0.1.0",
+  "privacy": "No media, logs, tokens, scene/source names, UUIDs or personal paths. Free-text settings and errors omitted. Nothing uploaded.",
+  "providers": [
+    {
+      "available": false,
+      "backend": "tensorrt-rtx",
+      "bundle": null,
+      "configured": false,
+      "ep_build": null,
+      "ort_api": null,
+      "ort_core": null,
+      "reason": "runtime bundle not installed",
+      "selected": false,
+      "tested": false
+    },
+    {
+      "available": false,
+      "backend": "tensorrt",
+      "bundle": null,
+      "configured": false,
+      "ep_build": null,
+      "ort_api": null,
+      "ort_core": null,
+      "reason": "runtime bundle not installed",
+      "selected": false,
+      "tested": false
+    },
+    {
+      "available": false,
+      "backend": "cuda",
+      "bundle": null,
+      "configured": false,
+      "ep_build": null,
+      "ort_api": null,
+      "ort_core": null,
+      "reason": "runtime bundle not installed",
+      "selected": false,
+      "tested": false
+    },
+    {
+      "available": false,
+      "backend": "directml",
+      "bundle": null,
+      "configured": false,
+      "ep_build": null,
+      "ort_api": null,
+      "ort_core": null,
+      "reason": "runtime bundle not installed",
+      "selected": false,
+      "tested": false
+    },
+    {
+      "available": false,
+      "backend": "migraphx",
+      "bundle": null,
+      "configured": false,
+      "ep_build": null,
+      "ort_api": null,
+      "ort_core": null,
+      "reason": "runtime bundle not installed",
+      "selected": false,
+      "tested": false
+    },
+    {
+      "available": false,
+      "backend": "cpu diagnostic",
+      "bundle": null,
+      "configured": false,
+      "ep_build": null,
+      "ort_api": null,
+      "ort_core": null,
+      "reason": "runtime bundle not installed",
+      "selected": false,
+      "tested": false
+    }
+  ],
+  "qt": "6.11.1",
+  "recent_errors": [
+    {
+      "action": "Wait for a free frame slot.",
+      "code": "CK-E001"
+    }
+  ],
+  "recording": false,
+  "renderer": "Direct3D 11",
+  "schema": 1,
+  "streaming": false,
+  "timing_scope": "W15 rolling window: up to 5 seconds / 1024 presentations; stale values are null. Counters retain producer scope."
+}
+```

@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: Backend or GPU problem
+description: A provider will not start, crashes or falls back.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. In Tools > CorridorKey Models, choose Copy diagnostics and review the preview before copying. Nothing is uploaded by the plugin.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Exact environment
+      description: Plugin version/commit; OBS version and install type; OS edition/distro, kernel and architecture; GPU and driver. Add Qt, ORT and EP versions if diagnostics is unavailable.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you do, and how often does it happen?
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual result
+      description: What should have happened? What happened instead?
+    validations:
+      required: true
+  - type: input
+    id: regression
+    attributes:
+      label: First affected / last working version
+      placeholder: Unknown is fine
+  - type: textarea
+    id: setup
+    attributes:
+      label: Backend attempt
+      description: Which GPU/VRAM and OBS adapter? Requested versus actual EP, fallback reason, cold setup versus warm run, and Test backend result. Diagnostics fills in runtime and graph identities.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Reviewed diagnostics
+      description: Paste the whole Copy diagnostics report, or say why you cannot open it.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Optional reviewed OBS log or crash report
+      description: Use Help > Log Files > View Current/Last Log, review it and attach the relevant part. Logs may contain device/source names and personal paths. Screenshots or clips are optional; share only media you have permission to post.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy review
+      options:
+        - label: I reviewed this report and any attachments for private information.
+          required: true
