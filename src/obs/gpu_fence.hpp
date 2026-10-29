@@ -4,7 +4,7 @@
 #include <memory>
 
 namespace corridorkey {
-// All operations, including destruction, require OBS graphics ownership.
+// All operations require the OBS graphics thread with graphics ownership.
 class GpuFence {
 public:
 	GpuFence();

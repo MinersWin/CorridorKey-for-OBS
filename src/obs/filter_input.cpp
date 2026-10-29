@@ -11,6 +11,7 @@
 #include <mutex>
 #include <thread>
 #include <limits>
+#include <exception>
 
 namespace corridorkey {
 namespace {
@@ -82,7 +83,7 @@ struct FilterInput::Impl {
 	std::atomic<ErrorCode> failure{ErrorCode::model_missing};
 	std::atomic<bool> stopping{false}, reset_requested{false};
 	std::thread worker;
-	CallbackTimes timings;
+	CallbackTimes timings, graphics_timings;
 	TimePoint last_render{}, last_log = Clock::now();
 	TimePoint next_capture{};
 	Error preparation_error;
@@ -99,6 +100,32 @@ struct FilterInput::Impl {
 		worker.join();
 		if (target)
 			obs_weak_source_release(target);
+	}
+	template<typename Function> void graphics_task(Function &&function)
+	{
+		struct Task {
+			Function &function;
+			CallbackTimes &timings;
+			std::exception_ptr exception;
+		} task{function, graphics_timings, {}};
+		// OBS drains graphics tasks before its destroy queue at shutdown. Only
+		// the worker waits here; the task never waits for model or GPU completion.
+		obs_queue_task(
+			OBS_TASK_GRAPHICS,
+			[](void *parameter) {
+				auto &task = *static_cast<Task *>(parameter);
+				const auto start = Clock::now();
+				try {
+					GraphicsScope graphics;
+					task.function();
+				} catch (...) {
+					task.exception = std::current_exception();
+				}
+				task.timings.record(Clock::now() - start, {});
+			},
+			&task, true);
+		if (task.exception)
+			std::rethrow_exception(task.exception);
 	}
 	void invalidate()
 	{
@@ -138,7 +165,7 @@ struct FilterInput::Impl {
 			native = size;
 		}
 		blog(LOG_INFO,
-		     "[corridorkey:w03] instance=%llu native=%ux%u callbacks=%llu self_ms_p50<=%.2f self_ms_p95<=%.2f total_ms_p50<=%.2f total_ms_p95<=%.2f captures=%llu submitted=%llu completed=%llu dropped=%llu repeated=%llu status=%u",
+		     "[corridorkey:w03] instance=%llu native=%ux%u callbacks=%llu self_ms_p50<=%.2f self_ms_p95<=%.2f total_ms_p50<=%.2f total_ms_p95<=%.2f captures=%llu submitted=%llu completed=%llu dropped=%llu repeated=%llu status=%u graphics_tasks=%llu graphics_ms_p50<=%.2f graphics_ms_p95<=%.2f",
 		     static_cast<unsigned long long>(instance), native.width, native.height,
 		     static_cast<unsigned long long>(count), CallbackTimes::quantile(timings.self, count, .5),
 		     CallbackTimes::quantile(timings.self, count, .95),
@@ -147,7 +174,10 @@ struct FilterInput::Impl {
 		     static_cast<unsigned long long>(captures.load()),
 		     static_cast<unsigned long long>(submitted.load()),
 		     static_cast<unsigned long long>(completed.load()), static_cast<unsigned long long>(dropped.load()),
-		     static_cast<unsigned long long>(repeated.load()), static_cast<unsigned>(failure.load()));
+		     static_cast<unsigned long long>(repeated.load()), static_cast<unsigned>(failure.load()),
+		     static_cast<unsigned long long>(graphics_timings.count.load()),
+		     CallbackTimes::quantile(graphics_timings.total, graphics_timings.count.load(), .5),
+		     CallbackTimes::quantile(graphics_timings.total, graphics_timings.count.load(), .95));
 		logged_count = count;
 		last_log = now;
 	}
@@ -183,12 +213,39 @@ struct FilterInput::Impl {
 			log_timings();
 			return;
 		}
+		pipeline.advance(Clock::now());
+		auto result = pipeline.poll_result();
+		std::vector<std::uint8_t> rgba;
+		bool result_failed = false;
+		if (result) {
+			scheduler.completed();
+			++completed;
+			if (!result->input.lease.current() || !active) {
+				result.reset();
+			} else if (result->failure) {
+				failure = result->failure.code;
+				result_failed = true;
+				result.reset();
+			} else if (presentable(*result, instance, generation, 0, Clock::now(),
+					       std::chrono::milliseconds(snapshot->context.stale_timeout_ms))) {
+				rgba = pack(*result);
+			} else {
+				failure = ErrorCode::timeout;
+				result.reset();
+			}
+		}
 		std::optional<InputFrame> input;
-		{
-			GraphicsScope graphics;
+		graphics_task([&] {
 			std::lock_guard lock(mutex);
-			if (presented && (!presented->input.lease.current() || !active))
+			if (presented && (!presented->input.lease.current() || !active || result_failed))
 				retire_presented();
+			if (result && result->input.lease.current() && transport && transport->upload(*result, rgba)) {
+				retire_presented();
+				result->input.lease.transition(FrameState::presenting);
+				last_presented = result->identity.sequence;
+				presented = std::move(result);
+				failure = ErrorCode::none;
+			}
 			collect();
 			if (active && settings && pool.in_use() == 0 && resource_attempt != pool.generation()) {
 				resource_attempt = pool.generation();
@@ -208,41 +265,12 @@ struct FilterInput::Impl {
 				input = transport->take_ready(tick.load());
 			if (transport && transport->failure())
 				failure = transport->failure().code;
-		}
+		});
 		if (input && input->lease.current()) {
 			input->analysis = transport->analysis(*input);
 			const auto previous_dropped = scheduler.dropped();
 			scheduler.offer(std::move(*input));
 			dropped += scheduler.dropped() - previous_dropped;
-		}
-		// No OBS graphics ownership during conversion, model work or pipeline calls.
-		pipeline.advance(Clock::now());
-		if (auto result = pipeline.poll_result()) {
-			scheduler.completed();
-			++completed;
-			if (result->input.lease.current() && active) {
-				if (result->failure) {
-					failure = result->failure.code;
-					GraphicsScope graphics;
-					std::lock_guard lock(mutex);
-					retire_presented();
-				} else if (presentable(*result, instance, generation, 0, Clock::now(),
-						       std::chrono::milliseconds(snapshot->context.stale_timeout_ms))) {
-					auto rgba = pack(*result);
-					GraphicsScope graphics;
-					std::lock_guard lock(mutex);
-					if (result->input.lease.current() && transport &&
-					    transport->upload(*result, rgba)) {
-						retire_presented();
-						result->input.lease.transition(FrameState::presenting);
-						last_presented = result->identity.sequence;
-						presented = std::move(result);
-						failure = ErrorCode::none;
-					}
-				} else {
-					failure = ErrorCode::timeout;
-				}
-			}
 		}
 		if (active && !preparation_error && generation == pool.generation()) {
 			const auto problem = scheduler.submit(pipeline, tick.load(), Clock::now());
@@ -270,22 +298,18 @@ struct FilterInput::Impl {
 		scheduler.reset();
 		pipeline.shutdown();
 		pool.advance_generation();
-		{
-			GraphicsScope graphics;
-			gs_flush();
-		}
-		// Only this teardown worker waits for outstanding GPU reads; render has detached.
-		for (;;) {
-			{
-				GraphicsScope graphics;
+		graphics_task([] { gs_flush(); });
+		// Poll once per graphics task while the detached worker owns retirement.
+		bool drained = false;
+		while (!drained) {
+			graphics_task([&] {
 				retire_presented();
 				collect();
 				if (pool.in_use() == 0) {
 					transport.reset();
-					break;
+					drained = true;
 				}
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			});
 		}
 	}
 };

@@ -17,7 +17,7 @@ public:
 	bool capture_ready(const InputFrame &input) noexcept override;
 	Error try_present(const FrameResult &result,
 			  std::shared_ptr<const Completion> &read_complete) noexcept override;
-	// Graphics context only. Mapping is done by the transfer worker, after a later tick.
+	// Graphics task only. Mapping requires a later tick and a ready capture fence.
 	std::optional<InputFrame> take_ready(std::uint64_t tick);
 	void discard_stale();
 	bool upload(const FrameResult &result, const std::vector<std::uint8_t> &rgba);
