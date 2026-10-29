@@ -147,7 +147,12 @@ jobs:
           name: signed-catalogue
           path: signed-catalogue
       - name: Install packaging dependencies
-        run: sudo apt-get update && sudo apt-get install -y dpkg-dev libobs-dev libqt6widgets6t64 libcurl4t64 python3-venv
+        # Runtime library names differ between releases (t64 transition), so pick whichever exists.
+        run: |
+          sudo apt-get update
+          pick() { for name in "$@"; do apt-cache policy "$name" | grep -q "Candidate: [0-9]" && { echo "$name"; return; }; done; echo "$1"; }
+          sudo apt-get install -y dpkg-dev libobs-dev python3-venv \
+            "$(pick libqt6widgets6t64 libqt6widgets6)" "$(pick libcurl4t64 libcurl4)"
       - name: Package native runtime, notices, deb and tarball
         env:
           SIGNED_CATALOGUE: ${{ needs.version.outputs.signed }}
