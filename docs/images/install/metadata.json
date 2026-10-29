@@ -1,0 +1,13 @@
+{
+  "_spdx": "SPDX-License-Identifier: GPL-3.0-or-later",
+  "captured": "2026-10-29",
+  "os": "Windows 11 x64",
+  "obs": "Official portable OBS Studio 33.0.0 x64",
+  "plugin": "W19 baseline SDK build, plugin version 0.1.0",
+  "images": {
+    "installer-host.jpg": "Inno Setup 6.5.4; previous-version installer fixture 0.0.9; detected installed OBS path shown, no installation performed into that path",
+    "obs-filter.jpg": "Dedicated CorridorKey Test collection; independently authored color source; no neural model installed",
+    "runtime-licences.jpg": "Runtime manager before acceptance; earlier W19 catalogue revision; final UI also shows download/extracted sizes and puts the NVIDIA SLA first"
+  },
+  "capture": "Real window captures. Pointer moved outside the captured window. No retouching or generated UI. Vendor licence texts retain their original terms."
+}
