@@ -31,6 +31,7 @@ public:
 	void offer(InputFrame input) noexcept;
 	Error submit(Pipeline &pipeline, std::uint64_t tick, TimePoint now) noexcept;
 	void completed() noexcept;
+	// Drop pending work; retain admission until the running job actually drains.
 	void reset() noexcept;
 	std::uint64_t dropped() const noexcept { return dropped_; }
 	bool running() const noexcept { return running_; }

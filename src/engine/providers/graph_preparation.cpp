@@ -2,6 +2,7 @@
 #include "engine/ort_session.hpp"
 #include "process.hpp"
 #include "telemetry/diagnostics.hpp"
+#include "runtime/preparation_gate.hpp"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <random>
@@ -112,6 +113,13 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 				compiler.finished();
 		}
 	} finish{compiler};
+	static PreparationGate preparations;
+	// Serialize the helper and session opening for the same graph. The helper
+	// publishes its engine cache before the next instance attempts that graph.
+	auto preparation = preparations.acquire(
+		alternatives.empty() ? std::string{} : alternatives.front().cache.graph_hash, stop);
+	if (!preparation)
+		return result;
 	for (const auto &config : alternatives) {
 		if (stop.stop_requested())
 			break;

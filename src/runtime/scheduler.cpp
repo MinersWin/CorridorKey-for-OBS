@@ -51,7 +51,6 @@ void FairAdmission::withdraw(unsigned id) noexcept
 {
 	if (id < capacity)
 		waiting_[id] = false;
-	release(id);
 }
 Scheduler::Scheduler(FairAdmission &admission) : admission_(admission), id_(admission.attach()) {}
 Scheduler::~Scheduler()
@@ -104,10 +103,13 @@ void Scheduler::completed() noexcept
 }
 void Scheduler::reset() noexcept
 {
+	if (pending_)
+		++dropped_;
 	pending_.reset();
 	newest_ = 0;
-	completed();
 	admission_.withdraw(id_);
+	// Cancellation is cooperative. The caller releases admission with completed()
+	// only after polling the old job or synchronously draining the pipeline.
 	// A reset within one video tick must not admit a second capture/submission.
 }
 } // namespace corridorkey
