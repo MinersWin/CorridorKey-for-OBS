@@ -66,6 +66,7 @@ TEST_CASE("SHA-256 and canonical cache identity")
 	CacheLease first(temp.path, key);
 	CacheLease concurrent(temp.path, key);
 	CHECK(first.path() != concurrent.path());
+	CHECK(first.path().filename().string().size() <= 30);
 	key.runtime_build = "999.0.0";
 	CacheLease newer(temp.path, key);
 	CHECK(first.path() != newer.path());
@@ -120,6 +121,26 @@ TEST_CASE("interrupted and mismatched caches rebuild without reusing partial eng
 		CacheLease lease(temp.path, key);
 		CHECK_FALSE(fs::exists(lease.path() / "good.engine"));
 	}
+}
+TEST_CASE("explicit cache rebuild discards a published snapshot with the same identity")
+{
+	Temp temp;
+	CacheIdentity key;
+	key.graph_hash = "rebuild-fixture";
+	{
+		CacheLease first(temp.path, key);
+		std::ofstream(first.path() / "stale.engine") << "old";
+		first.commit();
+	}
+	{
+		CacheLease replacement(temp.path, key, true);
+		CHECK_FALSE(fs::exists(replacement.path() / "stale.engine"));
+		std::ofstream(replacement.path() / "fresh.engine") << "new";
+		replacement.commit();
+	}
+	CacheLease reused(temp.path, key);
+	CHECK(fs::exists(reused.path() / "fresh.engine"));
+	CHECK_FALSE(fs::exists(reused.path() / "stale.engine"));
 }
 TEST_CASE("auto selection excludes CPU and follows platform candidates")
 {

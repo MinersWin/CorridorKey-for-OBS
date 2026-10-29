@@ -90,11 +90,13 @@ Context::Context(int ordinal) : impl_(std::make_unique<Impl>())
 		check(impl_->event_create(&impl_->start, 0), "Create CUDA timing event");
 		check(impl_->event_create(&impl_->end, 0), "Create CUDA timing event");
 	} catch (...) {
-		Scope scope(*this);
-		if (impl_->start)
-			impl_->event_destroy(impl_->start);
-		if (impl_->stream)
-			impl_->stream_destroy(impl_->stream);
+		{
+			Scope scope(*this);
+			if (impl_->start)
+				impl_->event_destroy(impl_->start);
+			if (impl_->stream)
+				impl_->stream_destroy(impl_->stream);
+		}
 		impl_->release(ordinal);
 		throw;
 	}
@@ -157,6 +159,7 @@ void Context::start_timer()
 {
 	Scope scope(*this);
 	check(impl_->event_record(impl_->start, impl_->stream), "Record CUDA start");
+	check(impl_->event_sync(impl_->start), "Begin CUDA interval");
 }
 double Context::stop_timer()
 {

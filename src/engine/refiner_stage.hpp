@@ -19,6 +19,7 @@ struct Result {
 	std::vector<float> rgba;
 	std::string failure;
 	double inference_ms = 0;
+	double cuda_interval_ms = -1;
 	double unpack_ms = 0, pack_ms = 0;
 	bool device = false;
 };
