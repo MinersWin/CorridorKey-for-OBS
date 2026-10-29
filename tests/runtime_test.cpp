@@ -142,6 +142,28 @@ TEST_CASE("explicit cache rebuild discards a published snapshot with the same id
 	CHECK(fs::exists(reused.path() / "fresh.engine"));
 	CHECK_FALSE(fs::exists(reused.path() / "stale.engine"));
 }
+TEST_CASE("long portable paths retain and reuse serialized provider engines")
+{
+	Temp temp;
+	const auto root = temp.path / "portable-cache-root-with-longer-name-to-exercise-cache";
+	CacheIdentity key;
+	key.graph_hash = "long-path-fixture";
+	const auto filename =
+		"TensorrtExecutionProvider_TRTKernel_graph_main_graph_14654341201986319068_0_0_fp16_sm120.engine";
+	{
+		CacheLease first(root, key);
+		std::ofstream output(first.path() / filename);
+		output << "serialized fixture";
+		output.close();
+		REQUIRE(output.good());
+		first.commit();
+	}
+	CacheLease reused(root, key);
+	std::ifstream input(reused.path() / filename);
+	std::string contents;
+	std::getline(input, contents);
+	CHECK(contents == "serialized fixture");
+}
 TEST_CASE("auto selection excludes CPU and follows platform candidates")
 {
 	FakeProbe probe;
