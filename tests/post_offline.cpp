@@ -4,6 +4,7 @@
 #include "gpu/post/refiner.hpp"
 #include "models/tensor_storage.hpp"
 #include "util/utf8_path.hpp"
+#include "engine/providers/runtime.hpp"
 #include <obs.h>
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -70,7 +71,8 @@ void frame(const Json &item, const char *directory)
 	}
 	Reconstruction post(native.extent(), model.extent(), (std::string(directory) + "/effects/post.effect").c_str());
 	const unsigned budget = item.value("refiner_budget", 0U);
-	const bool interop = item.value("interop", false);
+	const auto dml_library = item.value("dml_library", std::string{});
+	const bool interop = item.value("interop", false) || !dml_library.empty();
 	if (!post.available() || !post.prepare(native.value, guide.value, model.value, settings, roi, budget != 0))
 		throw std::runtime_error("Reconstruction preparation failed");
 	const auto prefix = item.at("output").get<std::string>();
@@ -91,7 +93,23 @@ void frame(const Json &item, const char *directory)
 		dump(post.band(), prefix + ".band.f32");
 		ck2::Tensor tensor;
 		std::shared_ptr<nvidia::Context> cuda;
-		if (interop) {
+		std::shared_ptr<dml::Context> dml_context;
+		if (!dml_library.empty()) {
+			const auto devices = ort::enumerate_devices(Backend::directml);
+			if (devices.empty())
+				throw std::runtime_error("No DirectML adapter");
+			dml_context = std::make_shared<dml::Context>(devices.front().adapter.stable_id,
+								     utf8_path(dml_library));
+			dml::Texture atlas(dml_context,
+					   static_cast<ID3D11Texture2D *>(gs_texture_get_obj(refiner->atlas())));
+			auto pixels = atlas.read();
+			tensor = ck2::Tensor({budget, 11, 52, 52});
+			auto device = dml_context->allocate(tensor.values.size() * 4);
+			const unsigned params[]{budget, 0, 0, 0, 0, atlas.pitch(), 0};
+			dml_context->compute("unpack_atlas", static_cast<unsigned>(tensor.values.size()), *pixels,
+					     nullptr, *device, params);
+			device->download(tensor.values.data(), device->bytes());
+		} else if (interop) {
 			cuda = std::make_shared<nvidia::Context>(0);
 			nvidia::D3D11Texture atlas(
 				cuda, static_cast<ID3D11Texture2D *>(gs_texture_get_obj(refiner->atlas())));
@@ -117,7 +135,13 @@ void frame(const Json &item, const char *directory)
 			if (!file.read(reinterpret_cast<char *>(data.data()),
 				       static_cast<std::streamsize>(data.size() * sizeof(float))))
 				throw std::runtime_error("Missing refiner centre output");
-			if (interop) {
+			if (dml_context) {
+				auto pixels = dml_context->allocate(data.size() * 4);
+				pixels->upload(data.data(), pixels->bytes());
+				dml::Texture centres(dml_context, static_cast<ID3D11Texture2D *>(
+									  gs_texture_get_obj(refiner->centres())));
+				centres.write(*pixels);
+			} else if (interop) {
 				auto pixels = cuda->allocate(data.size() * sizeof(float));
 				pixels->upload(data.data(), pixels->bytes());
 				nvidia::D3D11Texture centres(

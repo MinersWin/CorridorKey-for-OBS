@@ -77,6 +77,14 @@ std::unique_ptr<ck2::OrtGraph> graph(const ck2::DevelopmentConfig &config, ck2::
 	session.cache.graph_hash = ort::file_sha256(path);
 	session.cache.recipe_version = "export-json-local-validation";
 	session.persistent_io = backend == Backend::tensorrt || backend == Backend::cuda;
+	if (backend == Backend::directml && config.runtime.interop) {
+		static std::shared_ptr<dml::Context> context;
+		if (!context)
+			context = std::make_shared<dml::Context>(config.adapter.stable_id,
+								 session.bundle.runtime.parent_path() / "DirectML.dll");
+		session.dml_context = context;
+		session.persistent_io = true;
+	}
 	const bool captured = backend == Backend::tensorrt && stage != ck2::Stage::moge && config.runtime.capture;
 	if (backend == Backend::tensorrt)
 		session.options["trt_cuda_graph_enable"] = captured ? "1" : "0";
@@ -149,7 +157,16 @@ int main(int argc, char **argv)
 						std::chrono::duration<double, std::milli>(Clock::now() - start).count());
 				}
 				std::vector<float> centres;
-				if (output.at("alpha").device) {
+				if (output.at("alpha").directml) {
+					auto context = output.at("alpha").directml->context();
+					centres.resize(static_cast<std::size_t>(dimension) * 32 * 32 * 4);
+					auto packed = context->allocate(centres.size() * 4);
+					const unsigned params[]{dimension, 0, 0, 0, 0, 0, 0};
+					context->compute("pack_centres", static_cast<unsigned>(centres.size()),
+							 *output.at("fg").directml, output.at("alpha").directml.get(),
+							 *packed, params);
+					packed->download(centres.data(), packed->bytes());
+				} else if (output.at("alpha").device) {
 					auto context = output.at("alpha").device->context();
 					centres.resize(static_cast<std::size_t>(dimension) * 32 * 32 * 4);
 					auto packed = context->allocate(centres.size() * sizeof(float));
