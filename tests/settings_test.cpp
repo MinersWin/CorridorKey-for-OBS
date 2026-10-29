@@ -121,7 +121,7 @@ TEST_CASE("legacy aliases and grid names migrate without losing saved values")
 	CHECK(s.quality.profile == Profile::facecam);
 	CHECK(s.quality.moge_motion_threshold == doctest::Approx(.035));
 	CHECK(s.quality.guided_epsilon == doctest::Approx(.0001));
-	CHECK(s.quality.refiner_model == "v12");
+	CHECK(s.quality.refiner_model == "v15");
 	CHECK(s.quality.stage2_interval == 0);
 	CHECK(s.context.inspection == InspectionView::transparent);
 	CHECK_FALSE(notices.empty());
@@ -187,4 +187,15 @@ TEST_CASE("corrupt legacy numeric list values fall back without narrowing overfl
 	CHECK(s.quality.target_fps == 0);
 	CHECK(s.quality.stage2_interval == 0);
 	CHECK(s.quality.guided_scale == 1);
+}
+
+TEST_CASE("saved v12 settings follow the shipped v15 refiner")
+{
+	auto s = defaults(Profile::facecam);
+	CHECK(s.quality.refiner_model == "v15");
+	s.quality.refiner_model = "v12";
+	const auto restored = decode(encode(s));
+	CHECK(restored.quality.refiner_model == "v15");
+	CHECK(restored.quality.refiner_max_tiles == 384);
+	CHECK(restored.quality.refiner_enabled == s.quality.refiner_enabled);
 }

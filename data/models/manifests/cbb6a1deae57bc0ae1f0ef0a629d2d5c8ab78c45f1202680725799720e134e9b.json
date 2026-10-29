@@ -1,0 +1,474 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. Metadata wrapper only; graph and checkpoint bytes retain publisher licences.",
+  "schema_version": 1,
+  "id": "refiner-v12",
+  "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+  "display_name": "Edge Refiner v15",
+  "publisher": "Corridor Digital / Niko Pueringer; graph exports and Edge Refiner: Moritz Mantel",
+  "description": "Optional learned edge refinement at native resolution. Enable Edge refiner in the filter properties after installation.",
+  "pipeline": "hint",
+  "export_contract": 1,
+  "provenance": {
+    "source_url": "https://huggingface.co/mantelmoritz/CorridorKey-ONNX-Graphs/tree/121984ec124141b9a1e42af05946fafe26205fec",
+    "export_revision": "121984ec124141b9a1e42af05946fafe26205fec"
+  },
+  "licenses": [
+    {
+      "id": "LicenseRef-Corridor-Key-2.0",
+      "text_sha256": "c92ce56f64162b231c7ce08ce3ed7d8cae15f01a560ca05a8e8db67878eb0065"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "refiner_b256-onnx",
+      "path": "graphs/refiner_b256.onnx",
+      "format": "onnx",
+      "bytes": 30456,
+      "sha256": "e991f02184152dcf57a4ffc047dbbde0cbd8f4160a1d4c220f21a141eed6c69d",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+        "file": "graphs/refiner_b256.onnx"
+      }
+    },
+    {
+      "id": "refiner_b256-json",
+      "path": "graphs/refiner_b256.json",
+      "format": "export-json",
+      "bytes": 3648,
+      "sha256": "62bbdfde0d87a6eb5deb5fd3932b18f2649f50e2ee10473d30a2187c3c2b254a",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+        "file": "graphs/refiner_b256.json"
+      }
+    },
+    {
+      "id": "refiner_b384-onnx",
+      "path": "graphs/refiner_b384.onnx",
+      "format": "onnx",
+      "bytes": 30456,
+      "sha256": "01d0e348016e1187b668377fefa99feb5f1c0fd6dd2aa2494b4b0841c1f56d76",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+        "file": "graphs/refiner_b384.onnx"
+      }
+    },
+    {
+      "id": "refiner_b384-json",
+      "path": "graphs/refiner_b384.json",
+      "format": "export-json",
+      "bytes": 3648,
+      "sha256": "10e9e51af7581ea0490c854786ee1119bafc139ba13ca673b32eda631d15a104",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+        "file": "graphs/refiner_b384.json"
+      }
+    },
+    {
+      "id": "refiner_b512-onnx",
+      "path": "graphs/refiner_b512.onnx",
+      "format": "onnx",
+      "bytes": 30456,
+      "sha256": "62ee8f0bdef804dc5976f3a14a776711b42c5d0f53ac05c3f49af653358878a9",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+        "file": "graphs/refiner_b512.onnx"
+      }
+    },
+    {
+      "id": "refiner_b512-json",
+      "path": "graphs/refiner_b512.json",
+      "format": "export-json",
+      "bytes": 3648,
+      "sha256": "cd8f13fc4f3185b3fe88d8a5e6edf8b04caeb5cdc363be8aad4255d0f8336b83",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+        "file": "graphs/refiner_b512.json"
+      }
+    },
+    {
+      "id": "refiner_b768-onnx",
+      "path": "graphs/refiner_b768.onnx",
+      "format": "onnx",
+      "bytes": 30456,
+      "sha256": "7c76a54f62503b925548fa74cc817d2150e0300318774de9c9c6881d93272a7f",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+        "file": "graphs/refiner_b768.onnx"
+      }
+    },
+    {
+      "id": "refiner_b768-json",
+      "path": "graphs/refiner_b768.json",
+      "format": "export-json",
+      "bytes": 3648,
+      "sha256": "2c77d36361ddc56335f28fbcdfebc1688eb1542c7bbabefbf80e0baa41f48a7b",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+        "file": "graphs/refiner_b768.json"
+      }
+    },
+    {
+      "id": "refiner",
+      "bytes": 162320,
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "path": "sources/refiner/corridorkey_edge_refiner_v15.safetensors",
+      "sha256": "b38746544edbdaa207723ffe1dd6e799e1fa7f176bd74ad4c7c91d5dd84abf74",
+      "origin": {
+        "revision": "db3adf8820653508bc617ff9a1f994dc273d08cb",
+        "repo": "mantelmoritz/CorridorKey-Realtime-EdgeRefiner",
+        "file": "corridorkey_edge_refiner_v15.safetensors"
+      },
+      "format": "safetensors"
+    }
+  ],
+  "graphs": [
+    {
+      "id": "refiner_b256",
+      "role": "refiner",
+      "graph": "refiner_b256-onnx",
+      "metadata": "refiner_b256-json",
+      "external_data": "graphs/refiner_b256.weights",
+      "weights_bytes": 161296,
+      "weights_sha256": "0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603",
+      "sources": [
+        "refiner"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "x",
+            "dtype": "float32",
+            "shape": [
+              256,
+              11,
+              52,
+              52
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "alpha",
+            "dtype": "float32",
+            "shape": [
+              256,
+              1,
+              52,
+              52
+            ]
+          },
+          {
+            "name": "fg",
+            "dtype": "float32",
+            "shape": [
+              256,
+              3,
+              52,
+              52
+            ]
+          }
+        ]
+      },
+      "color_contract": "Static tile tensors and alpha refinement follow the exporter interface; this graph is not activated by the current CK2 pipeline.",
+      "parity": {
+        "report_url": "https://raw.githubusercontent.com/MinersWin/CorridorKey-for-OBS/f1091f9c8b5953a7697cdf65f5dca24b2ba8d6dd/docs/dev/validation-w09.json",
+        "report_sha256": "0ccb9a7a14bf220307e10fdd27e64b050164937345a4056fb152bd2ac1b24977",
+        "status": "unverified"
+      }
+    },
+    {
+      "id": "refiner_b384",
+      "role": "refiner",
+      "graph": "refiner_b384-onnx",
+      "metadata": "refiner_b384-json",
+      "external_data": "graphs/refiner_b384.weights",
+      "weights_bytes": 161296,
+      "weights_sha256": "0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603",
+      "sources": [
+        "refiner"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "x",
+            "dtype": "float32",
+            "shape": [
+              384,
+              11,
+              52,
+              52
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "alpha",
+            "dtype": "float32",
+            "shape": [
+              384,
+              1,
+              52,
+              52
+            ]
+          },
+          {
+            "name": "fg",
+            "dtype": "float32",
+            "shape": [
+              384,
+              3,
+              52,
+              52
+            ]
+          }
+        ]
+      },
+      "color_contract": "Static tile tensors and alpha refinement follow the exporter interface; this graph is not activated by the current CK2 pipeline.",
+      "parity": {
+        "report_url": "https://raw.githubusercontent.com/MinersWin/CorridorKey-for-OBS/f1091f9c8b5953a7697cdf65f5dca24b2ba8d6dd/docs/dev/validation-w09.json",
+        "report_sha256": "0ccb9a7a14bf220307e10fdd27e64b050164937345a4056fb152bd2ac1b24977",
+        "status": "unverified"
+      }
+    },
+    {
+      "id": "refiner_b512",
+      "role": "refiner",
+      "graph": "refiner_b512-onnx",
+      "metadata": "refiner_b512-json",
+      "external_data": "graphs/refiner_b512.weights",
+      "weights_bytes": 161296,
+      "weights_sha256": "0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603",
+      "sources": [
+        "refiner"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "x",
+            "dtype": "float32",
+            "shape": [
+              512,
+              11,
+              52,
+              52
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "alpha",
+            "dtype": "float32",
+            "shape": [
+              512,
+              1,
+              52,
+              52
+            ]
+          },
+          {
+            "name": "fg",
+            "dtype": "float32",
+            "shape": [
+              512,
+              3,
+              52,
+              52
+            ]
+          }
+        ]
+      },
+      "color_contract": "Static tile tensors and alpha refinement follow the exporter interface; this graph is not activated by the current CK2 pipeline.",
+      "parity": {
+        "report_url": "https://raw.githubusercontent.com/MinersWin/CorridorKey-for-OBS/f1091f9c8b5953a7697cdf65f5dca24b2ba8d6dd/docs/dev/validation-w09.json",
+        "report_sha256": "0ccb9a7a14bf220307e10fdd27e64b050164937345a4056fb152bd2ac1b24977",
+        "status": "unverified"
+      }
+    },
+    {
+      "id": "refiner_b768",
+      "role": "refiner",
+      "graph": "refiner_b768-onnx",
+      "metadata": "refiner_b768-json",
+      "external_data": "graphs/refiner_b768.weights",
+      "weights_bytes": 161296,
+      "weights_sha256": "0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603",
+      "sources": [
+        "refiner"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "x",
+            "dtype": "float32",
+            "shape": [
+              768,
+              11,
+              52,
+              52
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "alpha",
+            "dtype": "float32",
+            "shape": [
+              768,
+              1,
+              52,
+              52
+            ]
+          },
+          {
+            "name": "fg",
+            "dtype": "float32",
+            "shape": [
+              768,
+              3,
+              52,
+              52
+            ]
+          }
+        ]
+      },
+      "color_contract": "Static tile tensors and alpha refinement follow the exporter interface; this graph is not activated by the current CK2 pipeline.",
+      "parity": {
+        "report_url": "https://raw.githubusercontent.com/MinersWin/CorridorKey-for-OBS/f1091f9c8b5953a7697cdf65f5dca24b2ba8d6dd/docs/dev/validation-w09.json",
+        "report_sha256": "0ccb9a7a14bf220307e10fdd27e64b050164937345a4056fb152bd2ac1b24977",
+        "status": "unverified"
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "tiles-256",
+      "graphs": [
+        "refiner_b256"
+      ],
+      "grid_hw": [
+        52,
+        52
+      ],
+      "roi": false,
+      "refiner_tiles": 256,
+      "settings_schema": 1
+    },
+    {
+      "id": "tiles-384",
+      "graphs": [
+        "refiner_b384"
+      ],
+      "grid_hw": [
+        52,
+        52
+      ],
+      "roi": false,
+      "refiner_tiles": 384,
+      "settings_schema": 1
+    },
+    {
+      "id": "tiles-512",
+      "graphs": [
+        "refiner_b512"
+      ],
+      "grid_hw": [
+        52,
+        52
+      ],
+      "roi": false,
+      "refiner_tiles": 512,
+      "settings_schema": 1
+    },
+    {
+      "id": "tiles-768",
+      "graphs": [
+        "refiner_b768"
+      ],
+      "grid_hw": [
+        52,
+        52
+      ],
+      "roi": false,
+      "refiner_tiles": 768,
+      "settings_schema": 1
+    }
+  ],
+  "budgets": {
+    "bound_bytes": 645184,
+    "workspace_bytes": 16777216,
+    "engine_bytes": 268435456,
+    "margin_bytes": 1073741824
+  },
+  "compatibility": [
+    {
+      "backend": "tensorrt",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "Revision 5 installation and live validation: docs/dev/refiner-v15.md. Backend parity remains a separate check."
+    },
+    {
+      "backend": "cuda",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "Revision 5 installation and live validation: docs/dev/refiner-v15.md. Backend parity remains a separate check."
+    },
+    {
+      "backend": "directml",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "Revision 5 installation and live validation: docs/dev/refiner-v15.md. Backend parity remains a separate check."
+    },
+    {
+      "backend": "migraphx",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "Revision 5 installation and live validation: docs/dev/refiner-v15.md. Backend parity remains a separate check."
+    }
+  ]
+}

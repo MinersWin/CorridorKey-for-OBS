@@ -148,8 +148,19 @@ void ManagerController::remove(ModelKey key)
 }
 void ManagerController::refresh(bool disk)
 {
-	if (disk)
+	if (disk) {
 		discover_installed();
+		// Keep the prepared current refiner; old readers defer removal until a later refresh.
+		for (const auto &row : model_.rows())
+			if (!row.catalogued && row.key.id == "refiner-v12") {
+				const auto current = cache_.current(row.key.id);
+				if (current && *current != row.key &&
+				    std::any_of(model_.rows().begin(), model_.rows().end(), [&](const auto &candidate) {
+					    return candidate.catalogued && candidate.key == *current;
+				    }))
+					cache_.remove(row.key);
+			}
+	}
 	auto statuses = service_->snapshot();
 	// CatalogueService keeps its last Ready state after removal; disk is authoritative.
 	for (auto &s : statuses)
