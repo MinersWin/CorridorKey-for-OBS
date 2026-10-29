@@ -113,7 +113,11 @@ and alpha uploads are FP32, including very small alpha. RGBA16F presentation
 storage adds its normal half-precision rounding. Invalid pixel values become
 finite zeros; the worker also rejects nonfinite model results before publication.
 Unsupported HDR source spaces bypass processing and show
-"HDR input is not supported by this model; passthrough."
+"HDR input is not supported by this model; passthrough." The filter forwards
+colour-space negotiation to its target, and detection asks for both SDR and HDR
+spaces so OBS cannot silently negotiate HDR down to SDR before the check. A
+synthetic extended-709 source verifies the forwarded space and this status text.
+Real HDR camera/display combinations remain untested.
 
 ## Numeric and pixel checks, 29 October 2026
 
@@ -129,17 +133,23 @@ entry point, metadata reduction and both output blend branches.
 | --- | ---: | ---: | ---: |
 | Coefficients | 3.87e-6 | 3.65e-6 | 1e-4 |
 | Delta | 5.47e-8 | 5.47e-8 | 2e-6 |
-| Background | 3.77e-7 | 3.76e-7 | 1e-5 |
+| Background | 2.18e-7 | 2.18e-7 | 1e-5 |
 | Band | 1.26e-7 | 1.26e-7 | 2e-6 |
 | Reduction | 1.37e-6 | 1.37e-6 | 1e-5 |
-| Raw reconstruction | 6.84e-6 | 7.55e-6 | 1e-4 |
-| Finished output / refinement entry point | 3.72e-7 | 5.19e-7 | 1e-4 |
-| Linear composition | 3.63e-7 | 5.19e-7 | 1e-4 |
+| Raw reconstruction | 2.94e-6 | 3.15e-6 | 1e-4 |
+| Finished output / refinement entry point | 4.19e-7 | 5.19e-7 | 1e-4 |
+| RGBA16F storage | 4.84e-4 | 4.84e-4 | 5e-4 |
+| Linear composition | 4.19e-7 | 5.19e-7 | 1e-4 |
 | Nonlinear composition | 3.24e-7 | 5.80e-7 | 1e-4 |
+
+Each renderer passes 132 comparisons. The RGBA16F storage check permits one
+half-precision step near 1.0 (`5e-4`); it does not use the FP32 arithmetic bound.
+The measured storage error is larger than a round-to-nearest half-step, so callers
+must not assume that rounding rule for these render targets.
 
 Both renderers ran on Windows 11, OBS 33.0.0 and an RTX 5070 Ti. OpenGL used OBS's
 effect-to-GLSL translator and NVIDIA's OpenGL 3.3 context. This is live OpenGL
-evidence, not a Linux hardware test. The changed C++ translation units also compile
+evidence, not a Linux hardware test. Both the default and diagnostic MSVC plugin builds pass. The changed C++ translation units also compile
 to Linux x86-64 objects with Zig 0.15.2 and `-Wall -Wextra -Werror`.
 
 Real OBS 30.2 screenshots use the authored calibration fixture with image-source
@@ -175,12 +185,69 @@ Capture rate limits use OBS tick timestamps with a fixed phase, including a smal
 integer-rounding allowance. Scheduling the next capture from callback wall time
 could skip every other frame when a 60 FPS cap met a 60 Hz canvas.
 
-Initial offscreen OBS 33 measurements with reconstruction enabled completed
-601 frames per 601 canvas ticks at 4K in the final ten-second interval, with no
-capture drops. Render self-time p95 was 0.05 ms and transfer-task CPU p95 was
-1.48 ms. These are CPU timings, not GPU execution times. The baseline completed
-286 frames during a comparable 601-tick 4K interval. Displayed-age measurements
-and the publication-latency follow-up use the W15 timing hooks.
+The worker no longer waits for a graphics task on every inference poll. One
+bounded input mailbox and one completed-result mailbox connect it to the video
+thread. Their lock is separate from the render-state lock: waking the worker
+must not make capture fall back to passthrough. The worker checks completion at
+roughly one-millisecond intervals and wakes immediately for a mapped input.
+
+Readback gets a zero-timeout fence check in the video tick and another in the
+after-draw graphics task. A ready fence is sufficient; there is no artificial
+"later tick" restriction. A not-ready fence leaves the slot pinned. When several captures are ready,
+readback selects the newest sequence and releases older completed captures; slot
+index must not determine which frame reaches inference. There is at
+most one queued transfer task, admitted once per canvas tick. OBS's public
+staging map still has driver overhead after the fence succeeds.
+
+Ready results are uploaded and reconstructed in the next pre-draw video tick.
+They can appear in that canvas frame, avoiding the former after-draw upload and
+extra presentation tick. All GPU access stays on the OBS video thread. The
+render callback does not map, allocate textures, wait for inference or poll a
+blocking fence. Tick readback and post submission consume frame budget, so their
+CPU timings are logged separately from render self-time. Shutdown drains the
+queued callback before releasing its mailboxes and graphics resources.
+
+Measurements use the same W15 `FrameTiming` recorder and `obs_now()` clock as the
+status line. Age includes repeated displayed frames, and keyed FPS counts fresh
+results in the preceding five seconds. The input and output transfer columns
+include queueing; output includes CPU packing, waiting for publication and post
+submission. They are not GPU execution times. A diagnostic fake still spends CPU
+time constructing and validating its output even with zero configured delay.
+W15's fake inference field measures the configured delay and polling interval;
+the separate `fake_cpu_ms` counter measures synthesis and numeric validation.
+
+The original three-slot baseline completed 301/601 canvas frames at 1080p
+(30.05 FPS) and 286/601 at 4K (28.55 FPS). Five slots alone restored intervals at
+59.7?60 FPS. Before the asynchronous publication change, W08 plus W15 measured
+50.06/66.75 ms displayed age (median/p95) at zero delay, with 19.64 ms input and
+6.28 ms output transfer. At 20 ms configured delay it measured 100.05/116.73 ms,
+with 33.70 ms inference timing: the task wait rounded the delay up to a canvas
+interval. These are this probe's measurements, separate from W15's earlier
+50/67 ms zero-delay and 117 ms delayed measurements.
+
+Final OBS 33 / D3D11 runs used a 60 Hz canvas and the balanced 512 x 512 grid:
+
+| Native / fake delay | Completed throughput | W15 fresh FPS, last window | Displayed age median / p95 | Input / output transfer median |
+| --- | ---: | ---: | ---: | ---: |
+| 1920 x 1080 / 0 ms | 59.8 FPS | 59.40 | 33.38 / 34.10 ms | 18.14 / 7.90 ms |
+| 3840 x 2160 / 0 ms | about 60 FPS | 60.00 | 33.36 / 33.62 ms | 17.88 / 8.45 ms |
+| 1920 x 1080 / 20 ms | 34.5 FPS | 33.51 | 66.89 / 83.44 ms | 18.99 / 12.43 ms |
+
+The zero-delay runs captured every canvas tick after startup. At 1080p, two
+captures were superseded before submission during the run; at 4K none were
+dropped. Render self-time p95 was 0.05 ms at both sizes, including capture and
+presentation. Pre-draw post submission p95 was 0.91 / 0.83 ms, pre-draw readback
+0.42 / 0.38 ms, and after-draw transfer tasks 1.32 / 1.09 ms (1080p / 4K).
+Fake synthesis and validation alone took about 5?6 ms median. A 20 ms artificial
+wait therefore cannot produce 50 FPS in this CPU fake.
+
+The selected log excerpts and numeric maxima are in
+[the validation evidence](reconstruction-evidence.md).
+The shared desktop had other applications running. Some intermediate runs had
+long scheduling stalls; this is not a guarantee under concurrent GPU or CPU load.
+The staged path still commonly waits one canvas interval for readback. Removing
+that remaining latency needs a transport that can signal completion between
+OBS video ticks, such as the later interop path.
 
 Five native FP32 frames, five RGBA16F outputs and one shared native raw FP32 field
 need about 1.1 GiB at 4K before grid maps, OBS intermediates and driver overhead.
@@ -198,11 +265,18 @@ slash. Put the host runtime libraries on the test process's loader path.
 corridorkey_post_probe unused <plugin-data-directory> 1920 numeric
 corridorkey_post_probe <plugin-module> <plugin-data-directory> 1920 32
 corridorkey_post_probe <plugin-module> <plugin-data-directory> 3840 32
+corridorkey_post_probe <plugin-module> <plugin-data-directory> 1920 22 20
+corridorkey_post_probe <plugin-module> <plugin-data-directory> 1920 12 0 stress
+corridorkey_post_probe <plugin-module> <plugin-data-directory> 1920 3 0 hdr
 ```
 
-Numeric mode exits nonzero for a failed comparison. The ordinary CTest suite also
+Numeric mode exits nonzero for a failed comparison. Stress mode repeatedly
+changes source dimensions, crop, enabled state, fake delay and injected failures
+before destroying the filter with work still pending. The ordinary CTest suite also
 checks source alpha, sRGB round trips, singular guides, bounded pool reuse and
-15/24/30/60 FPS pacing. Live screenshots require the dedicated CorridorKey Test
+15/24/30/60 FPS pacing. All eleven rebased CTest groups passed, including the
+local binder parity check; that check verifies weight binding, not reconstructed
+model output. Live screenshots require the dedicated CorridorKey Test
 collection. Installed-OBS testing must acquire the shared lock first.
 
 Real neural-model parity, learned refinement, Linux runtime/fence behaviour,
