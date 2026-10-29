@@ -1,6 +1,65 @@
 {
-  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. Embedded licence texts retain their original terms.",
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. UNSIGNED installer-only catalogue; release signing is required before remote distribution.",
   "schema_version": 1,
-  "sequence": 0,
-  "packages": []
+  "sequence": 1,
+  "packages": [
+    {
+      "id": "ck2-facecam",
+      "revision": "5d88114f169cb082cda238426af47feffb9724af",
+      "manifest": {
+        "id": "ck2-facecam-manifest",
+        "path": "manifests/f1e57bfd769efda18641698be4a99aed9d63420eb8a1cda60629b77783a7deb0.json",
+        "format": "manifest-json",
+        "bytes": 13396,
+        "sha256": "f1e57bfd769efda18641698be4a99aed9d63420eb8a1cda60629b77783a7deb0",
+        "licenses": [
+          "CC-BY-4.0",
+          "LicenseRef-Corridor-Key-2.0",
+          "LicenseRef-MoGe-MIT-DINOv2"
+        ],
+        "origin": {
+          "url": "https://github.com/MinersWin/CorridorKey-for-OBS/releases/download/model-catalogue-v1/f1e57bfd769efda18641698be4a99aed9d63420eb8a1cda60629b77783a7deb0.json",
+          "revision": "f1e57bfd769efda18641698be4a99aed9d63420eb8a1cda60629b77783a7deb0"
+        }
+      }
+    },
+    {
+      "id": "ck2-balanced",
+      "revision": "5d88114f169cb082cda238426af47feffb9724af",
+      "manifest": {
+        "id": "ck2-balanced-manifest",
+        "path": "manifests/46e3d4b8ed17039c25e39147f1886ae823b98f367f63f0a21a46aaf1e6cef789.json",
+        "format": "manifest-json",
+        "bytes": 16530,
+        "sha256": "46e3d4b8ed17039c25e39147f1886ae823b98f367f63f0a21a46aaf1e6cef789",
+        "licenses": [
+          "CC-BY-4.0",
+          "LicenseRef-Corridor-Key-2.0",
+          "LicenseRef-MoGe-MIT-DINOv2"
+        ],
+        "origin": {
+          "url": "https://github.com/MinersWin/CorridorKey-for-OBS/releases/download/model-catalogue-v1/46e3d4b8ed17039c25e39147f1886ae823b98f367f63f0a21a46aaf1e6cef789.json",
+          "revision": "46e3d4b8ed17039c25e39147f1886ae823b98f367f63f0a21a46aaf1e6cef789"
+        }
+      }
+    },
+    {
+      "id": "refiner-v12",
+      "revision": "5d88114f169cb082cda238426af47feffb9724af",
+      "manifest": {
+        "id": "refiner-v12-manifest",
+        "path": "manifests/8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e.json",
+        "format": "manifest-json",
+        "bytes": 13575,
+        "sha256": "8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e",
+        "licenses": [
+          "LicenseRef-Corridor-Key-2.0"
+        ],
+        "origin": {
+          "url": "https://github.com/MinersWin/CorridorKey-for-OBS/releases/download/model-catalogue-v1/8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e.json",
+          "revision": "8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e"
+        }
+      }
+    }
+  ]
 }

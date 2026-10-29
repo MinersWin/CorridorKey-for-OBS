@@ -9,6 +9,7 @@
 namespace corridorkey::models {
 Catalogue admit_catalogue(Cache &, std::string_view bytes, std::string_view signature_hex,
 			  std::string_view trusted_public_xy_hex);
+Catalogue admit_installer_catalogue(Cache &, std::string_view bytes, std::string_view compiled_sha256);
 // W05 writes only expected <graph>.weights files under cache.staging(manifest.key).
 // The callback returns after complete materialization; Cache verifies each output.
 using BindWeights = std::function<void(const Manifest &, Cache &, std::stop_token)>;

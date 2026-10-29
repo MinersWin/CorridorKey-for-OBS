@@ -3,7 +3,7 @@
 #include "catalog.hpp"
 #include "binder.hpp"
 namespace corridorkey::models {
-Catalogue admit_catalogue(Cache &cache, std::string_view bytes, std::string_view signature, std::string_view public_key)
+static Catalogue admit(Cache &cache, std::string_view bytes, const std::function<Catalogue(std::uint64_t)> &parse)
 {
 	FileLock lock(cache.path("locks/catalogue.lock"), false, true);
 	auto p = cache.path("receipts/catalogue.json");
@@ -16,12 +16,20 @@ Catalogue admit_catalogue(Cache &cache, std::string_view bytes, std::string_view
 		floor = uint64(previous.at("sequence"));
 		previous_digest = string(previous.at("sha256"));
 	}
-	auto catalogue = parse_catalogue(bytes, signature, public_key, floor);
+	auto catalogue = parse(floor);
 	require(catalogue.sequence != floor || previous_digest.empty() || previous_digest == sha256(bytes),
 		"Conflicting catalogue sequence", ErrorCode::hash_mismatch);
 	atomic_write(p,
 		     Json{{"schema_version", 1}, {"sequence", catalogue.sequence}, {"sha256", sha256(bytes)}}.dump());
 	return catalogue;
+}
+Catalogue admit_catalogue(Cache &cache, std::string_view bytes, std::string_view signature, std::string_view public_key)
+{
+	return admit(cache, bytes, [&](auto floor) { return parse_catalogue(bytes, signature, public_key, floor); });
+}
+Catalogue admit_installer_catalogue(Cache &cache, std::string_view bytes, std::string_view digest)
+{
+	return admit(cache, bytes, [&](auto floor) { return parse_installer_catalogue(bytes, digest, floor); });
 }
 static auto index(const ModelKey &k)
 {

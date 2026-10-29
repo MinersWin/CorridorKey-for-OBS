@@ -1,0 +1,457 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. Metadata wrapper only; graph and checkpoint bytes retain publisher licences.",
+  "schema_version": 1,
+  "id": "ck2-facecam",
+  "revision": "5d88114f169cb082cda238426af47feffb9724af",
+  "display_name": "CorridorKey 2.0: Facecam",
+  "publisher": "Corridor Digital / Niko Pueringer; graph exports and Edge Refiner: Moritz Mantel",
+  "description": "Full-frame 256x512 CK2 with separate MoGe, RVM and mask-free Stage 1. Native reconstruction; learned edge refinement is not available yet.",
+  "pipeline": "ck2",
+  "export_contract": 1,
+  "provenance": {
+    "source_url": "https://huggingface.co/mantelmoritz/CorridorKey-ONNX-Graphs/tree/5d88114f169cb082cda238426af47feffb9724af",
+    "export_revision": "5d88114f169cb082cda238426af47feffb9724af"
+  },
+  "licenses": [
+    {
+      "id": "CC-BY-4.0",
+      "text_sha256": "9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411"
+    },
+    {
+      "id": "LicenseRef-Corridor-Key-2.0",
+      "text_sha256": "c92ce56f64162b231c7ce08ce3ed7d8cae15f01a560ca05a8e8db67878eb0065"
+    },
+    {
+      "id": "LicenseRef-MoGe-MIT-DINOv2",
+      "text_sha256": "ad7d951c80c5fc2b2bce035f2041bc0a0dbf9028c8ecc4c9a8e1fba8130b6b59"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "moge_256x512-onnx",
+      "path": "graphs/moge_256x512.onnx",
+      "format": "onnx",
+      "bytes": 1102163,
+      "sha256": "df5d7ede17cb0eb9d720d63af25ec114d0e4dbff3f30b2be6796c88e071b32aa",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "5d88114f169cb082cda238426af47feffb9724af",
+        "file": "graphs/moge_256x512.onnx"
+      }
+    },
+    {
+      "id": "moge_256x512-json",
+      "path": "graphs/moge_256x512.json",
+      "format": "export-json",
+      "bytes": 52215,
+      "sha256": "7c999b23cc8d1774e28441a644b4d6dd32c47f6afbecb98527f38a1db8a135cf",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "5d88114f169cb082cda238426af47feffb9724af",
+        "file": "graphs/moge_256x512.json"
+      }
+    },
+    {
+      "id": "rvm_256x512-onnx",
+      "path": "graphs/rvm_256x512.onnx",
+      "format": "onnx",
+      "bytes": 1899632,
+      "sha256": "d4577d07e75a8d6ed4071064212ffd6e4729e41657818a61d9c248553898e9bb",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "5d88114f169cb082cda238426af47feffb9724af",
+        "file": "graphs/rvm_256x512.onnx"
+      }
+    },
+    {
+      "id": "rvm_256x512-json",
+      "path": "graphs/rvm_256x512.json",
+      "format": "export-json",
+      "bytes": 108779,
+      "sha256": "be9eb7ed49afe7ac6cd8eac99e0f1ce9105a3c432494639a7ffbda86bd38e691",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "5d88114f169cb082cda238426af47feffb9724af",
+        "file": "graphs/rvm_256x512.json"
+      }
+    },
+    {
+      "id": "stage1nomask_256x512-onnx",
+      "path": "graphs/stage1nomask_256x512.onnx",
+      "format": "onnx",
+      "bytes": 5952369,
+      "sha256": "352379960c6961d9da10bdf6115ded4047f93f795bedf4027a60f8051ab1d6da",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "5d88114f169cb082cda238426af47feffb9724af",
+        "file": "graphs/stage1nomask_256x512.onnx"
+      }
+    },
+    {
+      "id": "stage1nomask_256x512-json",
+      "path": "graphs/stage1nomask_256x512.json",
+      "format": "export-json",
+      "bytes": 141173,
+      "sha256": "ca9674b05772305c9cdbd34fd178fb4119fc7f9d6ef06bc430528ba318b38316",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "5d88114f169cb082cda238426af47feffb9724af",
+        "file": "graphs/stage1nomask_256x512.json"
+      }
+    },
+    {
+      "id": "ck2",
+      "bytes": 2661698720,
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "path": "sources/ck2/corridorkey_v2.safetensors",
+      "sha256": "c43596de98cc8866d577c8a9f9ea239acdf3f7a130ff24e25db4375a50590436",
+      "origin": {
+        "revision": "cf44a8db3f024bb49fd59daa408848ccf05f7477",
+        "repo": "nikopueringer/CorridorKey2.0",
+        "file": "corridorkey_v2.safetensors"
+      },
+      "format": "safetensors"
+    },
+    {
+      "id": "moge",
+      "bytes": 351063528,
+      "licenses": [
+        "LicenseRef-MoGe-MIT-DINOv2"
+      ],
+      "path": "sources/moge/model.safetensors",
+      "sha256": "be74d978c6a69cb467c057aa8b736e4b3a8eb9b2ec41622edd6b26c756573e3b",
+      "origin": {
+        "revision": "3090937b74a09929079cf6c77ad1edd40a0a9aaf",
+        "repo": "mantelmoritz/MoGe-2-ViT-B-Encoder-safetensors",
+        "file": "model.safetensors"
+      },
+      "format": "safetensors"
+    },
+    {
+      "id": "rvm",
+      "bytes": 270086372,
+      "licenses": [
+        "CC-BY-4.0"
+      ],
+      "path": "sources/rvm/pretrain_rvm_small16_256_204031069.npz",
+      "sha256": "8821ba9f5d983b9a3746bb5fe86b9c2ea834fe9985ab7b02438b917438bf2ede",
+      "origin": {
+        "md5_base64": "ZJb6kj8+tasiJbVeplXu7Q==",
+        "revision": "8821ba9f5d983b9a3746bb5fe86b9c2ea834fe9985ab7b02438b917438bf2ede",
+        "url": "https://storage.googleapis.com/representations4d/checkpoints/pretrain_rvm_small16_256_204031069.npz"
+      },
+      "format": "npz"
+    },
+    {
+      "id": "stats",
+      "bytes": 18864,
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "path": "sources/stats/foundation_stats.safetensors",
+      "sha256": "924783ceddd293fd470126332ce328166faea6c4c8d2f36402d5b95187166af3",
+      "origin": {
+        "revision": "cf44a8db3f024bb49fd59daa408848ccf05f7477",
+        "repo": "nikopueringer/CorridorKey2.0",
+        "file": "foundation_stats.safetensors"
+      },
+      "format": "safetensors"
+    }
+  ],
+  "graphs": [
+    {
+      "id": "moge_256x512",
+      "role": "moge",
+      "graph": "moge_256x512-onnx",
+      "metadata": "moge_256x512-json",
+      "external_data": "graphs/moge_256x512.weights",
+      "weights_bytes": 351049804,
+      "weights_sha256": "90a6078688cf8c53b1447a066c05c7bf58d91c0818924a199469e588b9048863",
+      "sources": [
+        "moge",
+        "stats"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "rgb_moge",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              56,
+              112
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "moge_feat",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              768,
+              4,
+              8
+            ]
+          }
+        ]
+      },
+      "color_contract": "sRGB RGB in [0,1]; decoded straight sRGB foreground and linear alpha. Foundation features/state follow the exporter interface.",
+      "parity": {
+        "report_url": "https://raw.githubusercontent.com/MinersWin/CorridorKey-for-OBS/f1091f9c8b5953a7697cdf65f5dca24b2ba8d6dd/docs/dev/validation-w09.json",
+        "report_sha256": "0ccb9a7a14bf220307e10fdd27e64b050164937345a4056fb152bd2ac1b24977",
+        "status": "unverified"
+      }
+    },
+    {
+      "id": "rvm_256x512",
+      "role": "rvm",
+      "graph": "rvm_256x512-onnx",
+      "metadata": "rvm_256x512-json",
+      "external_data": "graphs/rvm_256x512.weights",
+      "weights_bytes": 132893696,
+      "weights_sha256": "21b2f868e5b51297cc4803fa246219f808ea1cfc0bb1fb49c8e8918133709192",
+      "sources": [
+        "rvm",
+        "stats"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "rgb_rvm",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              64,
+              128
+            ]
+          },
+          {
+            "name": "state",
+            "dtype": "float32",
+            "shape": [
+              1,
+              33,
+              384
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "rvm_feat",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              384,
+              4,
+              8
+            ]
+          },
+          {
+            "name": "state_out",
+            "dtype": "float32",
+            "shape": [
+              1,
+              33,
+              384
+            ]
+          }
+        ]
+      },
+      "color_contract": "sRGB RGB in [0,1]; decoded straight sRGB foreground and linear alpha. Foundation features/state follow the exporter interface.",
+      "parity": {
+        "report_url": "https://raw.githubusercontent.com/MinersWin/CorridorKey-for-OBS/f1091f9c8b5953a7697cdf65f5dca24b2ba8d6dd/docs/dev/validation-w09.json",
+        "report_sha256": "0ccb9a7a14bf220307e10fdd27e64b050164937345a4056fb152bd2ac1b24977",
+        "status": "unverified"
+      }
+    },
+    {
+      "id": "stage1nomask_256x512",
+      "role": "stage1",
+      "graph": "stage1nomask_256x512-onnx",
+      "metadata": "stage1nomask_256x512-json",
+      "external_data": "graphs/stage1nomask_256x512.weights",
+      "weights_bytes": 1848139792,
+      "weights_sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1",
+      "sources": [
+        "ck2"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "rgb",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              256,
+              512
+            ]
+          },
+          {
+            "name": "moge_feat",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              768,
+              4,
+              8
+            ]
+          },
+          {
+            "name": "rvm_feat",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              384,
+              4,
+              8
+            ]
+          },
+          {
+            "name": "hint",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              1,
+              256,
+              512
+            ]
+          },
+          {
+            "name": "hint_quality",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "baton",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              512,
+              16,
+              32
+            ]
+          },
+          {
+            "name": "alpha",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              128,
+              256
+            ]
+          },
+          {
+            "name": "fg",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              128,
+              256
+            ]
+          }
+        ]
+      },
+      "color_contract": "sRGB RGB in [0,1]; decoded straight sRGB foreground and linear alpha. Foundation features/state follow the exporter interface.",
+      "parity": {
+        "report_url": "https://raw.githubusercontent.com/MinersWin/CorridorKey-for-OBS/f1091f9c8b5953a7697cdf65f5dca24b2ba8d6dd/docs/dev/validation-w09.json",
+        "report_sha256": "0ccb9a7a14bf220307e10fdd27e64b050164937345a4056fb152bd2ac1b24977",
+        "status": "unverified"
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "facecam",
+      "graphs": [
+        "moge_256x512",
+        "rvm_256x512",
+        "stage1nomask_256x512"
+      ],
+      "grid_hw": [
+        256,
+        512
+      ],
+      "roi": false,
+      "refiner_tiles": 384,
+      "settings_schema": 1
+    }
+  ],
+  "budgets": {
+    "bound_bytes": 2332083292,
+    "workspace_bytes": 3221225472,
+    "engine_bytes": 4294967296,
+    "margin_bytes": 1073741824
+  },
+  "compatibility": [
+    {
+      "backend": "tensorrt",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "Pinned graph validation in docs/dev/validation-w09.json; this package still needs a first-run installation test."
+    },
+    {
+      "backend": "cuda",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "Pinned graph validation in docs/dev/validation-w09.json; this package still needs a first-run installation test."
+    },
+    {
+      "backend": "directml",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "Pinned graph validation in docs/dev/validation-w09.json; this package still needs a first-run installation test."
+    },
+    {
+      "backend": "migraphx",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "Pinned graph validation in docs/dev/validation-w09.json; this package still needs a first-run installation test."
+    }
+  ]
+}

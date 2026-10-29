@@ -117,8 +117,10 @@ jobs:
           else
             echo 'Signing secret is configured. Signing is disabled until the coordinator wires the signer.'
           fi
+          echo 'Production release blocked: sign and verify the catalogue and embed its public key before packaging.'
+          exit 1
   draft:
-    needs: [windows-package, linux-package]
+    needs: [windows-package, linux-package, catalogue-signing-placeholder]
     if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-test.') && (github.event_name == 'push' || inputs.create_draft)
     runs-on: ubuntu-24.04
     environment: release
