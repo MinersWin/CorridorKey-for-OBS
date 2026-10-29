@@ -12,6 +12,8 @@ cmake/.CMakeBuildNumber
 *.user
 *.onnx
 *.safetensors
+*.weights
+*.weights.*
 *.pt
 *.pth
 *.npz
