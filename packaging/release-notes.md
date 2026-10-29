@@ -5,8 +5,8 @@ DirectML. Use the modern zip for portable OBS 33+, or the legacy zip for OBS
 that matches your distribution and host Qt. Flatpak is not supported.
 
 Models and NVIDIA libraries are separate downloads and require licence acceptance.
-No model weights, model graphs or compiled engines are included. Catalogue signing
-is pending maintainer integration; this draft does not announce a production catalogue.
+No model weights, model graphs or compiled engines are included. The plugin
+verifies the bundled model catalogue against its embedded release public key.
 
 Verify SHA256SUMS.txt and read the bundled THIRD_PARTY_NOTICES and BUNDLE_CONTENTS.
 See [installation](https://github.com/MinersWin/CorridorKey-for-OBS/blob/main/docs/user/install.md)
