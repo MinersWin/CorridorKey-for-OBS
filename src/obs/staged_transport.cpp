@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
 #include "staged_transport.hpp"
+#include "telemetry/obs_clock.hpp"
 #include <obs-module.h>
 #include <algorithm>
 #include <cstring>
@@ -125,9 +126,9 @@ Error StagedTransport::try_capture(InputFrame &input) noexcept
 	gs_ortho(0, static_cast<float>(native_.width), 0, static_cast<float>(native_.height), -100, 100);
 	gs_blend_state_push();
 	gs_blend_function(GS_BLEND_ONE, GS_BLEND_ZERO);
-	const auto before_host = Clock::now();
+	const auto before_host = obs_now();
 	const bool began = obs_source_process_filter_begin(source_, GS_RGBA, OBS_NO_DIRECT_RENDERING);
-	host_draw_time_ = Clock::now() - before_host;
+	host_draw_time_ = obs_now() - before_host;
 	if (began)
 		obs_source_process_filter_tech_end(source_, effect_, native_.width, native_.height, "Capture");
 	gs_blend_state_pop();

@@ -66,8 +66,10 @@ including on cancellation. Resource deleters must defer thread-affine destructio
 to the owning graphics context. `FrameTransport::try_present` returns a read
 completion token for retirement after the final draw. The pool owns no GPU resources.
 
-Use `Clock::now()` for capture, submission and presentation. It is a monotonic
-`steady_clock`; do not serialize its epoch or mix it with OBS timestamps.
+In the OBS pipeline, use `obs_now()` from `telemetry/obs_clock.hpp` for capture,
+submission, worker completion and presentation. It carries `os_gettime_ns()` in
+`TimePoint`; never mix that epoch with `Clock::now()`. Portable pipeline tests use
+explicit times or `Clock::now()` independently. Do not serialize either epoch.
 `video_tick` is only an OBS draw-deduplication key. `captured_at` records filter
 input acquisition, not sensor exposure. Identity includes instance, generation,
 sequence, tick and capture time. `presentable` checks this identity, transform,

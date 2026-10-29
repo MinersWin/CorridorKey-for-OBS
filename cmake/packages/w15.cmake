@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+target_sources(corridorkey_core PRIVATE src/telemetry/frame_timing.cpp src/obs/audio_sync.cpp)
+if(TARGET corridorkey)
+  target_sources(corridorkey PRIVATE src/obs/audio_sync_obs.cpp)
+  if(ENABLE_QT)
+    target_compile_definitions(corridorkey PRIVATE CORRIDORKEY_QT_STATUS)
+  endif()
+endif()
+if(BUILD_TESTING)
+  target_sources(corridorkey_contract_tests PRIVATE tests/audio_sync_test.cpp tests/frame_timing_test.cpp)
+endif()

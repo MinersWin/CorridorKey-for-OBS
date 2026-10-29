@@ -13,6 +13,14 @@
 #include <memory>
 #include <string_view>
 #include <tuple>
+#ifdef CORRIDORKEY_QT_STATUS
+#include <QApplication>
+#include <QLabel>
+#include <QPointer>
+#include <QThread>
+#include <QTimer>
+#include "telemetry/obs_clock.hpp"
+#endif
 
 namespace corridorkey {
 namespace {
@@ -26,8 +34,26 @@ struct Form {
 	PropertyCapabilities capabilities;
 	obs_data_t *previous = nullptr;
 	obs_data_t *bound = nullptr;
+#ifdef CORRIDORKEY_QT_STATUS
+	QPointer<QTimer> timer;
+	obs_weak_source_t *owner = nullptr;
+	std::map<std::string, QPointer<QLabel>> labels;
+	std::uint64_t edited_at = 0;
+	std::string marker(const char *key) const
+	{
+		return "<!--ck:" + std::to_string(reinterpret_cast<std::uintptr_t>(this)) + ":" + key + "-->";
+	}
+#endif
 	~Form()
 	{
+#ifdef CORRIDORKEY_QT_STATUS
+		if (timer) {
+			timer->stop();
+			delete timer;
+		}
+		if (owner)
+			obs_weak_source_release(owner);
+#endif
 		obs_data_release(previous);
 		obs_data_release(bound);
 	}
@@ -70,6 +96,9 @@ void info(obs_properties_t *p, const char *name, const std::string &text)
 				else
 					value += ch;
 			}
+#ifdef CORRIDORKEY_QT_STATUS
+			value = "<span>" + value + form->marker(name) + "</span>";
+#endif
 			obs_data_set_string(form->bound, name, value.c_str());
 		} else
 			obs_property_set_long_description(f, text.c_str());
@@ -123,9 +152,13 @@ void status(obs_properties_t *p, Form &form, const Settings &s)
 			first += " · ";
 			first += tr(std::string("Choice.") + backend);
 			if (state->inference_median_ms && state->age_median_ms && state->keyed_fps) {
-				char metrics[160];
+				char metrics[256];
 				std::snprintf(metrics, sizeof(metrics), tr("Status.Metrics"),
-					      *state->inference_median_ms, *state->age_median_ms, *state->keyed_fps);
+					      *state->inference_median_ms,
+					      state->input_transfer_median_ms.value_or(0) +
+						      state->output_transfer_median_ms.value_or(0),
+					      *state->age_median_ms, state->age_p95_ms.value_or(*state->age_median_ms),
+					      *state->keyed_fps);
 				second = metrics;
 			} else
 				second = tr("Status.Warming");
@@ -152,6 +185,13 @@ void status(obs_properties_t *p, Form &form, const Settings &s)
 	obs_property_set_long_description(property(p, "status"), details.c_str());
 	info(p, "filter_delay",
 	     state && state->age_median_ms ? std::to_string(*state->age_median_ms) + " ms" : tr("Status.NotMeasured"));
+	std::string applied = state ? tr("Sync." + state->audio_sync_state) : tr("Sync.off");
+	if (state && state->audio_sync_offset_ms) {
+		char value[96];
+		std::snprintf(value, sizeof(value), tr("Sync.Value"), *state->audio_sync_offset_ms);
+		applied = std::string(value) + " \u00b7 " + applied;
+	}
+	info(p, "applied_delay", applied);
 }
 bool allowed(Form &form, std::string_view key, std::string_view value)
 {
@@ -312,6 +352,9 @@ bool modified(void *opaque, obs_properties_t *p, obs_property_t *prop, obs_data_
 {
 	try {
 		auto &form = *static_cast<Form *>(opaque);
+#ifdef CORRIDORKEY_QT_STATUS
+		form.edited_at = os_gettime_ns();
+#endif
 		const std::string key = obs_property_name(prop);
 		bool rebuild = !form.previous;
 		const std::string old_profile = form.previous ? obs_data_get_string(form.previous, "profile") : "";
@@ -555,6 +598,45 @@ obs_properties_t *create_filter_properties(FilterControl *control, PropertyCapab
 	set_filter_defaults(initial);
 	visibility(p, *state, initial);
 	obs_data_release(initial);
+#ifdef CORRIDORKEY_QT_STATUS
+	if (qApp && QThread::currentThread() == qApp->thread() && control && control->property_source()) {
+		state->owner = obs_source_get_weak_source(control->property_source());
+		state->timer = new QTimer(qApp);
+		state->timer->setInterval(500);
+		QObject::connect(state->timer, &QTimer::timeout, state->timer, [state, p] {
+			if (!state->bound || os_gettime_ns() - state->edited_at < 750000000 ||
+			    QApplication::mouseButtons() != Qt::NoButton || QApplication::activePopupWidget())
+				return;
+			auto *source = obs_weak_source_get_source(state->owner);
+			if (!source)
+				return;
+			try {
+				status(p, *state, decode(read_record(state->bound)));
+				for (const auto *key : {"status", "filter_delay", "applied_delay"}) {
+					auto &label = state->labels[key];
+					if (!label) {
+						const auto marker = QString::fromStdString(state->marker(key));
+						for (auto *widget : QApplication::allWidgets())
+							if (auto *candidate = qobject_cast<QLabel *>(widget);
+							    candidate && candidate->text().contains(marker)) {
+								label = candidate;
+								break;
+							}
+					}
+					if (label) {
+						label->setText(
+							QString::fromUtf8(obs_data_get_string(state->bound, key)));
+						label->setToolTip(QString::fromUtf8(
+							obs_property_long_description(property(p, key))));
+					}
+				}
+			} catch (...) {
+			}
+			obs_source_release(source);
+		});
+		state->timer->start();
+	}
+#endif
 	return p;
 }
 } // namespace corridorkey
