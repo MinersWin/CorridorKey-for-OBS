@@ -364,11 +364,12 @@ void ModelManager::render()
 				   : r.status.state == ModelState::update_available ? "update"
 				   : r.status.state == ModelState::missing          ? "missing"
 										    : "waiting";
-		table_->item(static_cast<int>(row), 1)
-			->setIcon(mono_icon(icon, palette(),
-					    working(r.status.state) || r.status.state == ModelState::ready
-						    ? QPalette::Link
-						    : QPalette::Text));
+		const auto colors = state_palette(this,
+						  r.status.state == ModelState::ready    ? "text-success"
+						  : r.status.state == ModelState::failed ? "text-danger"
+											 : "",
+						  working(r.status.state));
+		table_->item(static_cast<int>(row), 1)->setIcon(mono_icon(icon, colors));
 		table_->setRowHeight(static_cast<int>(row), std::max(32, fontMetrics().height() + 8));
 	}
 	table_->setFixedHeight(table_->horizontalHeader()->sizeHint().height() +
@@ -424,8 +425,8 @@ void ModelManager::details()
 	install_->setText(q(a.primary));
 	install_->setEnabled(a.install);
 	remove_->setEnabled(a.remove);
-	install_->setVisible(
-		!(r->recommended && r->status.state == ModelState::missing && ViewModel(snapshot_.rows).first_run()));
+	install_->setVisible(!a.primary.empty() && !(r->recommended && r->status.state == ModelState::missing &&
+						     ViewModel(snapshot_.rows).first_run()));
 	import_->setEnabled(a.import);
 	licence_->setEnabled(r->manifest.has_value());
 	const bool active = working(r->status.state);

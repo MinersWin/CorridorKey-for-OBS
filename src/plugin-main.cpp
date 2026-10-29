@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
 
 #include <obs-module.h>
+#include <string>
 
 #include "filter.hpp"
 #include "telemetry/host_policy.hpp"
@@ -16,7 +17,9 @@ OBS_MODULE_AUTHOR("Moritz Mantel")
 
 MODULE_EXPORT const char *obs_module_description(void)
 {
-	return obs_module_text("Module.Description");
+	static const auto description =
+		std::string("CorridorKey ") + CORRIDORKEY_VERSION + ". " + obs_module_text("Module.Description");
+	return description.c_str();
 }
 
 bool obs_module_load(void)
@@ -32,7 +35,7 @@ bool obs_module_load(void)
 	     static_cast<unsigned>(LIBOBS_API_MAJOR_VER), static_cast<unsigned>(LIBOBS_API_MINOR_VER));
 	if (policy.unreviewed) {
 		blog(LOG_WARNING,
-		     "[corridorkey] unreviewed OBS version; continuing with pass-through. "
+		     "[corridorkey] unreviewed OBS version; continuing with capability checks. "
 		     "Report compatibility issues at https://github.com/MinersWin/CorridorKey-for-OBS/issues");
 	}
 	// New optional APIs must be resolved at runtime before use. Keep pass-through
@@ -42,7 +45,7 @@ bool obs_module_load(void)
 	corridorkey::ui::register_model_manager();
 	corridorkey::packaging::register_runtime_manager();
 #endif
-	blog(LOG_INFO, "[corridorkey] loaded (version %s; pass-through foundation)", CORRIDORKEY_VERSION);
+	blog(LOG_INFO, "[corridorkey] loaded (version %s)", CORRIDORKEY_VERSION);
 	return true;
 }
 
