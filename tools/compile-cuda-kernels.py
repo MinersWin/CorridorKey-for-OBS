@@ -24,6 +24,8 @@ assert dll.nvrtcGetPTXSize(program, c.byref(length)) == 0
 ptx = c.create_string_buffer(length.value)
 assert dll.nvrtcGetPTX(program, ptx) == 0
 dll.nvrtcDestroyProgram(c.byref(program))
+# REUSE-IgnoreStart
 text = '// SPDX-License-Identifier: GPL-3.0-or-later\n// Generated from cuda_kernels.cu; do not edit.\n'
+# REUSE-IgnoreEnd
 text += 'static constexpr char kernel_ptx[] = R"CKPTX(\n' + ptx.value.decode() + ')CKPTX";\n'
 (root / "src/gpu/cuda_kernels.inc").write_text(text, encoding="utf-8", newline="\n")
