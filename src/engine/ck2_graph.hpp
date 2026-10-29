@@ -26,7 +26,8 @@ public:
 };
 Tensor download_tensor(const Tensor &);
 void zero_tensor(Tensor &);
-Tensor device_rgb(const std::shared_ptr<nvidia::Buffer> &rgba, Extent, unsigned format);
+Tensor device_rgb(const std::shared_ptr<nvidia::Buffer> &rgba, Extent, unsigned format,
+		  std::shared_ptr<nvidia::Buffer> reuse = {});
 using Tensors = std::map<std::string, Tensor>;
 using Inputs = std::map<std::string, const Tensor *>;
 enum class Stage { moge, rvm, stage1, stage2, refiner };
@@ -44,7 +45,7 @@ public:
 };
 using Graphs = std::map<Stage, std::unique_ptr<Graph>>;
 Tensor planar_rgb(const Image &);
-Tensor resize_area(const Tensor &, Extent);
+Tensor resize_area(const Tensor &, Extent, std::shared_ptr<nvidia::Buffer> reuse = {});
 Tensor resize_bilinear(const Tensor &, Extent);
 Image packed_image(const Tensor &, PixelFormat);
 
