@@ -55,12 +55,28 @@ if(TARGET corridorkey)
   target_sources(corridorkey PRIVATE src/models/cache_obs.cpp)
 endif()
 if(BUILD_TESTING)
+  add_executable(corridorkey_catalogue_verify tests/models/catalogue_verify.cpp)
+  target_link_libraries(corridorkey_catalogue_verify PRIVATE corridorkey_core)
   add_executable(corridorkey_models_tests tests/models/models_test.cpp)
   target_link_libraries(corridorkey_models_tests PRIVATE corridorkey_core doctest::doctest)
   target_compile_definitions(corridorkey_models_tests PRIVATE CK_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
   add_test(NAME models COMMAND corridorkey_models_tests)
   set_tests_properties(models PROPERTIES TIMEOUT 60)
   find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  option(
+    CORRIDORKEY_TEST_CATALOGUE_SIGNING
+    "Run signing integration tests (requires tools/requirements-signing.txt)"
+    OFF
+  )
+  if(CORRIDORKEY_TEST_CATALOGUE_SIGNING)
+    add_test(
+      NAME catalogue_signing
+      COMMAND
+        "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tests/models/catalogue_signing_test.py"
+        "$<TARGET_FILE:corridorkey_catalogue_verify>" "${CMAKE_CURRENT_BINARY_DIR}"
+    )
+    set_tests_properties(catalogue_signing PROPERTIES TIMEOUT 120)
+  endif()
   add_test(
     NAME models_http
     COMMAND
