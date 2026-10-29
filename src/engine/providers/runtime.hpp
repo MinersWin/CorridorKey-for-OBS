@@ -45,7 +45,7 @@ struct CacheIdentity {
 };
 class CacheLease {
 public:
-	CacheLease(const fs::path &root, const CacheIdentity &);
+	CacheLease(const fs::path &root, const CacheIdentity &, bool rebuild = false);
 	~CacheLease();
 	CacheLease(const CacheLease &) = delete;
 	CacheLease &operator=(const CacheLease &) = delete;

@@ -105,6 +105,8 @@ struct FilterInput::Impl {
 	SettingsSnapshot settings;
 	FakeOptions options;
 	std::unique_ptr<StagedTransport> transport;
+	nvidia::TextureTransfers device_transfers;
+	std::atomic<TransportKind> chosen_transport{TransportKind::staged_grid};
 	std::optional<FrameResult> presented;
 	std::optional<InputFrame> staged_input;
 	std::optional<FrameResult> completed_result;
@@ -709,7 +711,15 @@ struct FilterInput::Impl {
 					       std::chrono::milliseconds(snapshot->context.stale_timeout_ms))) {
 				const auto pack_start = obs_now();
 				result->timings.input_transfer = input_transfers[result->input.lease.id().index];
-				rgba = pack(*result);
+				if (!transport->upload_device(*result, device_transfers)) {
+					for (auto *image : {&result->alpha, &result->foreground})
+						if (auto device = std::dynamic_pointer_cast<const ck2::DeviceImage>(
+							    image->storage))
+							*image = ck2::packed_image(ck2::download_tensor(device->tensor),
+										   image->format);
+					rgba = pack(*result);
+				}
+				transport->release_analysis(*result);
 				result->timings.output_transfer = obs_now() - pack_start;
 			} else {
 				failure = ErrorCode::timeout;
@@ -748,7 +758,13 @@ struct FilterInput::Impl {
 		}
 		queue_transfer();
 		if (input && input->lease.current()) {
-			input->analysis = transport->analysis(*input);
+			std::shared_ptr<nvidia::Context> context;
+#ifdef CORRIDORKEY_CK2_DEV
+			if (real && pipeline == real.get())
+				context = real->device_context();
+#endif
+			input->analysis = transport->analysis(*input, &device_transfers, std::move(context));
+			chosen_transport = transport->transport_kind();
 			input_transfers[input->lease.id().index] = obs_now() - input->identity.captured_at;
 			const auto previous_dropped = scheduler.dropped();
 			scheduler.offer(std::move(*input));
@@ -782,6 +798,7 @@ struct FilterInput::Impl {
 		pipeline->cancel();
 		scheduler.reset();
 		pipeline->shutdown();
+		device_transfers.clear();
 		pool.advance_generation();
 		graphics_task([&] {
 			// FIFO barrier: the last asynchronous callback has returned before
@@ -1006,7 +1023,7 @@ StatusSnapshot FilterInput::status() const
 	auto status = std::make_shared<Status>();
 	std::lock_guard lock(s.mutex);
 	status->backend = s.model_backend;
-	status->transport = TransportKind::staged_grid;
+	status->transport = s.chosen_transport.load();
 	status->generation = s.pool.generation();
 	status->failure = error(s.failure.load());
 	status->lifecycle = status->failure ? Lifecycle::bypassed : Lifecycle::ready;

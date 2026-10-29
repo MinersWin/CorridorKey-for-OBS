@@ -70,6 +70,7 @@ void frame(const Json &item, const char *directory)
 	}
 	Reconstruction post(native.extent(), model.extent(), (std::string(directory) + "/effects/post.effect").c_str());
 	const unsigned budget = item.value("refiner_budget", 0U);
+	const bool interop = item.value("interop", false);
 	if (!post.available() || !post.prepare(native.value, guide.value, model.value, settings, roi, budget != 0))
 		throw std::runtime_error("Reconstruction preparation failed");
 	const auto prefix = item.at("output").get<std::string>();
@@ -79,8 +80,8 @@ void frame(const Json &item, const char *directory)
 	std::unique_ptr<TileRefiner> refiner;
 	gs_texture_t *refined = nullptr;
 	if (budget) {
-		refiner = std::make_unique<TileRefiner>(native.extent(), budget,
-							(std::string(directory) + "/effects/refiner.effect").c_str());
+		refiner = std::make_unique<TileRefiner>(
+			native.extent(), budget, (std::string(directory) + "/effects/refiner.effect").c_str(), interop);
 		if (!refiner->available() || !refiner->begin(post, native.value, model.value, roi))
 			throw std::runtime_error("Refiner GPU preparation failed");
 		dump(refiner->atlas(), prefix + ".atlas.f32");
@@ -88,7 +89,22 @@ void frame(const Json &item, const char *directory)
 		dump(refiner->scores(), prefix + ".scores.f32");
 		dump(post.background(), prefix + ".background.f32");
 		dump(post.band(), prefix + ".band.f32");
-		const auto tensor = corridorkey::refiner::unpack_atlas(refiner->read_atlas(), budget);
+		ck2::Tensor tensor;
+		std::shared_ptr<nvidia::Context> cuda;
+		if (interop) {
+			cuda = std::make_shared<nvidia::Context>(0);
+			nvidia::D3D11Texture atlas(
+				cuda, static_cast<ID3D11Texture2D *>(gs_texture_get_obj(refiner->atlas())));
+			auto pixels = atlas.read();
+			tensor = ck2::Tensor({budget, 11, 52, 52});
+			auto device = cuda->allocate(tensor.values.size() * sizeof(float));
+			auto src = pixels->pointer(), dst = device->pointer();
+			auto batch = budget;
+			void *args[]{&src, &dst, &batch};
+			cuda->launch("unpack_atlas", static_cast<unsigned>(tensor.values.size()), args);
+			device->download(tensor.values.data(), device->bytes());
+		} else
+			tensor = corridorkey::refiner::unpack_atlas(refiner->read_atlas(), budget);
 		std::ofstream input_tensor(utf8_path(prefix + ".x.f32"), std::ios::binary);
 		input_tensor.write(reinterpret_cast<const char *>(tensor.values.data()),
 				   static_cast<std::streamsize>(tensor.values.size() * sizeof(float)));
@@ -101,7 +117,14 @@ void frame(const Json &item, const char *directory)
 			if (!file.read(reinterpret_cast<char *>(data.data()),
 				       static_cast<std::streamsize>(data.size() * sizeof(float))))
 				throw std::runtime_error("Missing refiner centre output");
-			if (!refiner->blend(data))
+			if (interop) {
+				auto pixels = cuda->allocate(data.size() * sizeof(float));
+				pixels->upload(data.data(), pixels->bytes());
+				nvidia::D3D11Texture centres(
+					cuda, static_cast<ID3D11Texture2D *>(gs_texture_get_obj(refiner->centres())));
+				centres.write(*pixels);
+			}
+			if (!(interop ? refiner->blend_device() : refiner->blend(data)))
 				throw std::runtime_error("Refiner blend failed");
 			refined = refiner->raw();
 			dump(refined, prefix + ".raw.f32");

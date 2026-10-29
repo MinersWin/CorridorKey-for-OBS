@@ -51,7 +51,7 @@ void CacheLease::unlock() noexcept
 #endif
 	lock_ = -1;
 }
-CacheLease::CacheLease(const fs::path &root, const CacheIdentity &identity)
+CacheLease::CacheLease(const fs::path &root, const CacheIdentity &identity, bool rebuild)
 {
 	const auto metadata = identity.canonical();
 	const auto key = sha256(metadata);
@@ -62,7 +62,7 @@ CacheLease::CacheLease(const fs::path &root, const CacheIdentity &identity)
 	lock();
 	try {
 		const auto manifest = shared_ / "identity.json";
-		bool valid = fs::exists(shared_ / "ready") && fs::is_directory(shared_ / "artifacts");
+		bool valid = !rebuild && fs::exists(shared_ / "ready") && fs::is_directory(shared_ / "artifacts");
 		if (fs::exists(manifest) && fs::file_size(manifest) < 1024 * 1024) {
 			std::ifstream in(manifest);
 			const std::string old((std::istreambuf_iterator<char>(in)), {});

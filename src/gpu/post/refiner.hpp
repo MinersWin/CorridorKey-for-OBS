@@ -8,7 +8,7 @@ namespace corridorkey {
 // Graphics-thread resources. A caller pins the capture and Reconstruction until finish/cancel completes.
 class TileRefiner {
 public:
-	TileRefiner(Extent native, unsigned budget, const char *effect_path);
+	TileRefiner(Extent native, unsigned budget, const char *effect_path, bool interop = false);
 	~TileRefiner();
 	bool available() const noexcept { return valid_; }
 	bool begin(Reconstruction &, gs_texture_t *native, gs_texture_t *model, const Crop &roi);
@@ -17,6 +17,9 @@ public:
 	bool failed() const { return fence_.failed(); }
 	std::vector<float> read_atlas();
 	bool blend(std::span<const float> centres);
+	bool blend_device();
+	gs_texture_t *centres() const { return centres_; }
+	bool interop() const { return interop_; }
 	gs_texture_t *raw() const;
 	gs_texture_t *atlas() const;
 	gs_texture_t *selection() const;
@@ -40,5 +43,6 @@ private:
 	GpuFence fence_;
 	std::vector<gs_texrender_t *> owned_;
 	bool valid_ = false;
+	bool interop_ = false;
 };
 } // namespace corridorkey

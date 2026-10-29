@@ -61,6 +61,7 @@ struct Session::Impl {
 	std::shared_ptr<const ReadyModel> model_lease;
 	std::shared_ptr<Runtime> runtime;
 	std::unique_ptr<CacheLease> cache;
+	std::shared_ptr<nvidia::Context> cuda_context;
 	OrtSession *session = nullptr;
 	OrtIoBinding *binding = nullptr;
 	OrtRunOptions *run_options = nullptr;
@@ -201,7 +202,7 @@ Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 				"Persistent cache needs manifest, weights and binding recipe identities");
 		if (!cpu && state.device.driver.empty())
 			throw std::runtime_error("Driver identity unavailable; persistent backend caches disabled");
-		state.cache = std::make_unique<CacheLease>(config.cache_root, config.cache);
+		state.cache = std::make_unique<CacheLease>(config.cache_root, config.cache, config.rebuild_cache);
 		const auto path = state.cache->path().generic_string();
 		if (config.bundle.backend == Backend::tensorrt_rtx)
 			options["nv_runtime_cache_path"] = path;
@@ -261,12 +262,15 @@ Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 		} else
 			check(dml->append(raw_options, state.device.ordinal));
 	} else if (config.bundle.backend == Backend::cuda || config.bundle.backend == Backend::tensorrt) {
+		if (config.persistent_io)
+			state.cuda_context = std::make_shared<nvidia::Context>(state.device.ordinal);
 		if (config.bundle.backend == Backend::tensorrt) {
 			OrtTensorRTProviderOptionsV2 *trt = nullptr;
 			check(api.CreateTensorRTProviderOptions(&trt));
 			OrtOwned<OrtTensorRTProviderOptionsV2> guard(trt, api.ReleaseTensorRTProviderOptions);
 			check(api.UpdateTensorRTProviderOptions(trt, arrays.keys.data(), arrays.values.data(),
 								arrays.keys.size()));
+			// ORT owns its execution stream; bindings synchronize both sides of each call.
 			check(api.SessionOptionsAppendExecutionProvider_TensorRT_V2(raw_options, trt));
 		}
 		OrtCUDAProviderOptionsV2 *cuda = nullptr;
@@ -279,6 +283,7 @@ Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 		OptionArrays cuda_arrays(cuda_options);
 		check(api.UpdateCUDAProviderOptions(cuda, cuda_arrays.keys.data(), cuda_arrays.values.data(),
 						    cuda_arrays.keys.size()));
+
 		check(api.SessionOptionsAppendExecutionProvider_CUDA_V2(raw_options, cuda));
 	} else if (config.bundle.backend == Backend::migraphx) {
 		throw std::runtime_error("MIGraphX requires a matched plugin-EP bundle");
@@ -325,6 +330,10 @@ Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 	check(api.CreateRunOptions(&state.run_options));
 }
 Session::~Session() = default;
+std::shared_ptr<nvidia::Context> Session::device_context() const
+{
+	return impl_->cuda_context;
+}
 PreparedSession prepare_session(SessionConfig config, ProviderProbe &probe, std::stop_token stop)
 {
 	if (config.diagnostic_only || config.precision == Precision::bf16)

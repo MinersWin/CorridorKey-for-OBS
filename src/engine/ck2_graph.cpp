@@ -7,7 +7,7 @@
 #include <stdexcept>
 
 namespace corridorkey::ck2 {
-Tensor::Tensor(std::vector<std::int64_t> dimensions, float fill) : shape(std::move(dimensions))
+Tensor::Tensor(std::vector<std::int64_t> dimensions, float fill, bool host_storage) : shape(std::move(dimensions))
 {
 	std::size_t count = 1;
 	if (shape.empty() || shape.size() > 8)
@@ -17,7 +17,8 @@ Tensor::Tensor(std::vector<std::int64_t> dimensions, float fill) : shape(std::mo
 			throw std::invalid_argument("Invalid or excessive tensor dimensions");
 		count *= static_cast<std::size_t>(d);
 	}
-	values.assign(count, fill);
+	if (host_storage)
+		values.assign(count, fill);
 }
 std::string graph_name(Stage stage, Extent grid)
 {
@@ -81,14 +82,27 @@ Tensors output_contract(Stage stage, Extent grid)
 }
 void check_tensor(const Tensor &actual, const Tensor &expected, bool unit_range)
 {
-	if (actual.shape != expected.shape || actual.values.size() != expected.values.size())
+	std::size_t count = 1;
+	for (auto d : expected.shape) {
+		if (d <= 0 || static_cast<std::uint64_t>(d) > 64 * 1024 * 1024 / count)
+			throw std::runtime_error("Invalid tensor shape");
+		count *= static_cast<std::size_t>(d);
+	}
+	if (actual.shape != expected.shape ||
+	    (actual.device ? actual.device->bytes() / sizeof(float) : actual.values.size()) != count)
 		throw std::runtime_error("CK2 tensor shape mismatch");
+	if (actual.device) {
+		actual.device->context()->validate(*actual.device, unit_range);
+		return;
+	}
 	for (float v : actual.values)
 		if ((std::bit_cast<std::uint32_t>(v) & 0x7f800000U) == 0x7f800000U || (unit_range && (v < 0 || v > 1)))
 			throw std::runtime_error("CK2 tensor has invalid values");
 }
 Tensor planar_rgb(const Image &image)
 {
+	if (const auto storage = std::dynamic_pointer_cast<const DeviceImage>(image.storage))
+		return storage->tensor;
 	if (!image.storage || image.storage->domain() != MemoryDomain::host || image.color != ColorSpace::srgb ||
 	    image.format != PixelFormat::rgb_f32 || image.row_stride_bytes != image.size.width * 3ULL * sizeof(float))
 		throw std::invalid_argument("CK2 requires packed host sRGB input");
@@ -155,11 +169,26 @@ Tensor resize(const Tensor &input, Extent size, bool area)
 } // namespace
 Tensor resize_area(const Tensor &input, Extent size)
 {
+	if (input.device) {
+		if (input.shape.size() != 4 || input.shape[0] != 1 || !size.width || !size.height)
+			throw std::invalid_argument("Resize requires a single NCHW image");
+		Tensor result;
+		unsigned channels = static_cast<unsigned>(input.shape[1]);
+		unsigned h = static_cast<unsigned>(input.shape[2]), w = static_cast<unsigned>(input.shape[3]);
+		result.shape = {1, channels, size.height, size.width};
+		const auto context = input.device->context();
+		result.device = context->allocate(static_cast<std::size_t>(size.width) * size.height * channels *
+						  sizeof(float));
+		auto src = input.device->pointer(), dst = result.device->pointer();
+		void *args[]{&src, &dst, &w, &h, &size.width, &size.height, &channels};
+		context->launch("resize_area", size.width * size.height * channels, args);
+		return result;
+	}
 	return resize(input, size, true);
 }
 Tensor resize_bilinear(const Tensor &input, Extent size)
 {
-	return resize(input, size, false);
+	return resize(input.device ? download_tensor(input) : input, size, false);
 }
 Image packed_image(const Tensor &input, PixelFormat format)
 {
@@ -168,6 +197,13 @@ Image packed_image(const Tensor &input, PixelFormat format)
 		throw std::invalid_argument("Invalid decoded image shape");
 	const Extent size{static_cast<unsigned>(input.shape[3]), static_cast<unsigned>(input.shape[2])};
 	const auto pixels = static_cast<std::size_t>(size.width) * size.height;
+	if (input.device)
+		return {size,
+			format,
+			channels == 3 ? ColorSpace::srgb : ColorSpace::linear_srgb,
+			AlphaMode::straight,
+			size.width * channels * sizeof(float),
+			std::make_shared<DeviceImage>(input)};
 	std::vector<float> values(input.values.size());
 	for (std::size_t p = 0; p < pixels; ++p)
 		for (unsigned c = 0; c < channels; ++c)
@@ -178,5 +214,31 @@ Image packed_image(const Tensor &input, PixelFormat format)
 		AlphaMode::straight,
 		size.width * channels * sizeof(float),
 		std::make_shared<HostFloats>(std::move(values))};
+}
+Tensor download_tensor(const Tensor &tensor)
+{
+	if (!tensor.device)
+		return tensor;
+	Tensor result(tensor.shape);
+	tensor.device->download(result.values.data(), result.values.size() * sizeof(float));
+	return result;
+}
+void zero_tensor(Tensor &tensor)
+{
+	if (tensor.device)
+		tensor.device->zero();
+	else
+		std::fill(tensor.values.begin(), tensor.values.end(), 0.f);
+}
+Tensor device_rgb(const std::shared_ptr<nvidia::Buffer> &rgba, Extent size, unsigned format)
+{
+	Tensor result;
+	result.shape = {1, 3, size.height, size.width};
+	unsigned pixels = size.width * size.height;
+	result.device = rgba->context()->allocate(static_cast<std::size_t>(pixels) * 3 * sizeof(float));
+	auto src = rgba->pointer(), dst = result.device->pointer();
+	void *args[]{&src, &dst, &pixels, &format};
+	rgba->context()->launch("rgba_to_planar", pixels * 3, args);
+	return result;
 }
 } // namespace corridorkey::ck2

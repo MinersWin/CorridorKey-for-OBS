@@ -8,13 +8,14 @@
 #include <stdexcept>
 
 namespace corridorkey {
-TileRefiner::TileRefiner(Extent native, unsigned budget, const char *path)
+TileRefiner::TileRefiner(Extent native, unsigned budget, const char *path, bool interop)
 	: native_(native),
 	  cells_{(native.width + 31) / 32, (native.height + 31) / 32},
 	  atlas_(refiner::input_atlas(budget)),
 	  output_(refiner::output_atlas(budget)),
 	  budget_(budget)
 {
+	interop_ = interop;
 	if (!native.width || !native.height || native.width > 8192 || native.height > 8192)
 		return;
 	while (sort_count_ < cells_.width * cells_.height)
@@ -29,7 +30,7 @@ TileRefiner::TileRefiner(Extent native, unsigned budget, const char *path)
 	map_ = allocate(cells_);
 	gather_ = allocate(atlas_);
 	blend_ = allocate(native_);
-	centres_ = gs_texture_create(output_.width, output_.height, GS_RGBA32F, 1, nullptr, GS_DYNAMIC);
+	centres_ = gs_texture_create(output_.width, output_.height, GS_RGBA32F, 1, nullptr, interop ? 0 : GS_DYNAMIC);
 	stage_ = gs_stagesurface_create(atlas_.width, atlas_.height, GS_RGBA32F);
 	valid_ = centres_ && stage_ &&
 		 std::all_of(owned_.begin(), owned_.end(), [](auto *p) { return p && gs_texrender_get_texture(p); });
@@ -139,7 +140,8 @@ bool TileRefiner::begin(Reconstruction &post, gs_texture_t *native, gs_texture_t
 	sorted_ = sort_input_;
 	if (!draw(map_, cells_, "Map") || !draw(gather_, atlas_, "Gather"))
 		return false;
-	gs_stage_texture(stage_, atlas());
+	if (!interop_)
+		gs_stage_texture(stage_, atlas());
 	return fence_.signal();
 }
 std::vector<float> TileRefiner::read_atlas()
@@ -171,6 +173,10 @@ bool TileRefiner::blend(std::span<const float> centres)
 		return false;
 	gs_texture_set_image(centres_, reinterpret_cast<const uint8_t *>(centres.data()), output_.width * 16, false);
 	return draw(blend_, native_, "Blend");
+}
+bool TileRefiner::blend_device()
+{
+	return interop_ && draw(blend_, native_, "Blend");
 }
 gs_texture_t *TileRefiner::raw() const
 {

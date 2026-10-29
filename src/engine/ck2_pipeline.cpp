@@ -43,6 +43,7 @@ Error Ck2Pipeline::prepare(const PrepareRequest &request)
 		return error(ErrorCode::cancelled);
 	try {
 		auto prepared = factory_(request);
+		auto device_context = prepared.graphs.at(ck2::Stage::stage1)->device_context();
 		auto model = prepared.model ? prepared.model : request.model;
 		std::shared_ptr<refiner::Stage> refinement;
 		if (auto found = prepared.graphs.find(ck2::Stage::refiner); found != prepared.graphs.end()) {
@@ -62,6 +63,7 @@ Error Ck2Pipeline::prepare(const PrepareRequest &request)
 			return error(ErrorCode::stale_generation);
 		clear();
 		sequence_ = std::move(sequence);
+		device_context_ = std::move(device_context);
 		refiner_ = std::move(refinement);
 		model_ = std::move(model);
 		instance_ = request.instance;
@@ -264,5 +266,10 @@ std::shared_ptr<refiner::Stage> Ck2Pipeline::refiner_stage() const
 {
 	std::lock_guard lock(mutex_);
 	return refiner_;
+}
+std::shared_ptr<nvidia::Context> Ck2Pipeline::device_context() const
+{
+	std::lock_guard lock(mutex_);
+	return device_context_;
 }
 } // namespace corridorkey

@@ -44,8 +44,9 @@ ck2::Tensor reference(const fs::path &archive, const std::string &name, const fs
 	fs::remove(path);
 	return tensor;
 }
-Json compare(const ck2::Tensor &actual, const ck2::Tensor &expected)
+Json compare(const ck2::Tensor &value, const ck2::Tensor &expected)
 {
+	const auto actual = ck2::download_tensor(value);
 	ck2::check_tensor(actual, expected);
 	double maximum = 0, sum = 0;
 	for (std::size_t i = 0; i < actual.values.size(); ++i) {
@@ -95,8 +96,10 @@ std::unique_ptr<ck2::OrtGraph> graph(const ck2::DevelopmentConfig &config, ck2::
 				  {"backend", ort::backend_name(backend)},
 				  {"precision", session.precision == Precision::fp16 ? "fp16" : "fp32"},
 				  {"capture", captured}};
-	return std::make_unique<ck2::OrtGraph>(std::move(native), stage, grid,
-					       backend == Backend::tensorrt || backend == Backend::cuda);
+	auto result = std::make_unique<ck2::OrtGraph>(std::move(native), stage, grid,
+						      backend == Backend::tensorrt || backend == Backend::cuda);
+	result->device_resident(config.runtime.interop);
+	return result;
 }
 ck2::Stage parse_stage(const std::string &name)
 {
@@ -145,7 +148,19 @@ int main(int argc, char **argv)
 					times.push_back(
 						std::chrono::duration<double, std::milli>(Clock::now() - start).count());
 				}
-				auto centres = refiner::pack_centres(output, dimension);
+				std::vector<float> centres;
+				if (output.at("alpha").device) {
+					auto context = output.at("alpha").device->context();
+					centres.resize(static_cast<std::size_t>(dimension) * 32 * 32 * 4);
+					auto packed = context->allocate(centres.size() * sizeof(float));
+					auto a = output.at("alpha").device->pointer(),
+					     f = output.at("fg").device->pointer(), dst = packed->pointer();
+					auto budget = dimension;
+					void *args[]{&f, &a, &dst, &budget};
+					context->launch("pack_centres", static_cast<unsigned>(centres.size()), args);
+					packed->download(centres.data(), packed->bytes());
+				} else
+					centres = refiner::pack_centres(output, dimension);
 				std::ofstream file(utf8_path(item.at("output").get<std::string>()), std::ios::binary);
 				file.write(reinterpret_cast<const char *>(centres.data()),
 					   static_cast<std::streamsize>(centres.size() * sizeof(float)));
@@ -227,6 +242,8 @@ int main(int argc, char **argv)
 				frame.transform.source_size = grid;
 				const auto start = Clock::now();
 				decoded = sequence.process(frame);
+				decoded.alpha = ck2::download_tensor(decoded.alpha);
+				decoded.foreground = ck2::download_tensor(decoded.foreground);
 				const auto &t = decoded.timings;
 				report["frames"].push_back(
 					{{"index", i},

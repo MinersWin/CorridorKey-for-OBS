@@ -53,6 +53,7 @@ json execute(const json &job)
 	config.require_adapter_match = job.value("require_adapter_match", true);
 	config.prebuilt_context = job.value("prebuilt_context", false);
 	config.persistent_io = job.value("persistent_io", false);
+	config.rebuild_cache = job.value("rebuild_cache", false);
 	config.precision = static_cast<Precision>(job.value("precision", static_cast<int>(Precision::fp32)));
 	if (config.precision != Precision::fp32 && config.precision != Precision::fp16 &&
 	    config.precision != Precision::bf16)
