@@ -181,6 +181,7 @@ int main(int argc, char **argv)
 				false; // Grid-only clip fixture has no native image for recropping.
 			ck2::LowResolutionResult decoded;
 			std::ofstream alpha_file(utf8_path(std::string(argv[5]) + ".alpha.f32"), std::ios::binary);
+			std::ofstream foreground_file(utf8_path(std::string(argv[5]) + ".fg.f32"), std::ios::binary);
 			for (std::int64_t i = 0; i < frames; ++i) {
 				ck2::Tensor rgb({1, 3, grid.height, grid.width});
 				const auto offset = mode == "chain" ? 0
@@ -212,6 +213,11 @@ int main(int argc, char **argv)
 				alpha_file.write(
 					reinterpret_cast<const char *>(decoded.alpha.values.data()),
 					static_cast<std::streamsize>(decoded.alpha.values.size() * sizeof(float)));
+				foreground_file.write(
+					reinterpret_cast<const char *>(decoded.foreground.values.data()),
+					static_cast<std::streamsize>(decoded.foreground.values.size() * sizeof(float)));
+				if (!alpha_file || !foreground_file)
+					throw std::runtime_error("Cannot write decoded clip outputs");
 			}
 			if (mode == "chain") {
 				bool comparable = true;
