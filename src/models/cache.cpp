@@ -302,20 +302,24 @@ std::shared_ptr<const ReadyModel> Cache::acquire(const Manifest &m, std::stop_to
 	ready->lease = lease;
 	for (const auto &g : m.graphs) {
 		auto &a = m.artifacts.at(g.graph);
-		auto p = dir / a.path, w = dir / g.external_data;
+		const auto &metadata = m.artifacts.at(g.metadata);
+		auto p = dir / a.path, w = dir / g.external_data, meta = dir / metadata.path;
 		no_links(p);
 		no_links(w);
+		no_links(meta);
 		require(fs::file_size(p) == a.bytes && fs::file_size(w) == g.weights_bytes &&
+				fs::file_size(meta) == metadata.bytes && file_sha256(meta, stop) == metadata.sha256 &&
 				file_sha256(p, stop) == a.sha256 && file_sha256(w, stop) == g.weights_sha256,
 			"Installed artifact changed", ErrorCode::hash_mismatch);
 		ready->graphs.push_back({g.role, a.sha256, g.weights_sha256, "export-v1", p, w});
 	}
 	return ready;
 }
-bool Cache::remove(const ModelKey &key)
+bool Cache::remove(const ModelKey &key, bool remove_selected)
 {
 	FileLock selection(path("locks/selection.lock"), false, true);
-	if (current(key.id) == std::optional<ModelKey>(key))
+	const bool selected = current(key.id) == std::optional<ModelKey>(key);
+	if (selected && !remove_selected)
 		return false;
 	FileLock global(path("locks/data.lock"), true, false);
 	if (!global.owns_lock())
@@ -324,11 +328,13 @@ bool Cache::remove(const ModelKey &key)
 	if (!lock.owns_lock())
 		return false;
 	auto p = revision(key);
-	if (!fs::exists(p))
-		return true;
-	for (auto &e : fs::recursive_directory_iterator(p))
-		no_links(e.path());
-	fs::remove_all(p);
+	if (fs::exists(p)) {
+		for (auto &e : fs::recursive_directory_iterator(p))
+			no_links(e.path());
+		fs::remove_all(p);
+	}
+	if (selected)
+		fs::remove(path("receipts/current-" + key.id + ".json"));
 	return true;
 }
 std::optional<ModelKey> Cache::current(std::string_view id) const

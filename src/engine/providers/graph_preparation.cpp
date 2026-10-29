@@ -120,6 +120,8 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 			request.package_id = config.bundle.id;
 			// Large runtime bundles must finish hash verification before the fixture runs.
 			request.timeout = compiler.timeout;
+			if (compiler.state)
+				compiler.state(config.bundle.backend, ModelState::warming);
 			auto tested = probe.probe(request, stop);
 			if (tested.failure || !tested.provider.available || !tested.provider.tested ||
 			    !tested.provider.matches_obs_adapter || !tested.provider.permits_live_inference) {
@@ -127,9 +129,17 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 								 : error(ErrorCode::backend_unavailable);
 				attempt.detail = tested.diagnostic_detail;
 			} else {
+				if (compiler.state)
+					compiler.state(config.bundle.backend,
+						       config.bundle.backend == Backend::tensorrt ||
+								       config.bundle.backend == Backend::tensorrt_rtx
+							       ? ModelState::building
+							       : ModelState::warming);
 				attempt = compile_in_helper(config, compiler, stop);
 				if (!attempt.failure && !stop.stop_requested()) {
 					try {
+						if (compiler.state)
+							compiler.state(config.bundle.backend, ModelState::warming);
 						result.session = std::make_unique<Session>(config);
 						result.provider = tested.provider;
 					} catch (const std::bad_alloc &) {

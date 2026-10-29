@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "manager_model.hpp"
+#include "models/binder.hpp"
 #include <algorithm>
 
 namespace corridorkey::ui {
@@ -39,7 +40,14 @@ ManagerController::ManagerController(models::fs::path path, models::LicenceRegis
 	service_ = std::make_unique<models::CatalogueService>(
 		cache_, licences_, std::move(manifests),
 		[this](const models::Manifest &m, models::Cache &cache, std::stop_token stop) {
-			models::require(bool(binder_), "Weight binder not included", ErrorCode::unsupported);
+			if (!binder_) {
+				models::bind_package(m, cache, stop, [&](Progress p) {
+					std::lock_guard lock(mutex_);
+					binding_[m.key.id + m.key.revision] = {p.completed_bytes,
+									       p.total_bytes.value_or(0)};
+				});
+				return;
+			}
 			auto result = binder_(m, cache, stop, [&](BindingProgress p) {
 				std::lock_guard lock(mutex_);
 				binding_[m.key.id + m.key.revision] = p;
@@ -106,6 +114,7 @@ void ManagerController::install(ModelKey key, bool accepted, std::optional<model
 }
 void ManagerController::cancel(ModelKey key)
 {
+	cancel_preparation(key);
 	enqueue([this, key = std::move(key)] {
 		if (auto it = stops_.find(key.id + key.revision); it != stops_.end()) {
 			it->second.request_stop();
@@ -121,7 +130,7 @@ void ManagerController::remove(ModelKey key)
 		for (auto &r : model_.rows())
 			if (r.key == key) {
 				// Do not clear current first: a failed lease check must preserve selection.
-				if (working(r.status.state) || !cache_.remove(key)) {
+				if (working(r.status.state) || !cache_.remove(key, true)) {
 					r.status.failure = error(ErrorCode::busy);
 					std::lock_guard lock(mutex_);
 					snapshot_.notice = failure_text(r.status.failure);
@@ -185,6 +194,13 @@ void ManagerController::refresh(bool disk)
 		next = snapshot_;
 	}
 	next.rows = model_.rows();
+	for (auto &r : next.rows)
+		for (const auto &task : preparation_tasks())
+			if (r.key == task.status.key) {
+				r.status = task.status;
+				r.preparation_started = task.started;
+				r.cancelling = task.cancellation.stop_requested();
+			}
 	if (disk) {
 		next.disk_measured = true;
 		next.source_bytes = disk_bytes(cache_.path("blobs"));

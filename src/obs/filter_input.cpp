@@ -3,8 +3,16 @@
 #include "filter_input.hpp"
 #include "staged_transport.hpp"
 #include "engine/fake_pipeline.hpp"
-#ifdef CORRIDORKEY_CK2_DEV
+#ifdef CORRIDORKEY_CK2_RUNTIME
 #include "engine/ck2_ort.hpp"
+#include "models/installation.hpp"
+#include "models/activation.hpp"
+#include "ui/manager_model.hpp"
+#ifdef _WIN32
+#include <d3d11.h>
+#include <dxgi.h>
+#include <wrl/client.h>
+#endif
 #include "util/utf8_path.hpp"
 #include <cstdlib>
 #endif
@@ -14,6 +22,7 @@
 #include "telemetry/diagnostics.hpp"
 #include "runtime/capture_pacer.hpp"
 #include <obs-module.h>
+#include <util/bmem.h>
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -79,10 +88,13 @@ struct FilterInput::Impl {
 	FramePool pool{FramePool::maximum_capacity};
 	FakePipeline fake{{}, FakeExecution::manual};
 	Pipeline *pipeline = &fake;
-#ifdef CORRIDORKEY_CK2_DEV
+#ifdef CORRIDORKEY_CK2_RUNTIME
 	std::unique_ptr<Ck2Pipeline> real;
 	std::string prepared_key;
 	std::vector<std::shared_ptr<refiner::Stage>> retained_refiners;
+	std::vector<models::Manifest> manifests;
+	TimePoint next_model_check{};
+	std::atomic<bool> model_pending{false}, preparing_model{false};
 #endif
 	std::stop_source preparation;
 	Crop capture_roi, completed_roi;
@@ -105,7 +117,7 @@ struct FilterInput::Impl {
 	std::atomic<bool> transfer_queued{false}, input_available{false};
 	SettingsSnapshot worker_settings;
 	FakeOptions worker_options;
-	bool worker_active = false;
+	bool worker_active = false, diagnostic = false, worker_diagnostic = false;
 	std::uint64_t transfer_tick = 0;
 	bool has_transfer_tick = false;
 	std::atomic<bool> discard_presentation{false};
@@ -152,6 +164,9 @@ struct FilterInput::Impl {
 			preparation.request_stop();
 		}
 		worker.join();
+#ifdef CORRIDORKEY_CK2_RUNTIME
+		ui::preparation_finished(instance);
+#endif
 		if (target)
 			obs_weak_source_release(target);
 	}
@@ -404,12 +419,39 @@ struct FilterInput::Impl {
 	}
 	void work(Generation &prepared)
 	{
-#ifdef CORRIDORKEY_CK2_DEV
+#ifdef CORRIDORKEY_CK2_RUNTIME
 		// The last session reference is released here, so graphics never joins an inference worker.
 		std::erase_if(retained_refiners, [](const auto &stage) { return stage.use_count() == 1; });
 #endif
 		std::stop_token stop;
 		const auto work_start = obs_now();
+#ifdef CORRIDORKEY_CK2_RUNTIME
+		if (model_pending && Clock::now() >= next_model_check) {
+			next_model_check = Clock::now() + std::chrono::seconds(1);
+			SettingsSnapshot current;
+			{
+				std::lock_guard lock(mutex);
+				current = settings;
+			}
+			if (current) {
+				const auto *manifest = models::activation_manifest(manifests, *current);
+				const auto *refiner = models::activation_refiner_manifest(manifests, *current);
+				if ((!current->quality.refiner_enabled ||
+				     (refiner &&
+				      models::fs::is_regular_file(
+					      models::Cache(models::obs_model_cache_path()).revision(refiner->key) /
+					      "ready.json"))) &&
+				    manifest &&
+				    models::fs::is_regular_file(
+					    models::Cache(models::obs_model_cache_path()).revision(manifest->key) /
+					    "ready.json")) {
+					std::lock_guard lock(mutex);
+					model_pending = false;
+					invalidate();
+				}
+			}
+		}
+#endif
 		const auto generation = pool.generation();
 		if (prepared != generation) {
 			std::lock_guard lock(mutex);
@@ -417,6 +459,7 @@ struct FilterInput::Impl {
 			stop = preparation.get_token();
 			worker_settings = settings;
 			worker_options = options;
+			worker_diagnostic = diagnostic;
 			worker_active = active();
 		}
 		const auto &snapshot = worker_settings;
@@ -431,61 +474,185 @@ struct FilterInput::Impl {
 			request.settings = snapshot;
 			request.cancellation = stop;
 			Error problem;
-#ifdef CORRIDORKEY_CK2_DEV
-			const char *override_path = std::getenv("CORRIDORKEY_CK2_DEV_CONFIG");
-			if (override_path && *override_path && snapshot && active) {
-				const auto key = std::to_string(snapshot->quality.grid.width) + ":" +
-						 std::to_string(snapshot->quality.grid.height) + ":" +
-						 std::to_string(static_cast<int>(snapshot->quality.profile)) + ":" +
-						 std::to_string(static_cast<int>(snapshot->backend.backend)) + ":" +
-						 std::to_string(snapshot->quality.refiner_max_tiles) + ":" +
-						 snapshot->quality.model_revision;
-				if (!Ck2Pipeline::supports(*snapshot)) {
-					problem = error(ErrorCode::unsupported);
+#ifdef CORRIDORKEY_CK2_RUNTIME
+			if (snapshot && active && !worker_diagnostic) {
+				model_pending = false;
+				preparing_model = true;
+				{
 					std::lock_guard lock(mutex);
-					model_detail = "CK2 settings request an unsupported stage or input transform.";
-				} else if (real && key == prepared_key &&
-					   (!snapshot->quality.refiner_enabled || real->refiner_stage())) {
-					pipeline = real.get();
-					problem = real->reset(generation, ResetReason::explicit_reset);
-				} else {
-					auto config = ck2::read_development_config(utf8_path(override_path));
-					config.runtime.info = [](const std::string &message) {
-						blog(LOG_INFO, "[corridorkey:w09] %s",
+					model_detail = "Preparing CorridorKey; video stays in passthrough.";
+				}
+				struct Finish {
+					Impl &self;
+					~Finish()
+					{
+						self.preparing_model = false;
+						ui::preparation_finished(self.instance);
+					}
+				} finish{*this};
+				try {
+					ck2::RuntimeConfig runtime;
+					std::shared_ptr<const ReadyModel> model;
+#ifdef CORRIDORKEY_CK2_DEV
+					const char *override_path = std::getenv("CORRIDORKEY_CK2_DEV_CONFIG");
+					if (override_path && *override_path) {
+						auto config = ck2::read_development_config(utf8_path(override_path));
+						runtime = config.runtime;
+						model = ck2::development_model(
+							config.models, snapshot->quality.grid,
+							snapshot->quality.profile == Profile::quality,
+							config.release_fixture,
+							snapshot->quality.refiner_enabled
+								? snapshot->quality.refiner_max_tiles
+								: 0);
+						request.transport.adapter = config.adapter;
+					} else
+#endif
+					{
+						if (manifests.empty())
+							manifests = models::installed_catalogue();
+						const auto *manifest =
+							models::activation_manifest(manifests, *snapshot);
+						models::require(
+							manifest != nullptr,
+							"No package supports this CK2 grid/preset. Open Manage models to install a supported package.",
+							ErrorCode::model_missing);
+						models::Cache cache(models::obs_model_cache_path());
+						auto licences =
+							models::LicenceRegistry::parse(models::read_small_file([] {
+								char *raw = obs_module_file("models/licenses-v1.json");
+								std::unique_ptr<char, decltype(&bfree)> owned(raw,
+													      bfree);
+								models::require(raw != nullptr,
+										"Model licences are missing");
+								return utf8_path(raw);
+							}()));
+						models::require(
+							models::AcceptanceStore(cache).contains(*manifest, licences),
+							"Open Manage models, then Set up CorridorKey and accept the model licences.",
+							ErrorCode::model_missing);
+						model = cache.acquire(*manifest, stop);
+						models::require(
+							bool(model),
+							"This grid's model package is not installed. Open Manage models to install it.",
+							ErrorCode::model_missing);
+						if (snapshot->quality.refiner_enabled) {
+							const auto *refiner = models::activation_refiner_manifest(
+								manifests, *snapshot);
+							models::require(
+								refiner != nullptr,
+								"No edge-refiner package supports this tile budget. Open Manage models to install a supported package.",
+								ErrorCode::model_missing);
+							models::require(
+								models::AcceptanceStore(cache).contains(*refiner,
+													licences),
+								"Open Manage models and accept the edge-refiner licence.",
+								ErrorCode::model_missing);
+							auto refinement = cache.acquire(*refiner, stop);
+							models::require(
+								bool(refinement),
+								"The edge-refiner package is not installed. Open Manage models to install it.",
+								ErrorCode::model_missing);
+							model = models::activation_model(std::move(model),
+											 std::move(refinement));
+						}
+						runtime.probe = models::installed_probe_config();
+						runtime.compiler.helper = runtime.probe.helper;
+						runtime.compiler.scratch = runtime.probe.scratch;
+						runtime.compiler.timeout = std::chrono::minutes(15);
+						runtime.cache = cache.path("engines");
+						graphics_task([&] {
+#ifdef _WIN32
+							auto *device = static_cast<ID3D11Device *>(gs_get_device_obj());
+							Microsoft::WRL::ComPtr<IDXGIDevice> dxgi;
+							Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
+							DXGI_ADAPTER_DESC desc{};
+							if (device &&
+							    SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&dxgi))) &&
+							    SUCCEEDED(dxgi->GetAdapter(&adapter)) &&
+							    SUCCEEDED(adapter->GetDesc(&desc))) {
+								char luid[40]{};
+								std::snprintf(luid, sizeof(luid), "luid:%08x:%08x",
+									      static_cast<unsigned>(
+										      desc.AdapterLuid.HighPart),
+									      static_cast<unsigned>(
+										      desc.AdapterLuid.LowPart));
+								request.transport.adapter.stable_id = luid;
+								request.transport.adapter.vendor_id = desc.VendorId;
+								request.transport.adapter.device_id = desc.DeviceId;
+							}
+#endif
+						});
+					}
+					request.model = model;
+					const auto key = model->manifest_sha256 + ":" +
+							 std::to_string(snapshot->quality.grid.width) + ":" +
+							 std::to_string(snapshot->quality.grid.height) + ":" +
+							 std::to_string(static_cast<int>(snapshot->quality.profile)) +
+							 ":" +
+							 std::to_string(static_cast<int>(snapshot->backend.backend)) +
+							 ":" + std::to_string(snapshot->quality.refiner_enabled) + ":" +
+							 std::to_string(snapshot->quality.refiner_max_tiles) + ":" +
+							 snapshot->quality.model_revision;
+					runtime.info = [this](const std::string &message) {
+						blog(LOG_INFO, "[corridorkey] %s",
 						     diagnostics::redact(message).c_str());
 					};
-					config.runtime.record_probe = diagnostics::record_probe;
-					auto replacement = std::make_unique<Ck2Pipeline>(
-						[config](const PrepareRequest &original) {
-							auto request = original;
-							request.model = ck2::development_model(
-								config.models, request.settings->quality.grid,
-								request.settings->quality.profile == Profile::quality,
-								config.release_fixture,
-								request.settings->quality.refiner_enabled
-									? request.settings->quality.refiner_max_tiles
-									: 0);
-							request.transport.adapter = config.adapter;
-							return ck2::prepare_ort(request, config.runtime);
-						},
-						obs_now);
-					problem = replacement->prepare(request);
+					runtime.record_probe = diagnostics::record_probe;
+					runtime.compiler.state = [id = instance, key = model->key,
+								  cancellation = preparation](Backend,
+											      ModelState state) {
+						ui::preparation_state(id, key, state, cancellation);
+					};
+					ui::preparation_state(instance, model->key, ModelState::warming, preparation);
+					if (real && key == prepared_key &&
+					    (!snapshot->quality.refiner_enabled || real->refiner_stage())) {
+						pipeline = real.get();
+						problem = real->reset(generation, ResetReason::explicit_reset);
+					} else {
+						auto replacement = std::make_unique<Ck2Pipeline>(
+							[runtime](const PrepareRequest &r) {
+								return ck2::prepare_ort(r, runtime);
+							},
+							obs_now);
+						problem = replacement->prepare(request);
+						{
+							std::lock_guard lock(mutex);
+							model_detail = replacement->detail();
+						}
+						if (!problem && !stop.stop_requested()) {
+							// Selection is committed only after preparation succeeds; the pipeline owns its reader lease.
+							const auto *manifest =
+								models::activation_manifest(manifests, *snapshot);
+							if (manifest)
+								models::Cache(models::obs_model_cache_path())
+									.select_current(*manifest);
+							if (auto stage = replacement->refiner_stage())
+								retained_refiners.push_back(std::move(stage));
+							real = std::move(replacement);
+							pipeline = real.get();
+							prepared_key = key;
+						}
+					}
 					{
 						std::lock_guard lock(mutex);
-						model_detail = replacement->detail();
-						blog(problem ? LOG_WARNING : LOG_INFO,
-						     "[corridorkey:w09] preparation: %s", model_detail.c_str());
+						if (real && !problem) {
+							model_backend = real->capabilities().backend;
+							model_detail = real->detail();
+						}
 					}
-					if (!problem) {
-						if (auto stage = replacement->refiner_stage())
-							retained_refiners.push_back(std::move(stage));
-						real = std::move(replacement);
-						pipeline = real.get();
-						prepared_key = key;
-						std::lock_guard lock(mutex);
-						model_backend = real->capabilities().backend;
-					}
+				} catch (const models::Failure &f) {
+					problem = error(f.code);
+					model_pending = f.code == ErrorCode::model_missing;
+					std::lock_guard lock(mutex);
+					model_detail = f.what();
+				} catch (const std::exception &e) {
+					problem = error(ErrorCode::backend_unavailable);
+					std::lock_guard lock(mutex);
+					model_detail = diagnostics::redact(e.what());
 				}
+				if (stop.stop_requested())
+					problem = error(ErrorCode::cancelled);
 			} else
 #endif
 			{
@@ -529,7 +696,7 @@ struct FilterInput::Impl {
 			}
 		}
 		Crop next_roi = snapshot ? snapshot->context.crop : Crop{};
-#ifdef CORRIDORKEY_CK2_DEV
+#ifdef CORRIDORKEY_CK2_RUNTIME
 		if (result && real && pipeline == real.get()) {
 			next_roi = real->suggested_roi();
 			const auto times = real->stage_times();
@@ -550,7 +717,7 @@ struct FilterInput::Impl {
 				completed_pixels.swap(rgba);
 				publication_started = obs_now();
 				completed_roi = next_roi;
-#ifdef CORRIDORKEY_CK2_DEV
+#ifdef CORRIDORKEY_CK2_RUNTIME
 				completed_refiner = real && pipeline == real.get() ? real->refiner_stage() : nullptr;
 #endif
 			}
@@ -628,7 +795,7 @@ struct FilterInput::Impl {
 				}
 			});
 		}
-#ifdef CORRIDORKEY_CK2_DEV
+#ifdef CORRIDORKEY_CK2_RUNTIME
 		retained_refiners.clear();
 #endif
 	}
@@ -639,12 +806,15 @@ void FilterInput::update(obs_data_t *data, SettingsSnapshot settings)
 {
 	std::lock_guard lock(impl_->mutex);
 	impl_->settings = std::move(settings);
-	impl_->enabled = obs_data_get_bool(data, "w03_fake_enabled");
+	impl_->diagnostic = false;
+#ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
+	impl_->diagnostic = obs_data_get_bool(data, "w03_fake_enabled");
+#endif
+	impl_->enabled = impl_->diagnostic;
 	impl_->debug_view = static_cast<int>(std::clamp<long long>(obs_data_get_int(data, "w08_debug_view"), 0, 7));
-#ifdef CORRIDORKEY_CK2_DEV
-	const char *override_path = std::getenv("CORRIDORKEY_CK2_DEV_CONFIG");
-	if (override_path && *override_path)
-		impl_->enabled = true;
+#ifdef CORRIDORKEY_CK2_RUNTIME
+	impl_->enabled = true;
+	impl_->model_pending = false;
 #endif
 	impl_->options.delay =
 		std::chrono::milliseconds(std::clamp<long long>(obs_data_get_int(data, "w03_fake_delay"), 0, 2000));
@@ -722,6 +892,12 @@ bool FilterInput::render() noexcept
 			s.failure = ErrorCode::invalid_input;
 			return false;
 		}
+#ifdef CORRIDORKEY_CK2_RUNTIME
+		if (s.preparing_model || s.model_pending) {
+			s.failure = s.model_pending ? ErrorCode::model_missing : ErrorCode::busy;
+			return false;
+		}
+#endif
 		const auto now = obs_now();
 		auto *target = obs_filter_get_target(s.source);
 		if (!target || !s.target || !obs_weak_source_references_source(s.target, target) ||

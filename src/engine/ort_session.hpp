@@ -62,6 +62,7 @@ PreparedSession prepare_session(SessionConfig, ProviderProbe &, std::stop_token 
 struct CompilerConfig {
 	fs::path helper, scratch;
 	std::chrono::milliseconds timeout{120000};
+	std::function<void(Backend, ModelState)> state;
 };
 struct GraphAttempt {
 	Backend backend = Backend::automatic;

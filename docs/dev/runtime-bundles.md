@@ -246,3 +246,20 @@ interop. Use `--cache .cache/engines` to exercise cache creation/reuse. Response
 contain the actual negotiated API, device, precision, partition events and timings.
 The JSON protocol is visible in `validate.py`; production callers use
 `DisposableProbe` and `ProbeRequest` instead of Python.
+
+## Production model activation
+
+Normal filter builds use `models::installed_probe_config` to resolve the helper,
+standard-op fixtures and the installer's `runtimes/probes.json`. Optional W19
+bundles are found under the model cache's `runtime-cache/bundles` directory,
+using descriptor names from the executable-pinned runtime recipe. Model packages
+cannot supply runtime libraries or descriptors. W06 verifies bundle contents and
+matches the OBS graphics adapter before loading graph sessions.
+
+The filter holds W04's reader lease while sessions and frames use a package.
+Engine work runs on the filter's preparation worker and in W06's disposable
+helper. Its phase events feed W07's indeterminate building/testing state and
+elapsed time. Cancel requests the same preparation stop source used by the
+helper; in-process ORT creation reaches a safe boundary before returning. The
+manager and OBS render callbacks do not wait for engine creation. Installing or
+changing an optional runtime still requires the restart described by W19.

@@ -5,6 +5,15 @@
 #include <mutex>
 
 namespace corridorkey::ui {
+struct PreparationTask {
+	ModelStatus status;
+	TimePoint started;
+	std::stop_source cancellation;
+};
+void preparation_state(InstanceId, ModelKey, ModelState, std::stop_source);
+void preparation_finished(InstanceId);
+std::vector<PreparationTask> preparation_tasks();
+void cancel_preparation(const ModelKey &);
 struct BindingProgress {
 	std::uint64_t completed = 0, total = 0;
 };
@@ -23,6 +32,7 @@ struct ModelRow {
 	double bytes_per_second = 0;
 	bool recommended = false, accepted = false, cancelling = false;
 	bool catalogued = true;
+	TimePoint preparation_started{};
 };
 struct Actions {
 	bool install = false, cancel = false, remove = false, import = false;

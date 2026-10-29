@@ -1,7 +1,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-target_sources(corridorkey_core PRIVATE src/ui/manager_model.cpp src/ui/manager_controller.cpp)
+target_sources(
+  corridorkey_core
+  PRIVATE src/ui/manager_model.cpp src/ui/manager_controller.cpp src/models/activation.cpp
+)
 if(TARGET corridorkey AND ENABLE_QT AND ENABLE_FRONTEND_API)
-  target_sources(corridorkey PRIVATE src/ui/model_manager.cpp src/ui/license_dialog.cpp src/ui/backend_test.cpp)
+  target_sources(
+    corridorkey
+    PRIVATE src/ui/model_manager.cpp src/ui/license_dialog.cpp src/ui/backend_test.cpp src/models/installation.cpp
+  )
   target_compile_definitions(corridorkey PRIVATE CORRIDORKEY_MODEL_MANAGER)
   set(CORRIDORKEY_CATALOGUE_PUBLIC_KEY "" CACHE STRING "Release P-256 public point (128 lowercase hex digits)")
   if(CORRIDORKEY_CATALOGUE_PUBLIC_KEY)
@@ -11,6 +17,9 @@ if(TARGET corridorkey AND ENABLE_QT AND ENABLE_FRONTEND_API)
     endif()
   endif()
   target_compile_definitions(corridorkey PRIVATE CORRIDORKEY_CATALOGUE_PUBLIC_KEY="${CORRIDORKEY_CATALOGUE_PUBLIC_KEY}")
+  file(SHA256 "${PROJECT_SOURCE_DIR}/data/models/catalogue-v1.json" _w09b_catalogue_hash)
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/data/models/catalogue-v1.json")
+  target_compile_definitions(corridorkey PRIVATE CORRIDORKEY_BUNDLED_CATALOGUE_SHA256="${_w09b_catalogue_hash}")
   if(NOT WIN32)
     include(GNUInstallDirs)
     target_compile_definitions(

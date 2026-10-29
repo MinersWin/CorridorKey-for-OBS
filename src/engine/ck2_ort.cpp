@@ -160,7 +160,7 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 			runtime.info("Preparing " + name);
 		const GraphArtifact *artifact = nullptr;
 		for (const auto &candidate : request.model->graphs)
-			if (candidate.role == name) {
+			if (candidate.role == name || candidate.graph_path.stem() == name) {
 				artifact = &candidate;
 				break;
 			}

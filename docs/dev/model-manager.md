@@ -16,10 +16,11 @@ while either streaming or recording is active.
 
 ## Release catalogue
 
-The shipped empty catalogue deliberately enables no downloads. Nonempty indexes
-require `CORRIDORKEY_CATALOGUE_PUBLIC_KEY`, a P-256 `x || y` point encoded as 128
-lowercase hex digits, supplied by the coordinator at build time. It is compiled
-into the plugin. No key is accepted from the catalogue or an import bundle.
+The bundled production index uses the installer-only compiled-digest admission
+path while the coordinator provisions the release key. Remote catalogues always
+require signatures. See [catalogue trust](models-catalogue.md) for the boundary
+and release requirements. With `CORRIDORKEY_CATALOGUE_PUBLIC_KEY` set, the
+installed catalogue must also have a valid P-256 signature.
 
 The installed data tree then needs:
 
@@ -55,9 +56,9 @@ cancellation at safe boundaries, and reports completed/total bytes. Zero total
 means unknown. Return `BindingResult{error(...)}` on failure. W04 verifies every
 output before publishing a revision. The adapter must not publish or select it.
 
-With no W05 adapter, installation ends with `CK-E015` and an explanation that the
-plugin needs its weight binder. It cannot mark incomplete output Ready. Tests
-use an explicit four-byte binder and never attempt to bind CorridorKey weights.
+With no adapter registered, the controller calls W05's native `bind_package` and
+forwards its byte progress. Synthetic tests exercise both an explicit adapter and
+the native safetensors path. The first-run walkthrough uses the real CK2 sources.
 
 ## Backend helper and later integration
 
@@ -75,14 +76,22 @@ loads and validates their runtime definitions. If a bundle is missing, the test
 reports that provider as unavailable. Tests use an empty configuration to check
 that path. W07 does not distribute runtime DLLs or benchmark camera frames.
 
-W09 still owns activation, per-filter usage and rollback after successful model
-preparation. W07 never calls `select_current`; installing an update retains the
-old selection. Installed revisions absent from the new catalogue are verified
-and listed for licence review, disk accounting and safe removal. They cannot
-start new downloads or imports. A new catalogue revision shows Update available
-while an older verified revision remains installed. W10 supplies actual TensorRT
-build events; the view supports indeterminate building and safe cancellation.
-Until then that state is exercised through a labelled UI fixture.
+The filter worker selects a package by grid and whether the preset requires
+Stage 2. It checks the acceptance receipt and acquires W04's verified reader
+lease before preparing ORT sessions. A successful preparation selects the
+revision explicitly; installation alone leaves `current` unchanged. Missing
+packages keep video in passthrough and are detected after installation without
+recreating the filter. Unsupported grids require a supported package/preset.
+Installed revisions absent from the catalogue remain available for licence
+review and safe removal, but cannot start new downloads.
+
+W06's actual graph-preparation phases feed the manager through a thread-safe
+per-filter task registry. TensorRT helper work shows Building TensorRT engine;
+probes and in-process session loading show Testing backend. Both use an
+indeterminate bar and elapsed time. Cancel requests the filter's stop source;
+the helper exits cooperatively and in-process creation returns at its next safe
+boundary. Closing the manager leaves preparation running. Filter teardown removes
+its registry entry. The UI never waits for compilation.
 
 Copy diagnostics uses [W17's typed collector](diagnostics.md) and a modeless
 preview. Raw helper JSON, user-selected import paths, source names, arbitrary

@@ -2,12 +2,13 @@
 # CK2 pipeline integration
 
 W09 implements the four CK2 stages behind the existing `Pipeline` contract. The
-development OBS build loads revision
+production catalogue loads revision
 `5d88114f169cb082cda238426af47feffb9724af` of
 `mantelmoritz/CorridorKey-ONNX-Graphs`. The hash-only fixture is
 `tests/fixtures/ck2-release-r3.json`; graphs, checkpoints, bound weights and reference
-arrays stay outside Git. Production catalogue signing and the model-manager
-connection remain separate integration work.
+arrays stay outside Git. The model manager installs and binds the production packages; normal builds
+activate them through W04 reader leases. Catalogue signing remains a release
+provisioning step; the bundled index uses a compiled installer digest.
 
 ## Frame processing
 
@@ -137,6 +138,11 @@ The developer override bypasses catalogue download/licence UI and must remain
 disabled in distributed builds. Normal builds do not consult the environment
 variable. The production integration accepts a verified `ReadyModel` reader lease
 and uses its graph hashes and binding recipe in W06 cache identities.
+When Edge refiner is enabled, activation also checks licence acceptance and
+acquires the catalogue's refiner package. The prepared model retains both reader
+leases; the tile budget selects `refiner_b<N>`. The pipeline cache key includes
+both package digests, the refiner switch and tile budget. Toggling refinement
+therefore prepares the matching sessions before replacing the active pipeline.
 
 The native harness accepts:
 
@@ -323,8 +329,8 @@ Footage provenance is recorded in [the image notes](../images/dev/w09-provenance
 
 ## Remaining integration work
 
-- Connect the signed catalogue/model-manager lifecycle to `prepare_ort` in normal
-  builds. The local override is development-only.
+- Provision catalogue signing for release. Normal builds use the model manager
+  and verified cache path; the local override remains development-only.
 - Resolve the staged refiner's latency and remaining 4K edge coverage limits;
   see [W13 measurements](refiner.md). W08 native reconstruction is integrated.
 - Reduce preparation cost and avoid repeated runtime hashing/private cache copies.
