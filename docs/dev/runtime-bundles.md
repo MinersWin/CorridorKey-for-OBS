@@ -1,6 +1,13 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # Runtime bundles
 
+W19's [packaging and licence review](packaging.md) describes the release recipes,
+vendor-direct NVIDIA downloads, matching RTX SDK acknowledgements and Windows
+DirectML baseline. The W06 assemblies and sizes recorded below remain development
+evidence. Release bundles use the W19 inventory and full licence texts. Changing
+between the DirectML and NVIDIA cores still requires restarting OBS; a combined
+core has not been validated.
+
 CorridorKey loads ONNX Runtime on the preparation worker. Neither the plugin nor
 the backend helper imports `onnxruntime.dll` at startup. A missing runtime leaves
 the filter available for passthrough and backend setup.

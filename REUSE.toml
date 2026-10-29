@@ -21,3 +21,9 @@ SPDX-License-Identifier = "GPL-3.0-or-later"
 path = ["docs/images/dev/w08-*.png"]
 SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["docs/images/install/*.jpg", "docs/images/install/metadata.json"]
+SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+# Vendor licence text visible in screenshots retains its original terms.
