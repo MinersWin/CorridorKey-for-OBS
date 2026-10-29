@@ -2,6 +2,8 @@
 #include "ui/model_manager.hpp"
 #include "ui/license_dialog.hpp"
 #include "ui/backend_test.hpp"
+#include "ui/visuals.hpp"
+#include "models/installation.hpp"
 #include "tiny_fixture.hpp"
 #include "util/utf8_path.hpp"
 #include <obs-module.h>
@@ -32,6 +34,11 @@ struct Capture : QObject {
 	QTimer timer;
 	void save(QWidget *widget, const QString &name)
 	{
+		for (auto *text : widget->findChildren<QLabel *>()) {
+			const auto visible = QString(text->text()).replace('\\', '/');
+			if (visible.contains("S:/Projects/", Qt::CaseInsensitive))
+				throw std::runtime_error("Capture contains a local development path");
+		}
 		const auto pixels = widget->grab();
 		if (!pixels.save(root + "/" + theme + "-" + name + ".png"))
 			blog(LOG_ERROR, "[corridorkey-test] Screenshot save failed");
@@ -115,17 +122,13 @@ struct Capture : QObject {
 				rows[0].name = "Synthetic package · Balanced fixture";
 				rows[0].description =
 					"UI validation fixture. Tiny authored files; no CorridorKey inference or GPU engine build.";
-				service = std::make_shared<ManagerController>(folder / ("cache-" + theme.toStdString()),
-									      testing::licence_registry(), rows,
-									      testing::binder());
+				service = std::make_shared<ManagerController>(
+					models::obs_model_cache_path() / "ui-validation" / theme.toStdString(),
+					testing::licence_registry(), rows, testing::binder());
 				dialog = new ModelManager(static_cast<QWidget *>(obs_frontend_get_main_window()),
 							  service, {});
 				dialog->setObjectName("fixtureManager");
 				snapshot = service->snapshot();
-				// Mask the local capture/cache path in screenshots using the normal QLabel value.
-				for (auto *l : dialog->findChildren<QLabel *>())
-					if (l->text().startsWith("Cache:"))
-						l->setText("Cache: <local fixture cache>");
 				dialog->fixture_snapshot(snapshot);
 				dialog->show();
 				++step;
@@ -158,8 +161,35 @@ struct Capture : QObject {
 					snapshot.notice = "State preview: " + state_name(states[i]) +
 							  ". Fixture values; no model inference.";
 					dialog->fixture_snapshot(snapshot);
-				} else
+					dialog->findChild<QTableWidget *>("modelList")->clearSelection();
+				} else {
+					auto *install = dialog->findChild<QPushButton *>("installModel");
+					auto *cancel = dialog->findChild<QPushButton *>("cancelModelTask");
+					if (working(states[i]) && (!install->isHidden() || cancel->isHidden()))
+						throw std::runtime_error(
+							"Active task must show cancellation without an install button");
+					if (states[i] == ModelState::ready && install->isHidden())
+						throw std::runtime_error(
+							"Installed action was not restored after the task");
+					const auto colors =
+						state_palette(dialog,
+							      states[i] == ModelState::ready    ? "text-success"
+							      : states[i] == ModelState::failed ? "text-danger"
+												: "",
+							      working(states[i]));
+					const auto ink = colors.color(QPalette::Active, QPalette::ButtonText);
+					if ((states[i] == ModelState::ready && ink.green() <= ink.red()) ||
+					    (states[i] == ModelState::failed && ink.red() <= ink.green()) ||
+					    (working(states[i]) &&
+					     ink == dialog->palette().color(QPalette::Active, QPalette::Text)))
+						throw std::runtime_error(
+							"Yami semantic state colours were not applied");
+					blog(LOG_INFO, "[corridorkey-test] State %s icon %s, text %s",
+					     names[i].toUtf8().constData(),
+					     colors.color(QPalette::ButtonText).name().toUtf8().constData(),
+					     dialog->palette().color(QPalette::Text).name().toUtf8().constData());
 					save(dialog, names[i]);
+				}
 				++step;
 				return;
 			}

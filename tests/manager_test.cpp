@@ -59,6 +59,7 @@ TEST_CASE("every lifecycle state has deliberate actions; cancellation waits for 
 		row.status.state = state;
 		CHECK_FALSE(actions(row).install);
 		CHECK(actions(row).cancel);
+		CHECK(actions(row).primary.empty());
 		CHECK_FALSE(actions(row).remove);
 		CHECK_FALSE(state_name(state).empty());
 	}
@@ -71,6 +72,7 @@ TEST_CASE("every lifecycle state has deliberate actions; cancellation waits for 
 	row.installed_bytes = 4;
 	CHECK(actions(row).remove);
 	CHECK_FALSE(actions(row).install);
+	CHECK(actions(row).primary == "Installed");
 	row.manifest.reset();
 	row.status.state = ModelState::missing;
 	CHECK_FALSE(actions(row).install);

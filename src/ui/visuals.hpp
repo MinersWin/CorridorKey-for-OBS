@@ -8,6 +8,23 @@
 #include <QResizeEvent>
 
 namespace corridorkey::ui {
+// OBS semantic classes supply theme colours; other themes fall back to text.
+inline QPalette state_palette(QWidget *host, const char *semantic_class, bool active)
+{
+	auto result = host->palette();
+	QLabel sample(host);
+	sample.setProperty("class", semantic_class);
+	sample.ensurePolished();
+	const auto tone = active ? result.color(QPalette::Active, QPalette::Link)
+				 : sample.palette().color(QPalette::Active, QPalette::WindowText);
+	const auto text = result.color(QPalette::Active, QPalette::Text);
+	const QColor ink((tone.red() * 4 + text.red()) / 5, (tone.green() * 4 + text.green()) / 5,
+			 (tone.blue() * 4 + text.blue()) / 5);
+	for (const auto group : {QPalette::Active, QPalette::Inactive})
+		result.setColor(group, QPalette::ButtonText, ink);
+	return result;
+}
+
 // Render the authored SVG silhouette in the host's palette, including selection.
 inline QIcon mono_icon(const char *name, const QPalette &palette, QPalette::ColorRole role = QPalette::ButtonText)
 {
@@ -46,9 +63,14 @@ public:
 		setToolTip(path);
 		setAccessibleName(tr("Model storage folder"));
 		setAccessibleDescription(path);
+		// Keep portable paths useful without displaying the installation's parent folders.
+		path_.replace('\\', '/');
+		const auto portable = path_.indexOf("/config/obs-studio/", 0, Qt::CaseInsensitive);
+		if (portable >= 0)
+			path_ = tr("<Portable OBS>") + path_.mid(portable);
 		setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 		setMinimumWidth(80);
-		setText(path);
+		setText(path_);
 	}
 };
 } // namespace corridorkey::ui

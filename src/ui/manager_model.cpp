@@ -78,7 +78,7 @@ std::string state_name(ModelState s)
 Actions actions(const ModelRow &r)
 {
 	if (working(r.status.state))
-		return {false, r.status.progress.can_cancel_now && !r.cancelling, false, false, "In progress"};
+		return {false, r.status.progress.can_cancel_now && !r.cancelling, false, false, {}};
 	const bool admitted = r.manifest.has_value() && r.catalogued;
 	return {admitted && r.status.state != ModelState::ready, false, r.installed_bytes > 0, admitted,
 		r.status.state == ModelState::failed             ? "Retry"
