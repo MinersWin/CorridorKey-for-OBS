@@ -33,6 +33,7 @@ public:
 	ck2::StageTimes stage_times() const override;
 	std::string detail() const override;
 	std::shared_ptr<refiner::Stage> refiner_stage() const override;
+	std::shared_ptr<nvidia::Context> device_context() const override;
 	static bool supports(const Settings &);
 
 private:
@@ -43,6 +44,7 @@ private:
 	void work();
 	void clear();
 	Ck1Factory factory_;
+	std::shared_ptr<nvidia::Context> device_context_;
 	std::function<TimePoint()> now_;
 	mutable std::mutex mutex_;
 	std::mutex execution_;

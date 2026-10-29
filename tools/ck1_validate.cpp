@@ -44,8 +44,9 @@ ck2::Tensor reference(const fs::path &archive, const std::string &name, const fs
 	fs::remove(path);
 	return tensor;
 }
-Json compare(const ck2::Tensor &actual, const ck2::Tensor &expected)
+Json compare(const ck2::Tensor &resident, const ck2::Tensor &expected)
 {
+	const auto actual = ck2::download_tensor(resident);
 	ck2::check_tensor(actual, expected);
 	double maximum = 0, sum = 0;
 	for (std::size_t i = 0; i < actual.values.size(); ++i) {
@@ -93,9 +94,12 @@ std::unique_ptr<ck2::OrtGraph> graph(const ck2::DevelopmentConfig &config, const
 				  {"backend", ort::backend_name(backend)},
 				  {"precision", session.precision == Precision::fp16 ? "fp16" : "fp32"},
 				  {"capture", captured}};
-	return std::make_unique<ck2::OrtGraph>(std::move(native), ck1::input_contract(grid, modnet),
-					       ck1::output_contract(grid, modnet),
-					       backend == Backend::tensorrt || backend == Backend::cuda);
+	auto graph = std::make_unique<ck2::OrtGraph>(std::move(native), ck1::input_contract(grid, modnet),
+						     ck1::output_contract(grid, modnet),
+						     backend == Backend::tensorrt || backend == Backend::cuda);
+	graph->device_resident(config.runtime.interop);
+	report["graphs"][name]["resident"] = bool(graph->device_context());
+	return graph;
 }
 } // namespace
 int main(int argc, char **argv)
@@ -166,6 +170,13 @@ int main(int argc, char **argv)
 			frame.analysis = ck2::packed_image(reference(config.models / (name + ".ref.npz"), "in_rgb",
 								     config.runtime.compiler.scratch),
 							   PixelFormat::rgb_f32);
+			if (auto context = key_profile->device_context()) {
+				auto rgb = ck2::planar_rgb(frame.analysis);
+				rgb.device = context->allocate(rgb.values.size() * sizeof(float));
+				rgb.device->upload(rgb.values.data(), rgb.values.size() * sizeof(float));
+				rgb.values.clear();
+				frame.analysis = ck2::packed_image(rgb, PixelFormat::rgb_f32);
+			}
 			frame.original = frame.analysis;
 			sequence = std::make_unique<ck1::SequenceState>(*settings, std::move(graphs));
 		}
@@ -174,6 +185,13 @@ int main(int argc, char **argv)
 		for (auto &[key, value] : inputs) {
 			value = reference(config.models / (name + ".ref.npz"), "in_" + key,
 					  config.runtime.compiler.scratch);
+			if (runner) {
+				if (auto context = runner->device_context()) {
+					value.device = context->allocate(value.values.size() * sizeof(float));
+					value.device->upload(value.values.data(), value.values.size() * sizeof(float));
+					value.values.clear();
+				}
+			}
 			bindings[key] = &value;
 		}
 		ck2::Tensors outputs;
@@ -193,12 +211,12 @@ int main(int argc, char **argv)
 			times.push_back(std::chrono::duration<double, std::milli>(Clock::now() - start).count());
 		}
 		report["run_ms"] = times;
+		report["resident_outputs"] = bool(outputs.begin()->second.device);
 		for (const auto &[key, value] : outputs) {
 			if (mode == "ck2hint") {
-				const auto [lo, hi] = std::minmax_element(value.values.begin(), value.values.end());
-				report["outputs"][key] = {{"min", *lo},
-							  {"max", *hi},
-							  {"elements", value.values.size()}};
+				const auto host = ck2::download_tensor(value);
+				const auto [lo, hi] = std::minmax_element(host.values.begin(), host.values.end());
+				report["outputs"][key] = {{"min", *lo}, {"max", *hi}, {"elements", host.values.size()}};
 			} else
 				report["outputs"][key] =
 					compare(value, reference(config.models / (name + ".ref.npz"), "out_" + key,

@@ -46,6 +46,7 @@ Error Ck1Pipeline::prepare(const PrepareRequest &request)
 		return error(ErrorCode::cancelled);
 	try {
 		auto prepared = factory_(request);
+		auto device_context = prepared.graphs.key->device_context();
 		auto model = prepared.model ? prepared.model : request.model;
 		auto sequence = std::make_unique<ck1::SequenceState>(*request.settings, std::move(prepared.graphs));
 		std::lock_guard execution(execution_);
@@ -56,6 +57,7 @@ Error Ck1Pipeline::prepare(const PrepareRequest &request)
 			return error(ErrorCode::stale_generation);
 		clear();
 		sequence_ = std::move(sequence);
+		device_context_ = std::move(device_context);
 		model_ = std::move(model);
 		instance_ = request.instance;
 		preparation_stop_ = request.cancellation;
@@ -256,5 +258,10 @@ std::shared_ptr<refiner::Stage> Ck1Pipeline::refiner_stage() const
 {
 	std::lock_guard lock(mutex_);
 	return nullptr;
+}
+std::shared_ptr<nvidia::Context> Ck1Pipeline::device_context() const
+{
+	std::lock_guard lock(mutex_);
+	return device_context_;
 }
 } // namespace corridorkey
