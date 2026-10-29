@@ -1,0 +1,61 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later",
+  "date": "2026-10-29",
+  "gpu": "RTX 5070 Ti",
+  "graph_revision": "5d88114f169cb082cda238426af47feffb9724af",
+  "grid_hw": [
+    256,
+    512
+  ],
+  "tile_budget": 384,
+  "frames": 30,
+  "input_channel_max": [
+    0.0,
+    0.0,
+    0.0,
+    0.00048828125,
+    0.00048828125,
+    0.00048828125,
+    0.00048828125,
+    0.00048828125,
+    0.00048828125,
+    0.00048828125,
+    0.00048828125
+  ],
+  "input_channel_worst_frame_mae": [
+    0.0,
+    0.0,
+    0.0,
+    8.93481839625565e-08,
+    1.885716898186729e-07,
+    1.0228016122937333e-07,
+    1.5305798797271564e-06,
+    2.15493560062896e-06,
+    1.795681214389333e-06,
+    7.589678148178791e-07,
+    2.429327878417098e-06
+  ],
+  "score_max": 1.7881393432617188e-07,
+  "selection_set_difference": 0,
+  "reconstruction_max_region_mae": 0.0017107879975810647,
+  "full_pipeline_max_teacher_error_gap": 0.00441819429397583,
+  "input_max_tolerance": 0.0005,
+  "input_mae_tolerance": 5e-06,
+  "reconstruction_tolerance": 0.002,
+  "teacher_gap_tolerance": 0.005,
+  "passed": true,
+  "q1_without_refiner": {
+    "frames": 30,
+    "reconstruction_max_region_mae": 0.001489419024437666,
+    "full_pipeline_max_teacher_error_gap": 0.0015522614121437073,
+    "reconstruction_tolerance": 0.002,
+    "teacher_gap_tolerance": 0.005
+  },
+  "shared_device_rerun": "2026-10-29",
+  "persistent_buffer_rerun": {
+    "frames": 3,
+    "segment": "curly_blond_4k",
+    "alpha_max_difference": 0,
+    "foreground_max_difference": 0
+  }
+}

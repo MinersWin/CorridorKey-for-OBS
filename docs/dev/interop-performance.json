@@ -1,0 +1,989 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later",
+  "aggregation": "Mean of W09 publication/stage intervals; median of W15 five-second display windows. MoGe is per refresh. CUDA intervals include synchronized host submission gaps. VRAM is whole-device usage, including OBS and desktop apps.",
+  "missing_cases": [],
+  "cases": [
+    {
+      "case": {
+        "profile": "facecam",
+        "transport": "auto",
+        "refiner": true,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T10:50:07.175313+00:00",
+      "ended_utc": "2026-10-29T10:50:45.029483+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 58.0,
+      "displayed_keys_per_second": 55.988,
+      "displayed_age_ms": 33.452,
+      "displayed_age_p95_ms": 34.007,
+      "gpu_mib_median": 5146.0,
+      "gpu_mib_peak": 5146.0,
+      "gpu_utilization_median": 51.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2271,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 3.028,
+        "rvm_ms": 1.82625,
+        "stage1_ms": 3.28125,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 8.411,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 36
+      },
+      "refiner_median": {
+        "tiles": 384.0,
+        "inference_ms": 2.1624999999999996,
+        "cuda_interval_ms": 1.8165,
+        "gather_wait_ms": 1.367,
+        "read_ms": 0.0,
+        "unpack_ms": 0.6859999999999999,
+        "pack_ms": 1.169,
+        "total_ms": 16.584,
+        "readback_bytes": 0.0,
+        "upload_bytes": 0.0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "facecam",
+        "transport": "auto",
+        "refiner": true,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T10:51:06.052807+00:00",
+      "ended_utc": "2026-10-29T10:51:43.893764+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 58.05,
+      "displayed_keys_per_second": 55.9885,
+      "displayed_age_ms": 33.46,
+      "displayed_age_p95_ms": 33.888999999999996,
+      "gpu_mib_median": 4199.0,
+      "gpu_mib_peak": 4200.0,
+      "gpu_utilization_median": 46.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2270,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 3.14275,
+        "rvm_ms": 1.8965,
+        "stage1_ms": 3.28125,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 8.49,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 36
+      },
+      "refiner_median": {
+        "tiles": 384.0,
+        "inference_ms": 2.2285,
+        "cuda_interval_ms": 1.8735,
+        "gather_wait_ms": 0.877,
+        "read_ms": 0.0,
+        "unpack_ms": 0.601,
+        "pack_ms": 1.6364999999999998,
+        "total_ms": 16.583,
+        "readback_bytes": 0.0,
+        "upload_bytes": 0.0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "facecam",
+        "transport": "auto",
+        "refiner": false,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T10:54:11.012189+00:00",
+      "ended_utc": "2026-10-29T10:54:48.799009+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 58.0,
+      "displayed_keys_per_second": 57.9935,
+      "displayed_age_ms": 16.791,
+      "displayed_age_p95_ms": 17.0135,
+      "gpu_mib_median": 4484.0,
+      "gpu_mib_peak": 4484.0,
+      "gpu_utilization_median": 34.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2267,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.11675,
+        "rvm_ms": 1.151,
+        "stage1_ms": 3.26925,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 6.927,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "facecam",
+        "transport": "auto",
+        "refiner": false,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T10:55:11.815193+00:00",
+      "ended_utc": "2026-10-29T10:55:49.598263+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 58.072500000000005,
+      "displayed_keys_per_second": 57.994,
+      "displayed_age_ms": 16.795,
+      "displayed_age_p95_ms": 17.039,
+      "gpu_mib_median": 3764.0,
+      "gpu_mib_peak": 3764.0,
+      "gpu_utilization_median": 31.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2267,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.1615,
+        "rvm_ms": 1.15175,
+        "stage1_ms": 3.26675,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 6.984,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "facecam",
+        "transport": "staged",
+        "refiner": true,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T10:58:28.739338+00:00",
+      "ended_utc": "2026-10-29T10:59:06.879785+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 11.9,
+      "displayed_keys_per_second": 11.6385,
+      "displayed_age_ms": 160.77100000000002,
+      "displayed_age_p95_ms": 200.1895,
+      "gpu_mib_median": 5075.0,
+      "gpu_mib_peak": 5075.0,
+      "gpu_utilization_median": 34.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2288,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.99825,
+        "rvm_ms": 1.265,
+        "stage1_ms": 3.6275,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 12.454,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 7
+      },
+      "refiner_median": {
+        "tiles": 384.0,
+        "inference_ms": 17.999,
+        "cuda_interval_ms": 1.821,
+        "gather_wait_ms": 15.79,
+        "read_ms": 11.194,
+        "unpack_ms": 13.627,
+        "pack_ms": 7.464,
+        "total_ms": 82.948,
+        "readback_bytes": 49840128.0,
+        "upload_bytes": 6291456.0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "facecam",
+        "transport": "staged",
+        "refiner": true,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T10:59:29.903989+00:00",
+      "ended_utc": "2026-10-29T11:00:07.990077+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 11.8225,
+      "displayed_keys_per_second": 11.6265,
+      "displayed_age_ms": 161.2195,
+      "displayed_age_p95_ms": 200.2955,
+      "gpu_mib_median": 3988.0,
+      "gpu_mib_peak": 3988.0,
+      "gpu_utilization_median": 34.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2285,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 3.01775,
+        "rvm_ms": 1.2405,
+        "stage1_ms": 3.623,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 12.451,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 7
+      },
+      "refiner_median": {
+        "tiles": 384.0,
+        "inference_ms": 19.06,
+        "cuda_interval_ms": 1.786,
+        "gather_wait_ms": 15.883,
+        "read_ms": 10.541,
+        "unpack_ms": 15.482,
+        "pack_ms": 6.589,
+        "total_ms": 83.053,
+        "readback_bytes": 49840128.0,
+        "upload_bytes": 6291456.0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "facecam",
+        "transport": "staged",
+        "refiner": false,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T11:02:31.108129+00:00",
+      "ended_utc": "2026-10-29T11:03:08.915760+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 56.975,
+      "displayed_keys_per_second": 55.0835,
+      "displayed_age_ms": 33.4875,
+      "displayed_age_p95_ms": 49.8525,
+      "gpu_mib_median": 4590.0,
+      "gpu_mib_peak": 4590.0,
+      "gpu_utilization_median": 36.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2268,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.243,
+        "rvm_ms": 1.1475,
+        "stage1_ms": 3.26375,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 10.409,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "facecam",
+        "transport": "staged",
+        "refiner": false,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T11:03:29.933855+00:00",
+      "ended_utc": "2026-10-29T11:04:07.712819+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 56.92,
+      "displayed_keys_per_second": 54.8835,
+      "displayed_age_ms": 33.488,
+      "displayed_age_p95_ms": 49.841499999999996,
+      "gpu_mib_median": 3758.0,
+      "gpu_mib_peak": 3810.0,
+      "gpu_utilization_median": 32.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2266,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.2565,
+        "rvm_ms": 1.14475,
+        "stage1_ms": 3.2575,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 10.34,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "balanced",
+        "transport": "auto",
+        "refiner": true,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T11:06:42.895321+00:00",
+      "ended_utc": "2026-10-29T11:07:20.650411+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 44.075,
+      "displayed_keys_per_second": 42.9405,
+      "displayed_age_ms": 33.738,
+      "displayed_age_p95_ms": 50.196,
+      "gpu_mib_median": 5465.0,
+      "gpu_mib_peak": 5469.0,
+      "gpu_utilization_median": 51.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2265,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 3.143,
+        "rvm_ms": 1.637,
+        "stage1_ms": 3.86375,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 11.14925,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 28
+      },
+      "refiner_median": {
+        "tiles": 512.0,
+        "inference_ms": 2.8529999999999998,
+        "cuda_interval_ms": 2.403,
+        "gather_wait_ms": 1.545,
+        "read_ms": 0.0,
+        "unpack_ms": 0.723,
+        "pack_ms": 0.9644999999999999,
+        "total_ms": 16.604,
+        "readback_bytes": 0.0,
+        "upload_bytes": 0.0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "balanced",
+        "transport": "auto",
+        "refiner": true,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T11:07:41.675966+00:00",
+      "ended_utc": "2026-10-29T11:08:19.515108+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 57.0725,
+      "displayed_keys_per_second": 55.482,
+      "displayed_age_ms": 33.456,
+      "displayed_age_p95_ms": 41.945,
+      "gpu_mib_median": 4479.0,
+      "gpu_mib_peak": 4480.0,
+      "gpu_utilization_median": 54.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2270,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 3.257,
+        "rvm_ms": 1.603,
+        "stage1_ms": 3.86475,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 10.87075,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 36
+      },
+      "refiner_median": {
+        "tiles": 512.0,
+        "inference_ms": 2.879,
+        "cuda_interval_ms": 2.4025,
+        "gather_wait_ms": 0.925,
+        "read_ms": 0.0,
+        "unpack_ms": 0.594,
+        "pack_ms": 1.3635,
+        "total_ms": 16.586,
+        "readback_bytes": 0.0,
+        "upload_bytes": 0.0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "balanced",
+        "transport": "auto",
+        "refiner": false,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T11:10:48.650915+00:00",
+      "ended_utc": "2026-10-29T11:11:26.539295+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 50.8725,
+      "displayed_keys_per_second": 50.97,
+      "displayed_age_ms": 16.8155,
+      "displayed_age_p95_ms": 33.337500000000006,
+      "gpu_mib_median": 5524.0,
+      "gpu_mib_peak": 5702.0,
+      "gpu_utilization_median": 40.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2273,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.0185,
+        "rvm_ms": 0.89725,
+        "stage1_ms": 4.20575,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 9.9775,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "balanced",
+        "transport": "auto",
+        "refiner": false,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T11:11:49.558288+00:00",
+      "ended_utc": "2026-10-29T11:12:27.300222+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 57.8975,
+      "displayed_keys_per_second": 57.792500000000004,
+      "displayed_age_ms": 16.7825,
+      "displayed_age_p95_ms": 17.0245,
+      "gpu_mib_median": 4572.0,
+      "gpu_mib_peak": 4580.0,
+      "gpu_utilization_median": 35.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2264,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.08125,
+        "rvm_ms": 0.891,
+        "stage1_ms": 3.8545,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 8.724,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "balanced",
+        "transport": "staged",
+        "refiner": true,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T11:14:54.448403+00:00",
+      "ended_utc": "2026-10-29T11:15:32.805021+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 10.5725,
+      "displayed_keys_per_second": 10.452,
+      "displayed_age_ms": 186.3545,
+      "displayed_age_p95_ms": 236.208,
+      "gpu_mib_median": 6088.0,
+      "gpu_mib_peak": 6096.0,
+      "gpu_utilization_median": 34.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2301,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 3.2975,
+        "rvm_ms": 1.355,
+        "stage1_ms": 4.6465,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 19.477,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 7
+      },
+      "refiner_median": {
+        "tiles": 512.0,
+        "inference_ms": 22.97,
+        "cuda_interval_ms": 2.602,
+        "gather_wait_ms": 15.606,
+        "read_ms": 15.658,
+        "unpack_ms": 19.336,
+        "pack_ms": 9.236,
+        "total_ms": 99.698,
+        "readback_bytes": 66453504.0,
+        "upload_bytes": 8388608.0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "balanced",
+        "transport": "staged",
+        "refiner": true,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T11:15:55.831665+00:00",
+      "ended_utc": "2026-10-29T11:16:34.566838+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 9.825,
+      "displayed_keys_per_second": 9.716999999999999,
+      "displayed_age_ms": 200.51049999999998,
+      "displayed_age_p95_ms": 251.1315,
+      "gpu_mib_median": 4946.0,
+      "gpu_mib_peak": 4954.0,
+      "gpu_utilization_median": 33.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2323,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.9042499999999998,
+        "rvm_ms": 1.05425,
+        "stage1_ms": 4.44825,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 17.6095,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 6
+      },
+      "refiner_median": {
+        "tiles": 512.0,
+        "inference_ms": 22.4885,
+        "cuda_interval_ms": 2.3754999999999997,
+        "gather_wait_ms": 15.3125,
+        "read_ms": 14.525,
+        "unpack_ms": 22.344,
+        "pack_ms": 9.368500000000001,
+        "total_ms": 99.6035,
+        "readback_bytes": 66453504.0,
+        "upload_bytes": 8388608.0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "balanced",
+        "transport": "staged",
+        "refiner": false,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T11:18:53.677546+00:00",
+      "ended_utc": "2026-10-29T11:19:31.572789+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 52.8,
+      "displayed_keys_per_second": 50.268,
+      "displayed_age_ms": 50.1625,
+      "displayed_age_p95_ms": 66.642,
+      "gpu_mib_median": 5457.0,
+      "gpu_mib_peak": 5465.0,
+      "gpu_utilization_median": 36.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2273,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.60975,
+        "rvm_ms": 0.9390000000000001,
+        "stage1_ms": 4.20575,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 16.55425,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "balanced",
+        "transport": "staged",
+        "refiner": false,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T11:19:52.595374+00:00",
+      "ended_utc": "2026-10-29T11:20:30.485435+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 52.822500000000005,
+      "displayed_keys_per_second": 50.671,
+      "displayed_age_ms": 50.123999999999995,
+      "displayed_age_p95_ms": 50.55,
+      "gpu_mib_median": 4636.0,
+      "gpu_mib_peak": 4644.0,
+      "gpu_utilization_median": 35.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2273,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.7032499999999997,
+        "rvm_ms": 0.919,
+        "stage1_ms": 3.9684999999999997,
+        "stage2_ms": 0.0
+      },
+      "worker_ms": 15.41525,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "quality",
+        "transport": "auto",
+        "refiner": true,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T11:23:17.664093+00:00",
+      "ended_utc": "2026-10-29T11:23:55.524760+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 40.975,
+      "displayed_keys_per_second": 40.434,
+      "displayed_age_ms": 66.754,
+      "displayed_age_p95_ms": 75.1575,
+      "gpu_mib_median": 7158.0,
+      "gpu_mib_peak": 7166.0,
+      "gpu_utilization_median": 75.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2271,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.67,
+        "rvm_ms": 1.12675,
+        "stage1_ms": 4.7335,
+        "stage2_ms": 7.5015
+      },
+      "worker_ms": 22.08475,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 26
+      },
+      "refiner_median": {
+        "tiles": 768.0,
+        "inference_ms": 4.603999999999999,
+        "cuda_interval_ms": 3.9455,
+        "gather_wait_ms": 2.2135,
+        "read_ms": 0.0,
+        "unpack_ms": 1.3984999999999999,
+        "pack_ms": 4.8740000000000006,
+        "total_ms": 16.625,
+        "readback_bytes": 0.0,
+        "upload_bytes": 0.0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "quality",
+        "transport": "auto",
+        "refiner": true,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T11:24:16.550289+00:00",
+      "ended_utc": "2026-10-29T11:24:54.410966+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 44.375,
+      "displayed_keys_per_second": 42.944,
+      "displayed_age_ms": 50.551,
+      "displayed_age_p95_ms": 67.009,
+      "gpu_mib_median": 6059.0,
+      "gpu_mib_peak": 6067.0,
+      "gpu_utilization_median": 77.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2271,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.5265,
+        "rvm_ms": 1.18575,
+        "stage1_ms": 4.5017499999999995,
+        "stage2_ms": 7.079
+      },
+      "worker_ms": 19.93975,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 28
+      },
+      "refiner_median": {
+        "tiles": 768.0,
+        "inference_ms": 4.4879999999999995,
+        "cuda_interval_ms": 3.9210000000000003,
+        "gather_wait_ms": 1.5,
+        "read_ms": 0.0,
+        "unpack_ms": 0.9135,
+        "pack_ms": 2.347,
+        "total_ms": 16.5795,
+        "readback_bytes": 0.0,
+        "upload_bytes": 0.0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "quality",
+        "transport": "auto",
+        "refiner": false,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T11:27:37.564601+00:00",
+      "ended_utc": "2026-10-29T11:28:15.371309+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 49.8975,
+      "displayed_keys_per_second": 48.2635,
+      "displayed_age_ms": 33.564499999999995,
+      "displayed_age_p95_ms": 50.1665,
+      "gpu_mib_median": 6032.0,
+      "gpu_mib_peak": 6040.0,
+      "gpu_utilization_median": 64.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2268,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.35525,
+        "rvm_ms": 0.9285000000000001,
+        "stage1_ms": 4.17975,
+        "stage2_ms": 6.13575
+      },
+      "worker_ms": 18.48825,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "quality",
+        "transport": "auto",
+        "refiner": false,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T11:28:36.388245+00:00",
+      "ended_utc": "2026-10-29T11:29:14.202217+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 54.4475,
+      "displayed_keys_per_second": 52.4765,
+      "displayed_age_ms": 33.46,
+      "displayed_age_p95_ms": 50.0385,
+      "gpu_mib_median": 5283.0,
+      "gpu_mib_peak": 5299.0,
+      "gpu_utilization_median": 65.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2269,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.2105,
+        "rvm_ms": 0.91025,
+        "stage1_ms": 4.06975,
+        "stage2_ms": 5.9345
+      },
+      "worker_ms": 16.7325,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "d3d11-cuda"
+    },
+    {
+      "case": {
+        "profile": "quality",
+        "transport": "staged",
+        "refiner": true,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T11:31:59.382974+00:00",
+      "ended_utc": "2026-10-29T11:32:37.857952+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 7.425000000000001,
+      "displayed_keys_per_second": 7.2275,
+      "displayed_age_ms": 286.02549999999997,
+      "displayed_age_p95_ms": 345.264,
+      "gpu_mib_median": 6924.0,
+      "gpu_mib_peak": 6932.0,
+      "gpu_utilization_median": 39.0,
+      "render_skipped_frames": 6,
+      "render_total_frames": 2309,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 3.8899999999999997,
+        "rvm_ms": 1.582,
+        "stage1_ms": 5.3629999999999995,
+        "stage2_ms": 6.9872499999999995
+      },
+      "worker_ms": 38.2415,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 4
+      },
+      "refiner_median": {
+        "tiles": 768.0,
+        "inference_ms": 34.428,
+        "cuda_interval_ms": 4.1899999999999995,
+        "gather_wait_ms": 13.5625,
+        "read_ms": 23.6425,
+        "unpack_ms": 30.046,
+        "pack_ms": 16.295,
+        "total_ms": 131.667,
+        "readback_bytes": 99680256.0,
+        "upload_bytes": 12582912.0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "quality",
+        "transport": "staged",
+        "refiner": true,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T11:33:00.887646+00:00",
+      "ended_utc": "2026-10-29T11:33:39.305565+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 6.675,
+      "displayed_keys_per_second": 6.428,
+      "displayed_age_ms": 300.78,
+      "displayed_age_p95_ms": 378.22900000000004,
+      "gpu_mib_median": 5798.0,
+      "gpu_mib_peak": 5814.0,
+      "gpu_utilization_median": 41.0,
+      "render_skipped_frames": 1,
+      "render_total_frames": 2304,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 3.2745,
+        "rvm_ms": 1.21475,
+        "stage1_ms": 4.35425,
+        "stage2_ms": 6.7705
+      },
+      "worker_ms": 34.45225,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 4
+      },
+      "refiner_median": {
+        "tiles": 768.0,
+        "inference_ms": 36.1415,
+        "cuda_interval_ms": 3.843,
+        "gather_wait_ms": 13.7485,
+        "read_ms": 23.7605,
+        "unpack_ms": 45.9015,
+        "pack_ms": 14.251999999999999,
+        "total_ms": 148.5825,
+        "readback_bytes": 99680256.0,
+        "upload_bytes": 12582912.0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "quality",
+        "transport": "staged",
+        "refiner": false,
+        "size": "4k"
+      },
+      "started_utc": "2026-10-29T11:36:18.461596+00:00",
+      "ended_utc": "2026-10-29T11:36:56.396478+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 30.2,
+      "displayed_keys_per_second": 30.049999999999997,
+      "displayed_age_ms": 75.20500000000001,
+      "displayed_age_p95_ms": 92.0145,
+      "gpu_mib_median": 6183.0,
+      "gpu_mib_peak": 6183.0,
+      "gpu_utilization_median": 41.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2276,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.69625,
+        "rvm_ms": 0.9864999999999999,
+        "stage1_ms": 4.38275,
+        "stage2_ms": 5.9872499999999995
+      },
+      "worker_ms": 31.1155,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "staged"
+    },
+    {
+      "case": {
+        "profile": "quality",
+        "transport": "staged",
+        "refiner": false,
+        "size": "1080"
+      },
+      "started_utc": "2026-10-29T11:37:19.416439+00:00",
+      "ended_utc": "2026-10-29T11:37:57.392571+00:00",
+      "gpu_condition": "reserved-window",
+      "published_keys_per_second": 31.875,
+      "displayed_keys_per_second": 31.5045,
+      "displayed_age_ms": 67.3305,
+      "displayed_age_p95_ms": 83.7235,
+      "gpu_mib_median": 5361.0,
+      "gpu_mib_peak": 5361.0,
+      "gpu_utilization_median": 42.0,
+      "render_skipped_frames": 0,
+      "render_total_frames": 2278,
+      "stage_cuda_interval_ms": {
+        "moge_ms": 2.502,
+        "rvm_ms": 0.9622499999999999,
+        "stage1_ms": 4.1915,
+        "stage2_ms": 5.8485
+      },
+      "worker_ms": 29.355249999999998,
+      "telemetry_rows": {
+        "age": 4,
+        "stages": 4,
+        "refiner": 0
+      },
+      "selected_transport": "staged"
+    }
+  ],
+  "hardware": "RTX 5070 Ti 16 GB; Ryzen 9 5950X; 64 GB RAM; Windows 11; OBS 33.0.0",
+  "driver": "616.92",
+  "runtime": "ORT 1.31.1 / TensorRT 10.15 / CUDA 13",
+  "graph_revision": "5d88114f169cb082cda238426af47feffb9724af",
+  "runtime_source_commit": "8077c0d",
+  "measured_plugin_sha256": "007c08fddc1e869d4e29eced8222694bf7fca8fa031de519c298bb8f96c5dee5",
+  "conditions": "Reserved GPU; desktop apps remain; static dance image; 3840x2160 60 FPS canvas; 60 FPS inference target; 1000 ms diagnostic stale limit; development config. Production activation validated separately. No encoder or browser source.",
+  "desktop_baseline_mib": 1668,
+  "processes": "No external training/validation observed in GPU process checks. Raw local samples retain PIDs.",
+  "measurement_note": "A later logging-only correction zeros obsolete read_ms after switching from staged to device refinement. Zero readback/upload bytes are authoritative in these samples.",
+  "transfer_microbenchmark": [
+    {
+      "width": 512,
+      "height": 256,
+      "host_ms": 0.220993,
+      "cuda_interval_ms": 0.221123
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "host_ms": 0.412307,
+      "cuda_interval_ms": 0.412419
+    },
+    {
+      "width": 3840,
+      "height": 2160,
+      "host_ms": 1.17862,
+      "cuda_interval_ms": 1.17879
+    }
+  ],
+  "buffer_reuse_baseline": [
+    {
+      "size": "4k",
+      "published_keys_per_second": 56.5725,
+      "displayed_keys_per_second": 54.783500000000004,
+      "displayed_age_ms": 33.462500000000006
+    },
+    {
+      "size": "1080",
+      "published_keys_per_second": 57.644999999999996,
+      "displayed_keys_per_second": 55.685,
+      "displayed_age_ms": 33.457
+    }
+  ],
+  "after_shutdown_whole_device_mib": 2326,
+  "gpu_window_released_local": "2026-10-29T12:38:57+01:00"
+}
