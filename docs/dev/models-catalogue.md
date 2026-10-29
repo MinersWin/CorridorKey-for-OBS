@@ -201,10 +201,11 @@ texts, source URLs, attribution, scope and text hashes:
 | Licence ID | Scope |
 | --- | --- |
 | `LicenseRef-Corridor-Key-2.0` | CK2, CK-derived graph exports and Edge Refiner; retain Corridor Digital / Niko Pueringer and CorridorKey attribution |
-| `LicenseRef-Corridor-Key-1.0` | CK1 GitHub terms; weight-specific HF wording remains unresolved, so no CK1 package is enabled |
+| `LicenseRef-Corridor-Key-1.0` | CK1 green/blue checkpoints; published v1 additional terms, with the HF CC-BY-NC-SA-4.0 metadata discrepancy disclosed |
 | `LicenseRef-MoGe-MIT-DINOv2` | Microsoft MIT text with its bundled Apache-2.0 notice |
 | `CC-BY-4.0` | DeepMind RVM checkpoint |
-| `Apache-2.0` | MODNet code, models and demos, excluding its GIF files; no pinned hint checkpoint is admitted yet |
+| `Apache-2.0` | Upstream MODNet Apache-2.0 terms, excluding its GIF files |
+| `LicenseRef-MODNet-Apache-2.0` | Pinned webcam checkpoint with its full LICENSE and NOTICE |
 
 The [MODNet README at the reviewed revision](https://github.com/ZHKKKe/MODNet/tree/28165a451e4610c9d77cfdf925a94610bb2810fb#license)
 explicitly includes models. Do not reuse superseded 2020 licensing claims.
@@ -329,7 +330,8 @@ uses a test-only loopback transport policy; manifests always require HTTPS.
 
 The production entries pin graph/JSON hashes and sizes, expected bound-output
 hashes, ONNX IR 10, static interfaces and the existing validation report. Release
-tooling still needs catalogue signing and a public-key rotation policy. CK1 licence wording and an exact MODNet checkpoint remain open. Windows
+tooling still needs catalogue signing and a public-key rotation policy. W14 pins
+CK1 v1 terms and the exact MODNet webcam conversion, including its NOTICE. Windows
 unit/HTTP tests and an OBS 30.2 SDK build do not establish Linux transport behavior,
 large ZIP64 interoperability or model inference parity. W09b separately exercised
 the real anonymous HF/CDN transfer, native binding and normal-cache activation

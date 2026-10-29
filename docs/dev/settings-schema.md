@@ -78,7 +78,7 @@ Populate `PropertyCapabilities::choices` with string values from the schema:
 | `refiner_max_tiles`, `head_max_tiles`, `head_size` | Installed numeric variants represented as decimal strings |
 | `backend`, `precision`, `transport` | Successfully probed enum values; `auto` is always offered |
 | `device` | Probed adapter IDs; empty selects the OBS adapter |
-| `hint_source` | Installed sources; Chroma is always offered. CK2 Stage 1 and MODNet are visible but disabled until available. MediaPipe, external masks and distilled/custom stay absent until declared. |
+| `hint_source` | MODNet defaults on for CK1. CK2 Stage 1 and MODNet remain disabled until installed. Chroma requires Expert; a saved chroma choice stays visible and disabled outside Expert. MediaPipe, external masks and distilled/custom stay absent until declared. |
 | `hint_mask` | Validated aligned mask IDs after cycle checks |
 
 The `ck1_refiner`, `head_pass`, `stagger`, `external_mask`, `guided_scale` and
@@ -138,3 +138,20 @@ covers actual JSON persistence, callback initialization/reopening, group expansi
 Advanced/Expert dependencies, reset behavior, exact epsilon and both locale files.
 It runs against either OBS runtime with the baseline-built executable. Set the
 runtime's `bin/64bit` first in `PATH` before CTest on Windows.
+
+## CK1 experimental settings
+
+Advanced reveals the model selector and "CorridorKey 1.0 (Experimental)".
+Its quality note recommends CK2 Facecam with Edge refiner off for a weak GPU.
+The CK1 bank defaults to MODNet at 384x384. Blue selects the separate blue
+checkpoint and blue despill; it never swaps input channels. CK1 clamps ROI,
+aspect correction and learned refinement off. Hint refresh stays at one: every
+hint belongs to its own capture. The refresh control is disabled accordingly.
+
+CK2 Stage-1 hint requires the CK2 Balanced package. It runs the existing
+MoGe/RVM/Stage-1 path at 512x512, then resizes its alpha to CK1's square grid.
+The tooltip explains that extra inference cost; the status inference time
+includes both hint and CK1. Chroma is an Expert option with a visible warning
+about teal objects and unevenly lit screens. Hint view shows the supplied matte.
+Unimplemented external/distilled hint sources fail preparation; no other OBS
+source can inject stale data or create a source dependency cycle.

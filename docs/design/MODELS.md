@@ -165,7 +165,7 @@ Upstream code is [nikopueringer/CorridorKey](https://github.com/nikopueringer/Co
 
 The inspected inference contract resizes sRGB RGB and a linear [0,1] alpha hint to the same square model size, applies ImageNet RGB normalization, then concatenates them into **N×4×H×W**. The mask is not ImageNet-normalized. Outputs are `alpha` (linear coverage) and `fg` (straight sRGB). Upstream defaults are offline/high resolution; smaller static 256/384/512 grids need export and quality validation. The plugin-side public contract should be RGB [0,1] plus mask [0,1], with model-specific normalization packaged in the graph to avoid duplicating publisher code/constants.
 
-The hint gives a rough foreground region and need not resolve individual hairs. Use a rough chroma hint by default so chairs, microphones, props and another person remain eligible. Semantic portrait masks can remove those objects; show a Hint debug view and explain the tradeoff. No hint-quality scalar is a native CK1 input: a CK1 “strength” control, if offered, changes the supplied mask composition and must be labelled as preprocessing.
+The hint gives a rough foreground region and need not resolve individual hairs. The revision-4 owner decision selects MODNet by default. Chroma remains available in Expert for experiments with props, with a warning about teal objects and unevenly lit screens. Semantic portrait masks can remove those objects; show a Hint debug view and explain the tradeoff. No hint-quality scalar is a native CK1 input: a CK1 “strength” control, if offered, changes the supplied mask composition and must be labelled as preprocessing.
 
 ## Hint model candidates
 
@@ -191,7 +191,7 @@ Sources:
 - [SAM2 explicit code/weight licence](https://github.com/facebookresearch/sam2#license), [tiny checkpoint origin](https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_tiny.pt).
 - [EfficientSAM licence](https://github.com/yformer/EfficientSAM/blob/main/LICENSE), [official weight directory](https://github.com/yformer/EfficientSAM/tree/main/weights).
 
-Recommendation: ship chroma hint without another model, **MODNet as the first optional semantic hint**, and only add **MediaPipe** if measured runtime savings justify its conversion/maintenance cost. CK2 Stage-1 hint remains an expert option for users who already have CK2 installed, with its extra cost visible. Do not require both CK1 and CK2 downloads to use CK1.
+The revision-4 owner decision makes MODNet the default CK1 hint. CK2 Stage-1 alpha is the other normal hint option and shows its added cost; chroma is Expert-only. Add MediaPipe only if measured runtime savings justify its conversion and maintenance. Do not require both CK1 and CK2 downloads to use CK1.
 
 ## Future distilled hint slot
 
@@ -202,7 +202,7 @@ A model trained on CorridorKey outputs must not be assumed permissively licensed
 ## Unresolved release inputs
 
 1. Exported graphs, immutable graph repository, binding recipes, tensor/color contracts and numerical/sequence parity reports are pending; all EP compatibility for CK2 ORT is currently unverified.
-2. Resolve CK1 HF-vs-GitHub licence wording for the catalogue within the free-project scope.
-3. Pin exact source revisions/hashes for admitted optional hints and confirm PP-Matting / Robust Video Matting checkpoint terms. A candidate table is not a released package allowlist.
+2. W14 records the CK1 HF metadata discrepancy and accepts the full published v1 additional terms. Keep that disclosure with future revisions.
+3. MODNet webcam is pinned in W14 with its LICENSE and NOTICE. Other hints still need exact revisions/hashes and verified checkpoint terms. A candidate table is not a released package allowlist.
 4. Confirm native C++ ZIP/storage recipes against the exact MoGe/RVM artifacts; do not use runtime pickle as an emergency workaround.
 5. Confirm CK1/refiner compatibility experimentally. The refiner's architecture can be hosted by both pipelines, but its CK2 training does not establish CK1 quality.
