@@ -131,7 +131,7 @@ def inference(args):
         report = args.output / f"{segment}-plugin.json"
         with report.with_suffix(".log").open("w") as log:
             subprocess.run([str(args.validator), str(args.config), "clip", "256", str(input_path),
-                            str(report), "directml"], stdout=log, stderr=log, check=True)
+                              str(report), args.backend], stdout=log, stderr=log, check=True)
         alphas = np.fromfile(str(report) + ".alpha.f32", np.float32).reshape(len(group), 128, 256, 1)
         fgs = np.fromfile(str(report) + ".fg.f32", np.float32).reshape(len(group), 3, 128, 256).transpose(0, 2, 3, 1)
         for index, item in enumerate(group):
@@ -139,7 +139,7 @@ def inference(args):
             np.save(folder / "dml-model.npy", rgba(fgs[index], alphas[index]))
             item["guide"] = str(folder / "dml-guide.npy")
             item["model"] = str(folder / "dml-model.npy")
-        print(f"C++ DirectML sequence complete: {segment}", flush=True)
+        print(f"C++ {args.backend} sequence complete: {segment}", flush=True)
     (args.output / "dml-manifest.json").write_text(json.dumps(items, indent=2))
 
 
@@ -228,6 +228,8 @@ if __name__ == "__main__":
     parser.add_argument("--manifest", default="manifest.json")
     parser.add_argument("--validator", type=Path)
     parser.add_argument("--config", type=Path)
+    parser.add_argument("--backend", default="directml", choices=["directml", "tensorrt", "cuda"],
+                        help="Inference backend; legacy dml-* fixture names are retained")
     parser.add_argument("--versions", default="before,after,dml-before,dml-after")
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()

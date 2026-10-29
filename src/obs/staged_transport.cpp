@@ -289,6 +289,8 @@ void StagedTransport::discard_stale()
 Image StagedTransport::analysis(const InputFrame &input, nvidia::TextureTransfers *transfers,
 				std::shared_ptr<nvidia::Context> context)
 {
+	if (!context)
+		interop_ = false;
 	auto &slot = *slots_[input.lease.id().index];
 	if (context && transfers && slot.grid_handle && !interop_failed_) {
 		try {
@@ -390,6 +392,8 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 			}
 			if (!tiles_->read_ready())
 				return false;
+			refine_gather_ms_ =
+				std::chrono::duration<double, std::milli>(obs_now() - refine_started_).count();
 			if (tiles_->interop()) {
 				if (!refine_stage_->submit_device(
 					    static_cast<ID3D11Texture2D *>(gs_texture_get_obj(tiles_->atlas())),
@@ -398,8 +402,6 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 				refine_phase_ = 3;
 			} else {
 				const auto read_start = obs_now();
-				refine_gather_ms_ =
-					std::chrono::duration<double, std::milli>(read_start - refine_started_).count();
 				atlas_pixels_ = tiles_->read_atlas();
 				refine_read_ms_ =
 					std::chrono::duration<double, std::milli>(obs_now() - read_start).count();
@@ -427,9 +429,9 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 						  tiles_->raw());
 		if (refine_frames_++ % 60 == 0)
 			blog(LOG_INFO,
-			     "[corridorkey:w13] tiles=%u inference_ms=%.3f gather_wait_ms=%.3f read_ms=%.3f unpack_ms=%.3f pack_ms=%.3f total_ms=%.3f readback_bytes=%llu upload_bytes=%llu",
-			     refine_budget_, refined->inference_ms, refine_gather_ms_, refine_read_ms_,
-			     refined->unpack_ms, refined->pack_ms,
+			     "[corridorkey:w13] tiles=%u inference_ms=%.3f cuda_interval_ms=%.3f gather_wait_ms=%.3f read_ms=%.3f unpack_ms=%.3f pack_ms=%.3f total_ms=%.3f readback_bytes=%llu upload_bytes=%llu",
+			     refine_budget_, refined->inference_ms, refined->cuda_interval_ms, refine_gather_ms_,
+			     refine_read_ms_, refined->unpack_ms, refined->pack_ms,
 			     std::chrono::duration<double, std::milli>(obs_now() - refine_started_).count(),
 			     static_cast<unsigned long long>(refined->device ? 0 : tiles_->readback_bytes()),
 			     static_cast<unsigned long long>(refined->rgba.size() * sizeof(float)));

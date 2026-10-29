@@ -292,7 +292,7 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 		result.graphs.emplace(stage, std::move(graph));
 	}
 	result.detail = description.str() + (request.settings->quality.refiner_enabled
-						     ? "Native edge refinement; staged tile atlas."
+						     ? "Native edge refinement."
 						     : "Native reconstruction; edge refinement off.");
 	return result;
 }

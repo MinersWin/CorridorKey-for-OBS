@@ -29,6 +29,33 @@ int main()
 		check(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0, D3D11_SDK_VERSION,
 					&device, nullptr, &graphics));
 		auto cuda = std::make_shared<nvidia::Context>(0);
+		{
+			auto second = std::make_shared<nvidia::Context>(0);
+			auto a = cuda->allocate(sizeof(float)), b = second->allocate(sizeof(float));
+			float expected = .75f, actual = 0;
+			a->upload(&expected, sizeof(expected));
+			b->copy(*a);
+			a->zero();
+			b->download(&actual, sizeof(actual));
+			require(actual == expected, "Independent instance buffers aliased");
+		}
+		{
+			D3D11_TEXTURE2D_DESC desc{};
+			desc.Width = desc.Height = desc.MipLevels = desc.ArraySize = desc.SampleDesc.Count = 1;
+			desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			desc.Usage = D3D11_USAGE_DYNAMIC;
+			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			ComPtr<ID3D11Texture2D> texture;
+			check(device->CreateTexture2D(&desc, nullptr, &texture));
+			bool rejected = false;
+			try {
+				nvidia::D3D11Texture invalid(cuda, texture.Get());
+			} catch (const std::exception &) {
+				rejected = true;
+			}
+			require(rejected, "Dynamic texture accepted for CUDA registration");
+		}
 		for (auto size :
 		     {Extent{1, 1}, Extent{37, 19}, Extent{512, 256}, Extent{1920, 1080}, Extent{3840, 2160}}) {
 			const auto pixels = static_cast<std::size_t>(size.width) * size.height;

@@ -166,7 +166,9 @@ int main(int argc, char **argv)
 					   static_cast<std::streamsize>(centres.size() * sizeof(float)));
 				if (!file)
 					throw std::runtime_error("Cannot write refined centres");
-				report["frames"].push_back({{"input", item.at("input")}, {"run_ms", times}});
+				report["frames"].push_back({{"input", item.at("input")},
+							    {"run_ms", times},
+							    {"last_cuda_interval_ms", runner->gpu_ms()}});
 			}
 			report["partitions"] = runner->finish_profile();
 		} else if (mode == "parity") {
@@ -189,6 +191,7 @@ int main(int argc, char **argv)
 					std::chrono::duration<double, std::milli>(Clock::now() - start).count());
 			}
 			report["run_ms"] = times;
+			report["last_cuda_interval_ms"] = runner->gpu_ms();
 			for (const auto &[tensor_name, tensor] : outputs)
 				report["outputs"][tensor_name] = compare(
 					tensor, reference(config.models / (name + ".ref.npz"), "out_" + tensor_name,

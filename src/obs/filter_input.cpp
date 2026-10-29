@@ -601,15 +601,16 @@ struct FilterInput::Impl {
 						});
 					}
 					request.model = model;
-					const auto key = model->manifest_sha256 + ":" +
-							 std::to_string(snapshot->quality.grid.width) + ":" +
-							 std::to_string(snapshot->quality.grid.height) + ":" +
-							 std::to_string(static_cast<int>(snapshot->quality.profile)) +
-							 ":" +
-							 std::to_string(static_cast<int>(snapshot->backend.backend)) +
-							 ":" + std::to_string(snapshot->quality.refiner_enabled) + ":" +
-							 std::to_string(snapshot->quality.refiner_max_tiles) + ":" +
-							 snapshot->quality.model_revision;
+					const auto key =
+						model->manifest_sha256 + ":" +
+						std::to_string(snapshot->quality.grid.width) + ":" +
+						std::to_string(snapshot->quality.grid.height) + ":" +
+						std::to_string(static_cast<int>(snapshot->quality.profile)) + ":" +
+						std::to_string(static_cast<int>(snapshot->backend.backend)) + ":" +
+						std::to_string(static_cast<int>(snapshot->backend.transport)) + ":" +
+						std::to_string(snapshot->quality.refiner_enabled) + ":" +
+						std::to_string(snapshot->quality.refiner_max_tiles) + ":" +
+						snapshot->quality.model_revision;
 					runtime.info = [this](const std::string &message) {
 						blog(LOG_INFO, "[corridorkey] %s",
 						     diagnostics::redact(message).c_str());
@@ -685,8 +686,10 @@ struct FilterInput::Impl {
 			}
 			preparation_error = problem;
 			prepared = generation;
-			if (problem)
+			if (problem) {
 				failure = problem.code;
+				blog(LOG_WARNING, "[corridorkey] Preparation failed: %s", model_detail.c_str());
+			}
 		}
 
 		const auto inference_start = obs_now();
@@ -759,12 +762,15 @@ struct FilterInput::Impl {
 		queue_transfer();
 		if (input && input->lease.current()) {
 			std::shared_ptr<nvidia::Context> context;
-#ifdef CORRIDORKEY_CK2_DEV
+#ifdef CORRIDORKEY_CK2_RUNTIME
 			if (real && pipeline == real.get())
 				context = real->device_context();
 #endif
 			input->analysis = transport->analysis(*input, &device_transfers, std::move(context));
-			chosen_transport = transport->transport_kind();
+			const auto selected_transport = transport->transport_kind();
+			if (chosen_transport.exchange(selected_transport) != selected_transport)
+				blog(LOG_INFO, "[corridorkey:w10] transport=%s",
+				     selected_transport == TransportKind::interop ? "d3d11-cuda" : "staged");
 			input_transfers[input->lease.id().index] = obs_now() - input->identity.captured_at;
 			const auto previous_dropped = scheduler.dropped();
 			scheduler.offer(std::move(*input));
@@ -1053,6 +1059,10 @@ StatusSnapshot FilterInput::status() const
 			s.model_detail +
 			(status->failure ? " Passthrough: " + std::string(status->failure.action) : "");
 	status->submitted = s.submitted.load();
+	if (!s.model_detail.empty())
+		status->diagnostic_detail += status->transport == TransportKind::interop
+						     ? " D3D11/CUDA device transport."
+						     : " Staged CPU transport.";
 	status->completed = s.completed.load();
 	status->dropped = s.dropped.load();
 	return status;

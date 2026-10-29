@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "engine/ort_session.hpp"
 #include "process.hpp"
+#include "telemetry/diagnostics.hpp"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <random>
@@ -166,11 +167,8 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 					} catch (const std::exception &e) {
 						attempt.failure = error(ErrorCode::backend_unavailable);
 						attempt.detail =
-							"In-process preparation failed after graph compilation; check runtime collision or changed device state";
-						const std::string reason = e.what();
-						if (reason.starts_with("Runtime library collision:"))
-							attempt.detail =
-								reason; // Loader supplies only a library basename.
+							"In-process preparation failed after graph compilation: " +
+							diagnostics::redact(e.what());
 					}
 				}
 			}

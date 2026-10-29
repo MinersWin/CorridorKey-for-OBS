@@ -226,6 +226,7 @@ void Stage::work(std::stop_token stop)
 			const auto start = Clock::now();
 			output.unpack_ms = std::chrono::duration<double, std::milli>(start - unpack_start).count();
 			auto tensors = graph_->run({{"x", &x}}, stop);
+			output.cuda_interval_ms = graph_->gpu_ms();
 			const auto pack_start = Clock::now();
 			output.inference_ms = std::chrono::duration<double, std::milli>(pack_start - start).count();
 			if (device_job) {
