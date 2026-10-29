@@ -6,13 +6,14 @@ The caller supplies a JSON list of profile/transport/refiner/size cases and two
 image fixtures. Logs and JSON measurements remain in the selected output folder.
 """
 import argparse
+import csv
 import json
 import re
 import statistics
 import subprocess
 import time
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 import websocket
 
@@ -27,10 +28,12 @@ def gpu_sample():
         return subprocess.run(["nvidia-smi", value, "--format=csv,noheader,nounits"],
                               capture_output=True, text=True, check=True).stdout.strip()
     memory, utilization = query("--query-gpu=memory.used,utilization.gpu").splitlines()[0].split(",")
-    # PIDs allow comparison with the idle baseline without exporting personal paths.
-    pids = query("--query-compute-apps=pid")
+    # WDDM also lists desktop graphics clients. Keep executable names, not personal paths.
+    processes = [dict(pid=int(pid), executable=PureWindowsPath(name.strip()).name)
+                 for pid, name in csv.reader(query("--query-compute-apps=pid,process_name").splitlines())
+                 if pid.strip().isdigit()]
     return dict(memory_mib=float(memory), utilization=float(utilization),
-                process_ids=sorted({int(x) for x in pids.splitlines() if x.strip().isdigit()}))
+                process_ids=sorted({row["pid"] for row in processes}), processes=processes)
 
 
 def main(args):
