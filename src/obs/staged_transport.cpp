@@ -448,8 +448,8 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 			blog(LOG_INFO,
 			     "[corridorkey:w13] tiles=%u inference_ms=%.3f cuda_interval_ms=%.3f gather_wait_ms=%.3f read_ms=%.3f unpack_ms=%.3f pack_ms=%.3f total_ms=%.3f readback_bytes=%llu upload_bytes=%llu",
 			     refine_budget_, refined->inference_ms, refined->cuda_interval_ms,
-			     refine_gather_ms_ + refined->wait_ms, refine_read_ms_, refined->unpack_ms,
-			     refined->pack_ms,
+			     refine_gather_ms_ + refined->wait_ms, refined->device ? 0.0 : refine_read_ms_,
+			     refined->unpack_ms, refined->pack_ms,
 			     std::chrono::duration<double, std::milli>(obs_now() - refine_started_).count(),
 			     static_cast<unsigned long long>(refined->device ? 0 : tiles_->readback_bytes()),
 			     static_cast<unsigned long long>(refined->rgba.size() * sizeof(float)));
