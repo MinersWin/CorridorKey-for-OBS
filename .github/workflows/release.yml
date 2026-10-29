@@ -14,6 +14,8 @@ permissions:
 jobs:
   version:
     runs-on: ubuntu-24.04
+    outputs:
+      signed: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-test.') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check tag against buildspec
@@ -34,8 +36,35 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       package_stages: true
+      signed_catalogue: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-test.') }}
+  catalogue-signing:
+    needs: [version, build]
+    if: needs.version.outputs.signed == 'true'
+    runs-on: ubuntu-24.04
+    environment: release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Install signing tooling
+        run: python -m pip install -r tools/requirements-signing.txt
+      - name: Sign and verify the exact catalogue bytes
+        env:
+          CATALOGUE_SIGNING_KEY: ${{ secrets.CATALOGUE_SIGNING_KEY }}
+        run: |
+          mkdir signed-catalogue
+          python tools/sign-catalogue.py --signature signed-catalogue/catalogue-signature.json
+          cp data/models/catalogue-v1.json signed-catalogue/catalogue-v1.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: signed-catalogue
+          path: signed-catalogue/
+          if-no-files-found: error
+          retention-days: 1
   windows-package:
-    needs: build
+    needs: [version, build, catalogue-signing]
+    if: always() && !cancelled() && needs.build.result == 'success' && (needs.catalogue-signing.result == 'success' || (needs.version.outputs.signed == 'false' && needs.catalogue-signing.result == 'skipped'))
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -46,6 +75,24 @@ jobs:
         with:
           name: windows-x64-baseline-stage
           path: stage
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: needs.version.outputs.signed == 'true'
+        with:
+          name: signed-catalogue
+          path: signed-catalogue
+      - name: Complete catalogue payload
+        shell: pwsh
+        env:
+          SIGNED_CATALOGUE: ${{ needs.version.outputs.signed }}
+        run: |
+          python -m pip install -r tools/requirements-signing.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Signing tooling installation failed' }
+          if ($env:SIGNED_CATALOGUE -eq 'true') {
+            python tools/stage-catalogue.py stage/corridorkey/data/models --signed-dir signed-catalogue
+          } else {
+            python tools/stage-catalogue.py stage/corridorkey/data/models --unsigned-test
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Catalogue stage verification failed' }
       - name: Package native runtime, notices and zips
         run: |
           python -m pip install onnx==1.19.1
@@ -64,14 +111,26 @@ jobs:
           Copy-Item stage/corridorkey/data/THIRD_PARTY_NOTICES.md release/THIRD_PARTY_NOTICES-windows-x64.md
           Copy-Item stage/corridorkey/data/BUNDLE_CONTENTS.json release/BUNDLE_CONTENTS-windows-x64.json
           python packaging/package.py --checksums-only
+      - name: Label unsigned test artifacts
+        if: needs.version.outputs.signed != 'true'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for path in Path('release').iterdir():
+              if path.is_file() and path.name != 'SHA256SUMS.txt':
+                  path.rename(path.with_name('unsigned-test-' + path.name))
+          PY
+          python packaging/package.py --checksums-only
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: windows-packages
+          name: windows-packages${{ needs.version.outputs.signed != 'true' && '-unsigned-test' || '' }}
           path: release/*
           if-no-files-found: error
           retention-days: 1
   linux-package:
-    needs: build
+    needs: [version, build, catalogue-signing]
+    if: always() && !cancelled() && needs.build.result == 'success' && (needs.catalogue-signing.result == 'success' || (needs.version.outputs.signed == 'false' && needs.catalogue-signing.result == 'skipped'))
     runs-on: ubuntu-${{ matrix.distro }}
     strategy:
       matrix:
@@ -82,45 +141,48 @@ jobs:
         with:
           name: ubuntu-${{ matrix.distro }}-x86_64-stage
           path: stage
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: needs.version.outputs.signed == 'true'
+        with:
+          name: signed-catalogue
+          path: signed-catalogue
       - name: Install packaging dependencies
         run: sudo apt-get update && sudo apt-get install -y dpkg-dev libobs-dev libqt6widgets6t64 libcurl4t64 python3-venv
       - name: Package native runtime, notices, deb and tarball
+        env:
+          SIGNED_CATALOGUE: ${{ needs.version.outputs.signed }}
         run: |
           python3 -m venv .venv
           .venv/bin/pip install onnx==1.19.1
+          .venv/bin/pip install -r tools/requirements-signing.txt
+          if [ "$SIGNED_CATALOGUE" = 'true' ]; then
+            .venv/bin/python tools/stage-catalogue.py stage/usr/share/obs/obs-plugins/corridorkey/models --signed-dir signed-catalogue
+          else
+            .venv/bin/python tools/stage-catalogue.py stage/usr/share/obs/obs-plugins/corridorkey/models --unsigned-test
+          fi
           .venv/bin/python packaging/package.py --platform linux-x86_64 --distro '${{ matrix.distro }}'
           dpkg-deb --info release/*.deb
           dpkg-deb --contents release/*.deb
           cp stage/usr/share/obs/obs-plugins/corridorkey/THIRD_PARTY_NOTICES.md release/THIRD_PARTY_NOTICES-ubuntu-${{ matrix.distro }}.md
           cp stage/usr/share/obs/obs-plugins/corridorkey/BUNDLE_CONTENTS.json release/BUNDLE_CONTENTS-ubuntu-${{ matrix.distro }}.json
+      - name: Label unsigned test artifacts
+        if: needs.version.outputs.signed != 'true'
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for path in Path('release').iterdir():
+              if path.is_file() and path.name != 'SHA256SUMS.txt':
+                  path.rename(path.with_name('unsigned-test-' + path.name))
+          PY
+          python3 packaging/package.py --checksums-only
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: linux-${{ matrix.distro }}-packages
+          name: linux-${{ matrix.distro }}-packages${{ needs.version.outputs.signed != 'true' && '-unsigned-test' || '' }}
           path: release/*
           if-no-files-found: error
           retention-days: 1
-  catalogue-signing-placeholder:
-    needs: [windows-package, linux-package]
-    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-test.')
-    runs-on: ubuntu-24.04
-    environment: release
-    steps:
-      - name: Catalogue signing integration placeholder
-        env:
-          CATALOGUE_SIGNING_KEY: ${{ secrets.CATALOGUE_SIGNING_KEY }}
-        run: |
-          # Coordinator-owned integration point. Never generate a key here.
-          # The future signer must emit W04 raw P-256 r||s and verify against
-          # the embedded public key before uploading a production catalogue.
-          if [ -z "$CATALOGUE_SIGNING_KEY" ]; then
-            echo 'Catalogue signing is not configured; no signed production catalogue is included.'
-          else
-            echo 'Signing secret is configured. Signing is disabled until the coordinator wires the signer.'
-          fi
-          echo 'Production release blocked: sign and verify the catalogue and embed its public key before packaging.'
-          exit 1
   draft:
-    needs: [windows-package, linux-package, catalogue-signing-placeholder]
+    needs: [windows-package, linux-package, catalogue-signing]
     if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-test.') && (github.event_name == 'push' || inputs.create_draft)
     runs-on: ubuntu-24.04
     environment: release

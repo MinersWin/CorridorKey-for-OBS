@@ -9,6 +9,10 @@ on:
       package_stages:
         type: boolean
         default: false
+      signed_catalogue:
+        description: Embed the committed release catalogue public key (no private key needed)
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -27,7 +31,13 @@ jobs:
         with:
           python-version: '3.12'
       - name: Configure
-        run: cmake --preset windows-ci-x64 -DCORRIDORKEY_OBS_SDK=${{ matrix.sdk }} -DCORRIDORKEY_WINDOWS_LAYOUT=MODERN -DCORRIDORKEY_FETCH_ONNXRUNTIME=ON
+        shell: pwsh
+        env:
+          SIGNED_CATALOGUE: ${{ inputs.signed_catalogue }}
+        run: |
+          $key = ''
+          if ($env:SIGNED_CATALOGUE -eq 'true') { $key = (Get-Content packaging/catalogue-public-key.txt -Raw).Trim() }
+          cmake --preset windows-ci-x64 -DCORRIDORKEY_OBS_SDK=${{ matrix.sdk }} -DCORRIDORKEY_WINDOWS_LAYOUT=MODERN -DCORRIDORKEY_FETCH_ONNXRUNTIME=ON "-DCORRIDORKEY_CATALOGUE_PUBLIC_KEY=$key"
       - name: Build
         run: cmake --build --preset windows-ci-x64 --parallel 4
       - name: Stage
@@ -66,7 +76,12 @@ jobs:
       - name: Build baseline OBS SDK
         run: python3 tools/bootstrap-linux-sdk.py --sdk baseline
       - name: Configure
-        run: cmake --preset ubuntu-ci-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk-baseline" -DCORRIDORKEY_FETCH_ONNXRUNTIME=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBEXECDIR=libexec
+        env:
+          SIGNED_CATALOGUE: ${{ inputs.signed_catalogue }}
+        run: |
+          key=''
+          if [ "$SIGNED_CATALOGUE" = 'true' ]; then key="$(cat packaging/catalogue-public-key.txt)"; fi
+          cmake --preset ubuntu-ci-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk-baseline" -DCORRIDORKEY_FETCH_ONNXRUNTIME=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBEXECDIR=libexec "-DCORRIDORKEY_CATALOGUE_PUBLIC_KEY=$key"
       - name: Build
         run: cmake --build --preset ubuntu-ci-x86_64 --parallel 4
       - name: Stage
