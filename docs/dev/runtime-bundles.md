@@ -263,3 +263,10 @@ elapsed time. Cancel requests the same preparation stop source used by the
 helper; in-process ORT creation reaches a safe boundary before returning. The
 manager and OBS render callbacks do not wait for engine creation. Installing or
 changing an optional runtime still requires the restart described by W19.
+
+On Windows, TensorRT loads its architecture-specific builder resource DLLs by
+basename; cuDNN also loads component DLLs this way. The loader pins these DLLs
+listed in the verified NVIDIA bundle by their full private paths before provider
+use. This covers delayed component loads
+while keeping the process DLL search path unchanged. Files absent from the
+bundle's integrity manifest are not preloaded.

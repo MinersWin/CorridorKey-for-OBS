@@ -278,6 +278,30 @@ TEST_CASE("ORT negotiates older API without rejecting newer version text and det
 	CHECK(rt->api_version() == 19);
 	CHECK(rt->build() == "999.0.0");
 	CHECK(Runtime::load(b) == rt);
+#ifdef _WIN32
+	const auto resource = "nvinfer_builder_resource_test_10.dll";
+	const auto cudnn_component = "cudnn_ops_test_9.dll";
+	const auto unlisted = "nvinfer_builder_resource_unlisted_10.dll";
+	fs::copy_file(CK_MOCK_RUNTIME, b.root / resource);
+	fs::copy_file(CK_MOCK_RUNTIME, b.root / cudnn_component);
+	fs::copy_file(CK_MOCK_RUNTIME, b.root / unlisted);
+	b.backend = Backend::tensorrt;
+	b.file_hashes[resource] = std::string(64, '0');
+	CHECK_THROWS_WITH(Runtime::load(b), doctest::Contains("SHA-256 mismatch"));
+	CHECK(GetModuleHandleA(resource) == nullptr);
+	b.file_hashes[resource] = file_sha256(b.root / resource);
+	b.file_hashes[cudnn_component] = file_sha256(b.root / cudnn_component);
+	CHECK(Runtime::load(b) == rt);
+	const auto loaded = GetModuleHandleA(resource);
+	REQUIRE(loaded != nullptr);
+	wchar_t loaded_path[32768]{};
+	REQUIRE(GetModuleFileNameW(loaded, loaded_path, 32768) != 0);
+	CHECK(fs::equivalent(b.root / resource, fs::path(loaded_path)));
+	CHECK(GetModuleHandleA(unlisted) == nullptr);
+	CHECK(GetModuleHandleA(cudnn_component) != nullptr);
+	b.file_hashes.erase(resource);
+	b.file_hashes.erase(cudnn_component);
+#endif
 	b.root = fs::canonical(temp.path / "two");
 	b.runtime = b.root / name;
 	CHECK_THROWS_WITH(Runtime::load(b), doctest::Contains("collision"));

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "loader.hpp"
+#include "util/utf8_path.hpp"
 #include <algorithm>
 #include <cctype>
 #include <mutex>
@@ -151,6 +152,19 @@ void Runtime::register_provider(const Bundle &bundle)
 	std::lock_guard guard(loader_mutex);
 	for (const auto &p : bundle.preload)
 		load_library(p);
+#ifdef _WIN32
+	if (bundle.backend == Backend::tensorrt || bundle.backend == Backend::cuda) {
+		// NVIDIA libraries delay-load components by basename. Pin verified components,
+		// without adding a user-writable directory to the process DLL search path.
+		for (const auto &[name, hash] : bundle.file_hashes) {
+			const auto relative = utf8_path(name);
+			if (!relative.has_parent_path() &&
+			    (name.starts_with("nvinfer_builder_resource_") || name.starts_with("cudnn_")) &&
+			    relative.extension() == ".dll")
+				load_library(fs::canonical(bundle.root / relative));
+		}
+	}
+#endif
 	if (bundle.registration != Registration::plugin)
 		return;
 	if (version_ < 23)
