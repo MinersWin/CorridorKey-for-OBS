@@ -138,6 +138,9 @@ The workflow uses the repository's automatic token; no custom secrets are needed
 
 ## Compatibility
 
+See the [compatibility matrix](docs/compatibility.md) for backend evidence,
+tested host versions and how to collect a redacted support report.
+
 | Platform / host | Intended support | Verification in this foundation |
 | --- | --- | --- |
 | Windows x64, OBS 30.2â€“32.x | 30.2.0 hardware-tested; 31.xâ€“32.x expected | MSVC build loaded in the legacy portable layout with a color source/filter |
@@ -156,9 +159,10 @@ host-compatible ABI; future inference will negotiate ORT's versioned C API and
 check actual provider/device capabilities before use.
 
 Please [open an issue](https://github.com/MinersWin/CorridorKey-for-OBS/issues/new/choose)
-with your OBS version, platform, GPU, driver, backend and OBS log when something
-fails. Runtime support remains provisional until the corresponding matrix entry
-records an actual test.
+when something fails. Copy diagnostics from the model manager, review the
+preview and paste it into the form. An OBS log is optional; review it for private
+information before attaching it. Runtime support remains provisional until the
+corresponding matrix entry records an actual test.
 See [local validation notes](docs/VALIDATION.md) for the compiler, logs and limits
 of these tests. Installer execution, Linux compilation and hosted CI remain pending.
 

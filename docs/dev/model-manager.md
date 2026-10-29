@@ -84,10 +84,11 @@ while an older verified revision remains installed. W10 supplies actual TensorRT
 build events; the view supports indeterminate building and safe cancellation.
 Until then that state is exercised through a labelled UI fixture.
 
-W17 can extend the allowlisted report builder and diagnostics preview. Raw helper
-JSON, user-selected import paths, source names, arbitrary errors and OBS logs
-must remain outside copied diagnostics. The current test explicitly checks that
-local error text and paths cannot enter the report.
+Copy diagnostics uses [W17's typed collector](diagnostics.md) and a modeless
+preview. Raw helper JSON, user-selected import paths, source names, arbitrary
+errors and OBS logs stay outside the report. Report a problem opens the fixed
+GitHub issue chooser; it sends no diagnostics. The tests check that local error
+text, credentials and personal paths cannot enter copied fields.
 
 ## Reproducing validation
 

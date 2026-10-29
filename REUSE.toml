@@ -11,3 +11,8 @@ path = ["docs/images/model-manager/*.png", "docs/images/model-manager/*metadata.
 SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 # Licence texts visible in the captures retain their original terms.
+
+[[annotations]]
+path = ["docs/images/diagnostics/*.png", "docs/images/diagnostics/obs33-report.txt"]
+SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
+SPDX-License-Identifier = "GPL-3.0-or-later"

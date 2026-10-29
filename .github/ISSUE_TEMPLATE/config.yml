@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation and compatibility
+    url: https://github.com/MinersWin/CorridorKey-for-OBS/blob/main/docs/compatibility.md
+    about: Check tested combinations, fallback behavior and how to collect a report.
