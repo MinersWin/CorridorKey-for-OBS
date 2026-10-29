@@ -108,6 +108,8 @@ ck2::Stage parse_stage(const std::string &name)
 		return ck2::Stage::stage1;
 	if (name == "stage2nomask")
 		return ck2::Stage::stage2;
+	if (name == "refiner")
+		return ck2::Stage::refiner;
 	throw std::runtime_error("Unknown validation stage");
 }
 } // namespace
@@ -122,12 +124,37 @@ int main(int argc, char **argv)
 	try {
 		const auto config = ck2::read_development_config(utf8_path(argv[1]));
 		const std::string mode = argv[2];
-		const Extent grid{512, static_cast<unsigned>(std::stoul(argv[3]))};
+		const auto dimension = static_cast<unsigned>(std::stoul(argv[3]));
+		const Extent grid = mode == "refiner" || std::string(argv[4]) == "refiner" ? Extent{dimension, 52}
+											   : Extent{512, dimension};
 		const auto backend = ort::parse_backend(argv[6]);
 		const bool quality = argc > 7 && std::string(argv[7]) == "quality";
 		report["mode"] = mode;
 		report["grid"] = {grid.height, grid.width};
-		if (mode == "parity") {
+		if (mode == "refiner") {
+			auto runner = graph(config, ck2::Stage::refiner, grid, backend, report);
+			std::ifstream list(utf8_path(argv[4]));
+			for (const auto &item : Json::parse(list)) {
+				const auto path = utf8_path(item.at("input").get<std::string>());
+				auto x = npy(path);
+				ck2::Tensors output;
+				std::vector<double> times;
+				for (unsigned i = 0; i < item.value("runs", 1U); ++i) {
+					const auto start = Clock::now();
+					output = runner->run({{"x", &x}}, {});
+					times.push_back(
+						std::chrono::duration<double, std::milli>(Clock::now() - start).count());
+				}
+				auto centres = refiner::pack_centres(output, dimension);
+				std::ofstream file(utf8_path(item.at("output").get<std::string>()), std::ios::binary);
+				file.write(reinterpret_cast<const char *>(centres.data()),
+					   static_cast<std::streamsize>(centres.size() * sizeof(float)));
+				if (!file)
+					throw std::runtime_error("Cannot write refined centres");
+				report["frames"].push_back({{"input", item.at("input")}, {"run_ms", times}});
+			}
+			report["partitions"] = runner->finish_profile();
+		} else if (mode == "parity") {
 			const auto stage = parse_stage(argv[4]);
 			const auto name = ck2::graph_name(stage, grid);
 			auto runner = graph(config, stage, grid, backend, report);

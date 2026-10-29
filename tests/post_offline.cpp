@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
 #include "gpu/post/reconstruction.hpp"
+#include "gpu/post/refiner.hpp"
 #include "models/tensor_storage.hpp"
 #include "util/utf8_path.hpp"
 #include <obs.h>
@@ -68,15 +69,47 @@ void frame(const Json &item, const char *directory)
 		roi = {r.at(0), r.at(1), r.at(2), r.at(3)};
 	}
 	Reconstruction post(native.extent(), model.extent(), (std::string(directory) + "/effects/post.effect").c_str());
-	if (!post.available() || !post.prepare(native.value, guide.value, model.value, settings, roi))
+	const unsigned budget = item.value("refiner_budget", 0U);
+	if (!post.available() || !post.prepare(native.value, guide.value, model.value, settings, roi, budget != 0))
 		throw std::runtime_error("Reconstruction preparation failed");
 	const auto prefix = item.at("output").get<std::string>();
 	dump(post.raw(), prefix + ".raw.f32");
 	dump(post.coefficients(), prefix + ".coef.f32");
 	dump(post.delta(), prefix + ".delta.f32");
+	std::unique_ptr<TileRefiner> refiner;
+	gs_texture_t *refined = nullptr;
+	if (budget) {
+		refiner = std::make_unique<TileRefiner>(native.extent(), budget,
+							(std::string(directory) + "/effects/refiner.effect").c_str());
+		if (!refiner->available() || !refiner->begin(post, native.value, model.value, roi))
+			throw std::runtime_error("Refiner GPU preparation failed");
+		dump(refiner->atlas(), prefix + ".atlas.f32");
+		dump(refiner->selection(), prefix + ".selection.f32");
+		dump(refiner->scores(), prefix + ".scores.f32");
+		dump(post.background(), prefix + ".background.f32");
+		dump(post.band(), prefix + ".band.f32");
+		const auto tensor = corridorkey::refiner::unpack_atlas(refiner->read_atlas(), budget);
+		std::ofstream input_tensor(utf8_path(prefix + ".x.f32"), std::ios::binary);
+		input_tensor.write(reinterpret_cast<const char *>(tensor.values.data()),
+				   static_cast<std::streamsize>(tensor.values.size() * sizeof(float)));
+		if (!input_tensor)
+			throw std::runtime_error("Cannot write refiner input tensor");
+		if (item.contains("refiner_centres")) {
+			const auto size = corridorkey::refiner::output_atlas(budget);
+			std::vector<float> data(static_cast<std::size_t>(size.width) * size.height * 4);
+			std::ifstream file(utf8_path(item.at("refiner_centres").get<std::string>()), std::ios::binary);
+			if (!file.read(reinterpret_cast<char *>(data.data()),
+				       static_cast<std::streamsize>(data.size() * sizeof(float))))
+				throw std::runtime_error("Missing refiner centre output");
+			if (!refiner->blend(data))
+				throw std::runtime_error("Refiner blend failed");
+			refined = refiner->raw();
+			dump(refined, prefix + ".raw.f32");
+		}
+	}
 	for (auto format : {GS_RGBA32F, GS_RGBA16F}) {
 		auto *output = gs_texrender_create(format, GS_ZS_NONE);
-		if (!post.finish(output, native.value, settings, roi)) {
+		if (!post.finish(output, native.value, settings, roi, 0, refined)) {
 			gs_texrender_destroy(output);
 			throw std::runtime_error("Reconstruction finish failed");
 		}

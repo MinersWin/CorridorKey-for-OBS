@@ -2,6 +2,7 @@
 #pragma once
 #include "pipeline.hpp"
 #include "temporal_state.hpp"
+#include "refiner_stage.hpp"
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -13,6 +14,7 @@ struct Ck2Prepared {
 	ck2::Graphs graphs;
 	Backend backend = Backend::automatic;
 	std::string detail;
+	std::shared_ptr<const ReadyModel> model{};
 };
 using Ck2Factory = std::function<Ck2Prepared(const PrepareRequest &)>;
 class Ck2Pipeline final : public Pipeline {
@@ -30,6 +32,7 @@ public:
 	Crop suggested_roi() const;
 	ck2::StageTimes stage_times() const;
 	std::string detail() const;
+	std::shared_ptr<refiner::Stage> refiner_stage() const;
 	static bool supports(const Settings &);
 
 private:
@@ -48,6 +51,7 @@ private:
 	std::optional<Job> pending_;
 	std::optional<FrameResult> result_;
 	std::unique_ptr<ck2::SequenceState> sequence_;
+	std::shared_ptr<refiner::Stage> refiner_;
 	std::shared_ptr<const ReadyModel> model_;
 	std::stop_token preparation_stop_;
 	PipelineDiagnostics diagnostics_;

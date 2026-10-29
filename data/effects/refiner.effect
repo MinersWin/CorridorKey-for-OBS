@@ -1,0 +1,137 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+uniform float4x4 ViewProj;
+uniform texture2d native_image;
+uniform texture2d raw_image;
+uniform texture2d model_image;
+uniform texture2d background_image;
+uniform texture2d band_image;
+uniform texture2d score_image;
+uniform texture2d sort_image;
+uniform texture2d sorted_image;
+uniform texture2d map_image;
+uniform texture2d centres_image;
+uniform float2 native_size;
+uniform float2 grid_size;
+uniform float2 cell_size;
+uniform float2 sort_size;
+uniform float2 atlas_size;
+uniform float2 output_size;
+uniform float4 roi;
+uniform float4 roi_pixels;
+uniform int budget;
+uniform int sort_stride;
+uniform int sort_block;
+sampler_state point_clamp { Filter = Point; AddressU = Clamp; AddressV = Clamp; };
+struct Vertex { float4 pos : POSITION; float2 uv : TEXCOORD0; };
+Vertex VS(Vertex v) { v.pos = mul(float4(v.pos.xyz, 1.0), ViewProj); return v; }
+float integer_mod(float x, float y) { return x - floor((x + 0.001) / y) * y; }
+float2 linear_uv(float index) { return (float2(integer_mod(index, sort_size.x), floor(index / sort_size.x)) + 0.5) / sort_size; }
+float2 low_uv(float2 uv) { return (uv - roi.xy) / max(roi.zw - roi.xy, float2(0.000001, 0.000001)); }
+
+float4 sample_Band(float2 uv) {
+    float2 p = uv * grid_size - 0.5, b = floor(p), w = p - b;
+    float2 a = (b + 0.5) / grid_size, d = 1.0 / grid_size;
+    return lerp(lerp(band_image.SampleLevel(point_clamp, a, 0.0), band_image.SampleLevel(point_clamp, a + float2(d.x, 0.0), 0.0), w.x),
+                lerp(band_image.SampleLevel(point_clamp, a + float2(0.0, d.y), 0.0), band_image.SampleLevel(point_clamp, a + d, 0.0), w.x), w.y);
+}
+
+float4 sample_Background(float2 uv) {
+    float2 p = uv * grid_size - 0.5, b = floor(p), w = p - b;
+    float2 a = (b + 0.5) / grid_size, d = 1.0 / grid_size;
+    return lerp(lerp(background_image.SampleLevel(point_clamp, a, 0.0), background_image.SampleLevel(point_clamp, a + float2(d.x, 0.0), 0.0), w.x),
+                lerp(background_image.SampleLevel(point_clamp, a + float2(0.0, d.y), 0.0), background_image.SampleLevel(point_clamp, a + d, 0.0), w.x), w.y);
+}
+
+float4 sample_Model(float2 uv) {
+    float2 p = uv * grid_size - 0.5, b = floor(p), w = p - b;
+    float2 a = (b + 0.5) / grid_size, d = 1.0 / grid_size;
+    return lerp(lerp(model_image.SampleLevel(point_clamp, a, 0.0), model_image.SampleLevel(point_clamp, a + float2(d.x, 0.0), 0.0), w.x),
+                lerp(model_image.SampleLevel(point_clamp, a + float2(0.0, d.y), 0.0), model_image.SampleLevel(point_clamp, a + d, 0.0), w.x), w.y);
+}
+
+float4 sample_Map(float2 uv) {
+    float2 p = uv * cell_size - 0.5, b = floor(p), w = p - b;
+    float2 a = (b + 0.5) / cell_size, d = 1.0 / cell_size;
+    return lerp(lerp(map_image.SampleLevel(point_clamp, a, 0.0), map_image.SampleLevel(point_clamp, a + float2(d.x, 0.0), 0.0), w.x),
+                lerp(map_image.SampleLevel(point_clamp, a + float2(0.0, d.y), 0.0), map_image.SampleLevel(point_clamp, a + d, 0.0), w.x), w.y);
+}
+
+float4 Score(Vertex v) : TARGET {
+    float index = floor(v.uv.y * sort_size.y) * sort_size.x + floor(v.uv.x * sort_size.x);
+    if (index >= cell_size.x * cell_size.y) return float4(-1.0, index, 0.0, 0.0);
+    float2 cell = float2(integer_mod(index, cell_size.x), floor(index / cell_size.x));
+    float2 first = floor(cell / cell_size * grid_size + 0.0001);
+    float2 end = ceil((cell + 1.0) / cell_size * grid_size - 0.0001);
+    if (end.x <= 0.0 || end.y <= 0.0 || first.x >= grid_size.x || first.y >= grid_size.y)
+        return float4(0.0, index, 0.0, 0.0);
+    first = clamp(first, float2(0.0, 0.0), grid_size - 1.0);
+    end = clamp(end, first + 1.0, grid_size);
+    float sum = 0.0, count = 0.0, occ = 0.0;
+    for (int y = int(first.y); y < int(end.y); ++y) for (int x = int(first.x); x < int(end.x); ++x) {
+        sum += band_image.SampleLevel(point_clamp, (float2(x, y) + 0.5) / grid_size, 0.0).r;
+        count += 1.0;
+        for (int dy = -1; dy <= 1; ++dy) for (int dx = -1; dx <= 1; ++dx)
+            occ = max(occ, band_image.SampleLevel(point_clamp, (float2(x + dx, y + dy) + 0.5) / grid_size, 0.0).r);
+    }
+    return float4(sum / max(count, 1.0) + 0.001 * occ, index, occ, 0.0);
+}
+float4 Sort(Vertex v) : TARGET {
+    float index = floor(v.uv.y * sort_size.y) * sort_size.x + floor(v.uv.x * sort_size.x);
+    bool upper = integer_mod(floor(index / float(sort_stride)), 2.0) >= 1.0;
+    float other = index + (upper ? -float(sort_stride) : float(sort_stride));
+    float4 a = sort_image.SampleLevel(point_clamp, linear_uv(index), 0.0);
+    float4 b = sort_image.SampleLevel(point_clamp, linear_uv(other), 0.0);
+    bool before = a.r > b.r || (a.r == b.r && a.g < b.g);
+    bool descending = integer_mod(floor(index / float(sort_block)), 2.0) < 1.0;
+    bool take_first = descending != upper;
+    return (before == take_first) ? a : b;
+}
+float4 Map(Vertex v) : TARGET {
+    float2 cell = floor(v.uv * cell_size);
+    float index = cell.y * cell_size.x + cell.x;
+    float occ = score_image.SampleLevel(point_clamp, linear_uv(index), 0.0).b;
+    float slot = -1.0;
+    for (int i = 0; i < budget; ++i) {
+        if (float(i) >= cell_size.x * cell_size.y) break;
+        if (sorted_image.SampleLevel(point_clamp, linear_uv(float(i)), 0.0).g == index) { slot = float(i); break; }
+    }
+    return float4(slot, (slot >= 0.0 || occ <= 0.02) ? 1.0 : 0.0, 0.0, 0.0);
+}
+float4 Gather(Vertex v) : TARGET {
+    float2 pixel = floor(v.uv * atlas_size);
+    float slab_height = atlas_size.y / 3.0;
+    float group = floor(pixel.y / slab_height);
+    float2 local = float2(pixel.x, integer_mod(pixel.y, slab_height));
+    float slot = floor(local.y / 52.0) * 16.0 + floor(local.x / 52.0);
+    // Padded slots repeat the first valid tile for a static graph batch.
+    if (slot >= cell_size.x * cell_size.y) slot = 0.0;
+    float index = sorted_image.SampleLevel(point_clamp, linear_uv(slot), 0.0).g;
+    float2 origin = float2(integer_mod(index, cell_size.x), floor(index / cell_size.x)) * 32.0;
+    float2 p = clamp(origin + float2(integer_mod(local.x, 52.0), integer_mod(local.y, 52.0)) - 10.0, float2(0.0, 0.0), roi_pixels.zw - 1.0) + roi_pixels.xy;
+    float2 uv = (p + 0.5) / native_size;
+    float4 native = native_image.SampleLevel(point_clamp, uv, 0.0);
+    float3 rgb = native.a > 0.000001 ? saturate(native.rgb / native.a) : float3(0.0, 0.0, 0.0);
+    float4 raw = raw_image.SampleLevel(point_clamp, uv, 0.0);
+    float3 bg = sample_Background(low_uv(uv)).rgb;
+    float a = sample_Model(low_uv(uv)).a;
+    if (group < 0.5) return float4(rgb, bg.r);
+    if (group < 1.5) return float4(bg.gb, raw.rg);
+    return float4(raw.b, a, raw.a, 0.0);
+}
+float4 Blend(Vertex v) : TARGET {
+    float2 pixel = floor(v.uv * native_size) - roi_pixels.xy, cell = floor(pixel / 32.0);
+    float slot = map_image.SampleLevel(point_clamp, (cell + 0.5) / cell_size, 0.0).r;
+    float4 raw = raw_image.SampleLevel(point_clamp, v.uv, 0.0);
+    if (pixel.x < 0.0 || pixel.y < 0.0 || pixel.x >= roi_pixels.z || pixel.y >= roi_pixels.w) return raw;
+    if (slot < 0.0) return raw;
+    float2 p = float2(integer_mod(slot, 16.0), floor(slot / 16.0)) * 32.0 + float2(integer_mod(pixel.x, 32.0), integer_mod(pixel.y, 32.0));
+    float4 refined = centres_image.SampleLevel(point_clamp, (p + 0.5) / output_size, 0.0);
+    float feather = saturate(2.0 * sample_Map((pixel + 0.5) / (cell_size * 32.0)).g - 1.0);
+    float band = sample_Band(low_uv(v.uv)).r * feather;
+    return band * refined + (1.0 - band) * raw;
+}
+technique Score { pass { vertex_shader = VS(v); pixel_shader = Score(v); } }
+technique Sort { pass { vertex_shader = VS(v); pixel_shader = Sort(v); } }
+technique Map { pass { vertex_shader = VS(v); pixel_shader = Map(v); } }
+technique Gather { pass { vertex_shader = VS(v); pixel_shader = Gather(v); } }
+technique Blend { pass { vertex_shader = VS(v); pixel_shader = Blend(v); } }

@@ -42,6 +42,7 @@ struct DevelopmentConfig {
 };
 DevelopmentConfig read_development_config(const std::filesystem::path &);
 std::shared_ptr<const ReadyModel> development_model(const std::filesystem::path &, Extent, bool quality,
-						    const std::filesystem::path &release_fixture = {});
+						    const std::filesystem::path &release_fixture = {},
+						    unsigned refiner_budget = 0);
 #endif
 } // namespace corridorkey::ck2

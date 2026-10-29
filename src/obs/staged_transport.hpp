@@ -4,6 +4,7 @@
 #include "contracts/capabilities.hpp"
 #include "gpu_fence.hpp"
 #include "gpu/post/reconstruction.hpp"
+#include "gpu/post/refiner.hpp"
 #include <obs.h>
 #include <array>
 #include <optional>
@@ -21,7 +22,9 @@ public:
 	// Graphics task only. Mapping requires a ready capture fence.
 	std::optional<InputFrame> take_ready();
 	void discard_stale();
-	bool upload(const FrameResult &result, const std::vector<float> &rgba, int debug_view = 0);
+	bool upload(const FrameResult &result, const std::vector<float> &rgba, int debug_view = 0,
+		    std::shared_ptr<refiner::Stage> refinement = {});
+	bool refining() const noexcept { return refine_phase_ != 0; }
 	bool read_finished(const FrameResult &result) const;
 	// No graphics access; the input lease pins the byte buffer during conversion.
 	Image analysis(const InputFrame &input) const;
@@ -41,6 +44,14 @@ private:
 	std::array<std::unique_ptr<Slot>, FramePool::maximum_capacity> slots_;
 	std::unique_ptr<Reconstruction> reconstruction_;
 	std::unique_ptr<Reconstruction> reconstruction_half_;
+	std::unique_ptr<TileRefiner> tiles_;
+	std::shared_ptr<refiner::Stage> refine_stage_;
+	std::vector<float> atlas_pixels_;
+	unsigned refine_phase_ = 0, refine_budget_ = 0;
+	Sequence refine_sequence_ = 0;
+	std::uint64_t refine_frames_ = 0;
+	TimePoint refine_started_{};
+	double refine_gather_ms_ = 0, refine_read_ms_ = 0;
 	bool available_ = false;
 	Error failure_;
 	Duration host_draw_time_{};

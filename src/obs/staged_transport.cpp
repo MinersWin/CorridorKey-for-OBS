@@ -270,7 +270,8 @@ Image StagedTransport::analysis(const InputFrame &input) const
 		static_cast<std::size_t>(grid_.width) * 3 * sizeof(float),
 		std::make_shared<HostFloats>(std::move(rgb))};
 }
-bool StagedTransport::upload(const FrameResult &result, const std::vector<float> &rgba, int debug_view)
+bool StagedTransport::upload(const FrameResult &result, const std::vector<float> &rgba, int debug_view,
+			     std::shared_ptr<refiner::Stage> refinement)
 {
 	const auto extent = result.alpha.size;
 	const Extent half{grid_.width / 2, grid_.height / 2};
@@ -280,8 +281,94 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 	auto &slot = *slots_[result.input.lease.id().index];
 	auto *model = extent == grid_ ? slot.model : slot.model_half;
 	auto &post = extent == grid_ ? *reconstruction_ : *reconstruction_half_;
+	struct ProtectReads {
+		GpuFence &fence;
+		bool &available;
+		Error &failure;
+		~ProtectReads()
+		{
+			if (!fence.signal()) {
+				available = false;
+				failure = error(ErrorCode::device_lost);
+			}
+		}
+	} protect{slot.drawn, available_, failure_};
+	if (refine_phase_) {
+		if (refine_sequence_ != result.identity.sequence)
+			return false;
+		if (refine_phase_ == 1) {
+			if (tiles_->failed()) {
+				refine_phase_ = 0;
+				return false;
+			}
+			if (!tiles_->read_ready())
+				return false;
+			const auto read_start = obs_now();
+			refine_gather_ms_ =
+				std::chrono::duration<double, std::milli>(read_start - refine_started_).count();
+			atlas_pixels_ = tiles_->read_atlas();
+			refine_read_ms_ = std::chrono::duration<double, std::milli>(obs_now() - read_start).count();
+			refine_phase_ = 2;
+		}
+		if (refine_phase_ == 2) {
+			if (!refine_stage_->submit(atlas_pixels_))
+				return false;
+			refine_phase_ = 3;
+		}
+		auto refined = refine_stage_->poll();
+		if (!refined)
+			return false;
+		refine_phase_ = 0;
+		if (!refined->failure.empty()) {
+			blog(LOG_WARNING, "[corridorkey:w13] Refiner inference failed: %s", refined->failure.c_str());
+			return false;
+		}
+		const bool finished = tiles_->blend(refined->rgba) &&
+				      post.finish(slot.output, gs_texrender_get_texture(slot.native),
+						  *result.input.settings, result.transform.sampled_roi, debug_view,
+						  tiles_->raw());
+		if (refine_frames_++ % 60 == 0)
+			blog(LOG_INFO,
+			     "[corridorkey:w13] tiles=%u inference_ms=%.3f gather_wait_ms=%.3f read_ms=%.3f unpack_ms=%.3f pack_ms=%.3f staged_ms=%.3f readback_bytes=%llu upload_bytes=%llu",
+			     refine_budget_, refined->inference_ms, refine_gather_ms_, refine_read_ms_,
+			     refined->unpack_ms, refined->pack_ms,
+			     std::chrono::duration<double, std::milli>(obs_now() - refine_started_).count(),
+			     static_cast<unsigned long long>(tiles_->readback_bytes()),
+			     static_cast<unsigned long long>(refined->rgba.size() * sizeof(float)));
+		refine_stage_.reset();
+		if (!slot.drawn.signal()) {
+			available_ = false;
+			failure_ = error(ErrorCode::device_lost);
+		}
+		return finished && available_;
+	}
 	gs_texture_set_image(model, reinterpret_cast<const std::uint8_t *>(rgba.data()),
 			     extent.width * 4 * sizeof(float), false);
+	if (refinement && result.input.settings && result.input.settings->quality.refiner_enabled) {
+		if (!tiles_ || refine_budget_ != refinement->budget()) {
+			char *path = obs_module_file("effects/refiner.effect");
+			if (!path)
+				return false;
+			tiles_ = std::make_unique<TileRefiner>(native_, refinement->budget(), path);
+			bfree(path);
+			refine_budget_ = refinement->budget();
+		}
+		refine_started_ = obs_now();
+		if (!tiles_->available() ||
+		    !post.prepare(gs_texrender_get_texture(slot.native), gs_texrender_get_texture(slot.grid), model,
+				  *result.input.settings, result.transform.sampled_roi, true) ||
+		    !tiles_->begin(post, gs_texrender_get_texture(slot.native), model, result.transform.sampled_roi))
+			return false;
+		refine_stage_ = std::move(refinement);
+		refine_sequence_ = result.identity.sequence;
+		refine_phase_ = 1;
+		if (!slot.drawn.signal()) {
+			available_ = false;
+			failure_ = error(ErrorCode::device_lost);
+			refine_phase_ = 0;
+		}
+		return false;
+	}
 	const bool finished = result.input.settings &&
 			      post.prepare(gs_texrender_get_texture(slot.native), gs_texrender_get_texture(slot.grid),
 					   model, *result.input.settings, result.transform.sampled_roi) &&
