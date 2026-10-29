@@ -196,7 +196,7 @@ int main(int argc, char **argv)
 		}
 		ck2::Tensors outputs;
 		std::vector<double> times;
-		for (unsigned i = 0; i < 21; ++i) {
+		for (unsigned i = 0; i < 101; ++i) {
 			const auto start = Clock::now();
 			if (sequence) {
 				frame.identity.sequence = i + 1;

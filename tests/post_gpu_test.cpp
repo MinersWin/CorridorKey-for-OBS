@@ -142,7 +142,8 @@ int run_post_tests(const char *directory)
 			settings.context.output = OutputView::hint;
 			settings.quality.alpha_contrast = 4;
 			settings.quality.clip_black = .1f;
-			settings.context.crop = {.1f, .1f, .9f, .9f};
+			// Keep crop edges off pixel centres when comparing float shaders with double arithmetic.
+			settings.context.crop = {.11f, .11f, .89f, .89f};
 			for (auto &p : model.pixels)
 				p = {.2, .3, .4, .3};
 		}
