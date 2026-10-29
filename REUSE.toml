@@ -1,6 +1,46 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 version = 1
 
+# Repository-authored material. Existing headers and media sidecars take priority.
+[[annotations]]
+path = "**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Adapted OBS template scaffolding retains its original contributor credit.
+[[annotations]]
+path = ["cmake/common/**", "cmake/windows/**", "cmake/linux/**", "cmake/macos/**", ".clang-format", ".gersemirc", ".editorconfig"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "OBS Project contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# JSON comments are metadata, not line-oriented SPDX headers. Keep hash-pinned
+# manifests byte-for-byte intact. Embedded publisher texts retain their terms.
+[[annotations]]
+path = ["data/models/**.json", "data/runtimes/*.json", "packaging/runtime-lock.json", "tests/models/fixtures/*.json", "tools/backend_probe/windows-artifacts.json", "docs/dev/validation-w09b.json", "docs/images/install/metadata.json"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "data/licenses/nlohmann-json.txt"
+precedence = "override"
+SPDX-FileCopyrightText = "2013-2022 Niels Lohmann"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "data/licenses/zlib.txt"
+precedence = "override"
+SPDX-FileCopyrightText = "1995-2026 Jean-loup Gailly and Mark Adler"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = "data/licenses/zlib-1.3.1.txt"
+precedence = "override"
+SPDX-FileCopyrightText = "1995-2022 Jean-loup Gailly and Mark Adler"
+SPDX-License-Identifier = "Zlib"
+
 [[annotations]]
 path = ["buildspec.json", "CMakePresets.json"]
 SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
@@ -23,7 +63,7 @@ SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 
 [[annotations]]
-path = ["docs/images/install/*.jpg", "docs/images/install/metadata.json"]
+path = ["docs/images/install/*.jpg"]
 SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 # Vendor licence text visible in screenshots retains its original terms.

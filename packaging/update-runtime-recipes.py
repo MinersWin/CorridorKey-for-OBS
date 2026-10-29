@@ -130,7 +130,9 @@ def generate(cache, output):
     for record in win_licenses + linux_licenses + rtx_licenses:
         assert record['id'] not in registry or registry[record['id']]['text_sha256'] == record['text_sha256']
         registry[record['id']] = record
+    # REUSE-IgnoreStart
     catalogue = dict(_spdx='SPDX-License-Identifier: GPL-3.0-or-later', schema_version=1,
+    # REUSE-IgnoreEnd
                      licenses=dict(schema_version=1, licenses=list(registry.values())), bundles={
         'nvidia-ort1.31.1-trt10.15-cu13': windows,
         'nvidia-linux-ort1.31.1-trt10.15-cu13': linux,

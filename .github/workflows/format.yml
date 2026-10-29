@@ -13,7 +13,9 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
-      - run: python -m pip install clang-format==19.1.7 gersemi==0.22.2
+      - run: python -m pip install clang-format==19.1.7 gersemi==0.22.2 'reuse[charset-normalizer]==6.2.0'
+      - name: Check licensing annotations
+        run: reuse lint
       - name: Check C and C++
         shell: bash
         run: git ls-files -z '*.cpp' '*.hpp' '*.c' '*.h' | xargs -0 -r clang-format --dry-run --Werror

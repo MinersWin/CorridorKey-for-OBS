@@ -67,7 +67,9 @@ def main():
         rows.append(row)
     if missing and not args.allow_incomplete:
         raise ValueError("Missing cases: " + ", ".join(missing))
+    # REUSE-IgnoreStart
     result = {"$comment": "SPDX-License-Identifier: GPL-3.0-or-later",
+    # REUSE-IgnoreEnd
               "aggregation": "Mean of W09 publication/stage intervals; median of W15 five-second display windows. "
                              "MoGe is per refresh. CUDA intervals include synchronized host submission gaps. "
                              "VRAM is whole-device usage, including OBS and desktop apps.",
