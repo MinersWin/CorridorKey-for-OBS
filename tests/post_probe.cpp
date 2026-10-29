@@ -14,6 +14,7 @@
 #include <mutex>
 
 int run_post_tests(const char *directory);
+int run_post_offline(const char *directory, const char *manifest);
 
 namespace {
 std::thread::id ui_thread;
@@ -147,6 +148,11 @@ int main(int argc, char **argv)
 		return 4;
 	if (std::strcmp(argv[4], "numeric") == 0) {
 		const int result = run_post_tests(argv[2]);
+		obs_shutdown();
+		return result;
+	}
+	if (std::strcmp(argv[4], "offline") == 0 && argc == 6) {
+		const int result = run_post_offline(argv[2], argv[5]);
 		obs_shutdown();
 		return result;
 	}
