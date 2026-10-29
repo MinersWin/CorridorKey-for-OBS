@@ -22,6 +22,7 @@ private:
 	Tensors stage1_inputs_;
 	Tensor recurrent_, moge_, thumbnail_;
 	std::optional<TemporalStateKey> key_;
+	std::optional<FrameTransform> captured_transform_;
 	std::uint64_t processed_ = 0, since_moge_ = 0;
 	bool moge_valid_ = false;
 	const std::atomic<bool> *cancel_ = nullptr;

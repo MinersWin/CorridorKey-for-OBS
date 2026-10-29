@@ -43,9 +43,9 @@ hashes accordingly. A completed backend test supplies the negotiated ORT core,
 EP version and result. No test runs just because the preview opens, and a missing
 bundle is reported as unavailable. No runtime library is loaded for collection.
 
-`BackendTest::poll` records the latest completed result per backend. Future
-pipeline activation code should call `diagnostics::record_probe` for its actual
-preparation results too. The collector discards raw helper details and arbitrary
+`BackendTest::poll` records the latest completed result per backend. CK2 activation
+also calls `diagnostics::record_probe` through its preparation callback. The
+collector discards raw helper details and arbitrary
 error actions at that seam. A tiny graph probe remains distinct from full-model
 and native-video-transport validation.
 

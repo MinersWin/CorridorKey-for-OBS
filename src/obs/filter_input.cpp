@@ -11,6 +11,7 @@
 #include "runtime/scheduler.hpp"
 #include "telemetry/frame_timing.hpp"
 #include "telemetry/obs_clock.hpp"
+#include "telemetry/diagnostics.hpp"
 #include "runtime/capture_pacer.hpp"
 #include <obs-module.h>
 #include <algorithm>
@@ -423,8 +424,10 @@ struct FilterInput::Impl {
 				} else {
 					auto config = ck2::read_development_config(utf8_path(override_path));
 					config.runtime.info = [](const std::string &message) {
-						blog(LOG_INFO, "[corridorkey:w09] %s", message.c_str());
+						blog(LOG_INFO, "[corridorkey:w09] %s",
+						     diagnostics::redact(message).c_str());
 					};
+					config.runtime.record_probe = diagnostics::record_probe;
 					auto replacement = std::make_unique<Ck2Pipeline>(
 						[config](const PrepareRequest &original) {
 							auto request = original;

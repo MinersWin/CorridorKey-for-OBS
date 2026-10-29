@@ -82,7 +82,11 @@ age is 250 ms; then display live passthrough.
 
 Image dimensions are **width, height**. Crop fields are normalized absolute
 left/top/right/bottom bounds in the source, with full output bounds retained.
-Foreground is straight sRGB RGB; alpha is a separate linear float plane. Output
+Foreground is straight sRGB RGB; alpha is a separate linear float plane. Both
+maps have matching dimensions at either the full analysis grid or half of an
+even-sized analysis grid. CK2 Stage 1 uses the half-grid form; Stage 2 uses the
+full grid. The staged transport preallocates both upload sizes and W08 samples
+them at normalized coordinates. Output
 composition and source-alpha multiplication belong to W08. `validate_result`
 checks host shapes, ranges and finite values on the worker. Device pipelines must
 validate before publication. The render callback uses only `presentable`, never

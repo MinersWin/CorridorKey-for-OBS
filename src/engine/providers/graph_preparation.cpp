@@ -119,7 +119,7 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 			request.precision = config.precision;
 			request.package_id = config.bundle.id;
 			// Large runtime bundles must finish hash verification before the fixture runs.
-			request.timeout = std::min(compiler.timeout, std::chrono::milliseconds(60000));
+			request.timeout = compiler.timeout;
 			auto tested = probe.probe(request, stop);
 			if (tested.failure || !tested.provider.available || !tested.provider.tested ||
 			    !tested.provider.matches_obs_adapter || !tested.provider.permits_live_inference) {

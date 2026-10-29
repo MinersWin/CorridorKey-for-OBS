@@ -8,6 +8,28 @@
 namespace corridorkey::ck2 {
 namespace {
 using Json = nlohmann::json;
+class RecordedProbe final : public ProviderProbe {
+public:
+	explicit RecordedProbe(const RuntimeConfig &runtime) : probe_(runtime.probe), record_(runtime.record_probe) {}
+	ProbeResult probe(const ProbeRequest &request, std::stop_token stop) override
+	{
+		// One preparation uses one adapter/bundle per backend. Reuse its precision test across stages.
+		const auto key = std::pair{request.backend, request.precision};
+		if (const auto found = results_.find(key); found != results_.end() && !stop.stop_requested())
+			return found->second;
+		auto result = probe_.probe(request, stop);
+		if (record_)
+			record_(result);
+		if (!result.failure)
+			results_.emplace(key, result);
+		return result;
+	}
+
+private:
+	ort::DisposableProbe probe_;
+	std::function<void(const ProbeResult &)> record_;
+	std::map<std::pair<Backend, Precision>, ProbeResult> results_;
+};
 void verify_specs(const std::vector<ort::TensorSpec> &specs, const Tensors &expected)
 {
 	if (specs.size() != expected.size())
@@ -46,7 +68,7 @@ void verify_manifest(const std::filesystem::path &path, Stage stage, Extent grid
 }
 OrtGraph::OrtGraph(std::unique_ptr<ort::Session> session, Stage stage, Extent grid, bool device,
 		   std::function<std::unique_ptr<ort::Session>()> recreate,
-		   std::function<std::unique_ptr<ort::Session>()> fallback)
+		   std::function<std::unique_ptr<ort::Session>(const std::string &, std::stop_token)> fallback)
 	: session_(std::move(session)),
 	  recreate_(std::move(recreate)),
 	  fallback_(std::move(fallback)),
@@ -90,7 +112,7 @@ Tensors OrtGraph::run(const Inputs &inputs, std::stop_token stop)
 			recapture_ = false;
 		}
 		return execute();
-	} catch (...) {
+	} catch (const std::exception &e) {
 		if (!fallback_ || stop.stop_requested())
 			throw;
 		bindings_.reset();
@@ -99,7 +121,7 @@ Tensors OrtGraph::run(const Inputs &inputs, std::stop_token stop)
 		session_.reset();
 		auto fallback = std::move(fallback_);
 		recreate_ = {};
-		session_ = fallback();
+		session_ = fallback(e.what(), stop);
 		bindings_ = std::make_unique<PersistentBindings>(*session_, device_);
 		recapture_ = false;
 		return execute();
@@ -119,7 +141,7 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 		throw std::runtime_error("No verified, leased CK2 model is ready");
 	const auto grid = request.settings->quality.grid;
 	const bool quality = request.settings->quality.profile == Profile::quality;
-	ort::DisposableProbe probe(runtime.probe);
+	RecordedProbe probe(runtime);
 	Ck2Prepared result;
 	std::filesystem::path selected_core;
 	std::ostringstream description;
@@ -217,21 +239,23 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 				runtime.info(name +
 					     ": preparation failed; trying the next capture/provider alternative: " +
 					     attempt.detail);
-		std::function<std::unique_ptr<ort::Session>()> recreate, fallback;
+		std::function<std::unique_ptr<ort::Session>()> recreate;
+		std::function<std::unique_ptr<ort::Session>(const std::string &, std::stop_token)> fallback;
 		if (captured) {
 			recreate = [selected] {
 				return std::make_unique<ort::Session>(selected);
 			};
-			fallback = [selected, runtime, name] {
+			fallback = [selected, runtime, name](const std::string &reason, std::stop_token stop) {
 				if (runtime.info)
 					runtime.info(
 						name +
-						": CUDA graph capture failed during inference; retrying without capture.");
+						": CUDA graph capture failed during inference; retrying without capture: " +
+						reason);
 				auto uncaptured = selected;
 				uncaptured.options["trt_cuda_graph_enable"] = "0";
-				ort::DisposableProbe probe(runtime.probe);
+				RecordedProbe probe(runtime);
 				auto prepared = ort::prepare_graph(std::span<const ort::SessionConfig>(&uncaptured, 1),
-								   probe, runtime.compiler);
+								   probe, runtime.compiler, stop);
 				if (!prepared.session)
 					throw std::runtime_error("Uncaptured TensorRT recovery failed");
 				return std::move(prepared.session);
@@ -241,7 +265,7 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 				      std::make_unique<OrtGraph>(std::move(prepared.session), stage, grid, device,
 								 std::move(recreate), std::move(fallback)));
 	}
-	result.detail = description.str() + "Bilinear reconstruction; native refinement is unavailable.";
+	result.detail = description.str() + "Native reconstruction; learned edge refinement is unavailable.";
 	return result;
 }
 #ifdef CORRIDORKEY_CK2_DEV

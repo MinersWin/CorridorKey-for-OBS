@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "engine/ck2_pipeline.hpp"
 #include "engine/fake_pipeline.hpp"
+#include "telemetry/frame_timing.hpp"
 #include <doctest/doctest.h>
 #include <cmath>
 #include <limits>
@@ -10,6 +11,7 @@ namespace {
 struct Observation {
 	std::map<ck2::Stage, unsigned> calls;
 	std::vector<float> states;
+	unsigned recaptures = 0;
 	bool corrupt = false;
 };
 class Graph final : public ck2::Graph {
@@ -18,6 +20,7 @@ class Graph final : public ck2::Graph {
 	std::shared_ptr<Observation> observation_;
 
 public:
+	void reset_transform() override { ++observation_->recaptures; }
 	Graph(ck2::Stage stage, Extent grid, std::shared_ptr<Observation> observation)
 		: stage_(stage),
 		  grid_(grid),
@@ -125,6 +128,19 @@ TEST_CASE("CK2 transform gap generation and explicit cut reset foundations")
 	}
 	CHECK(observed->states == std::vector<float>{0, 0, 0, 0, 0});
 	CHECK(observed->calls[ck2::Stage::moge] == 5);
+	CHECK(observed->recaptures == 8);
+}
+TEST_CASE("CK2 slow frames reset temporal state without repeated capture")
+{
+	FramePool pool;
+	auto observed = std::make_shared<Observation>();
+	ck2::SequenceState sequence({512, 256}, false, graphs(observed));
+	for (unsigned i : {1U, 100U, 200U, 201U}) {
+		auto input = frame(pool, i);
+		sequence.process(input);
+	}
+	CHECK(observed->states == std::vector<float>{0, 0, 0, 1});
+	CHECK(observed->recaptures == 0);
 }
 TEST_CASE("CK2 Quality invokes Stage 2 and instances never share recurrence")
 {
@@ -243,4 +259,42 @@ TEST_CASE("CK2 cancellation reset accepts a new generation and checks changed se
 		std::this_thread::yield();
 	REQUIRE(result);
 	CHECK_FALSE(result->failure);
+}
+TEST_CASE("CK2 low-resolution outputs and timing use the host clock epoch")
+{
+	auto observed = std::make_shared<Observation>();
+	std::atomic<int> milliseconds{110};
+	Ck2Pipeline pipeline(
+		[&](const PrepareRequest &) { return Ck2Prepared{graphs(observed), Backend::fake, "test"}; },
+		[&] { return TimePoint{} + std::chrono::milliseconds(milliseconds.fetch_add(5)); });
+	FramePool pool;
+	auto input = frame(pool, 1);
+	input.identity.captured_at = TimePoint{} + std::chrono::milliseconds(100);
+	PrepareRequest request;
+	request.instance = 1;
+	request.generation = pool.generation();
+	request.settings = input.settings;
+	REQUIRE_FALSE(pipeline.prepare(request));
+	REQUIRE_FALSE(pipeline.try_submit(input, TimePoint{} + std::chrono::milliseconds(105)));
+	std::optional<FrameResult> result;
+	const auto deadline = Clock::now() + std::chrono::seconds(3);
+	while (!(result = pipeline.poll_result()) && Clock::now() < deadline)
+		std::this_thread::yield();
+	REQUIRE(result);
+	REQUIRE_FALSE(result->failure);
+	CHECK(result->alpha.size == Extent{256, 128});
+	CHECK(result->foreground.size == result->alpha.size);
+	CHECK_FALSE(validate_result(*result));
+	CHECK(result->timings.started_at == TimePoint{} + std::chrono::milliseconds(110));
+	CHECK(result->timings.completed_at == TimePoint{} + std::chrono::milliseconds(115));
+	FrameTiming timing;
+	const auto presented = TimePoint{} + std::chrono::milliseconds(125);
+	timing.record(*result, presented, 1);
+	const auto snapshot = timing.snapshot(presented);
+	CHECK(snapshot.age_median_ms == std::optional<double>{25});
+	CHECK(snapshot.inference_median_ms == std::optional<double>{5});
+	CHECK(snapshot.queue_median_ms == std::optional<double>{5});
+	result->alpha.size.width /= 2;
+	result->foreground.size = result->alpha.size;
+	CHECK(validate_result(*result).code == ErrorCode::invalid_output);
 }
