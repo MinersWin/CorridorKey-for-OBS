@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
+uniform float4x4 ViewProj;
+uniform texture2d image;
+uniform texture2d original_image;
+uniform texture2d result_image;
+uniform float4 crop_bounds;
+sampler_state linear_clamp {
+    Filter = Linear;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+struct Vertex {
+    float4 pos : POSITION;
+    float2 uv : TEXCOORD0;
+};
+Vertex vertex_shader(Vertex v)
+{
+    v.pos = mul(float4(v.pos.xyz, 1.0), ViewProj);
+    return v;
+}
+float4 capture_pixel(Vertex v) : TARGET
+{
+    return image.Sample(linear_clamp, v.uv);
+}
+float4 downscale_pixel(Vertex v) : TARGET
+{
+    float2 uv = lerp(crop_bounds.xy, crop_bounds.zw, v.uv);
+    float4 pixel = image.Sample(linear_clamp, uv);
+    // OBS's intermediate contains premultiplied source alpha; the model uses straight RGB.
+    return float4(pixel.a > 0.00001 ? saturate(pixel.rgb / pixel.a) : float3(0.0, 0.0, 0.0), 1.0);
+}
+float4 composite_pixel(Vertex v) : TARGET
+{
+    float2 uv = (v.uv - crop_bounds.xy) / (crop_bounds.zw - crop_bounds.xy);
+    float inside = step(0.0, uv.x) * step(0.0, uv.y) * step(uv.x, 1.0) * step(uv.y, 1.0);
+    float4 keyed = result_image.Sample(linear_clamp, uv);
+    float source_alpha = original_image.Sample(linear_clamp, v.uv).a;
+    float alpha = saturate(keyed.a * source_alpha) * inside;
+    return float4(keyed.rgb * alpha, alpha);
+}
+technique Capture {
+    pass { vertex_shader = vertex_shader(v); pixel_shader = capture_pixel(v); }
+}
+technique Downscale {
+    pass { vertex_shader = vertex_shader(v); pixel_shader = downscale_pixel(v); }
+}
+technique Composite {
+    pass { vertex_shader = vertex_shader(v); pixel_shader = composite_pixel(v); }
+}
