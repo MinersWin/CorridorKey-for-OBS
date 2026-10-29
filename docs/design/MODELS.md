@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # CorridorKey for OBS: model catalogue and installation
 
-Research date: 28 October 2026. All download sizes and hashes below are evidence, not a released manifest. Graph files, binding recipes and parity reports must arrive from the export workstream. No model was run for this design. Related: [architecture](ARCHITECTURE.md), [licence and download UI](UX_DESIGN.md), [implementation tasks](TASKS.md).
+Research date: 28 October 2026; refiner pins updated 29 October 2026. All download sizes and hashes below are evidence, not a released manifest. Graph files, binding recipes and parity reports must arrive from the export workstream. No model was run for this design. Related: [architecture](ARCHITECTURE.md), [licence and download UI](UX_DESIGN.md), [implementation tasks](TASKS.md).
 
 ## Distribution and licence decisions
 
@@ -9,13 +9,13 @@ The project is **free forever: no paid tiers or paid builds**. The plugin is GPL
 
 Do not copy CorridorKey source, its monkeypatches, `fused_dw.py`, upstream color utility constants, or tangentstorm code into the plugin. The project's bridge/runner/Lua/refiner-code/fused-post sources can inform a port where their provenance permits it. Standard algorithms should have independent mathematical references and provenance. Maintain [third-party notices](../../THIRD_PARTY_NOTICES.md) covering plugin dependencies, models, graph origins and required attributions. Credit Corridor Digital / Niko Pueringer and retain “CorridorKey”.
 
-**Licence versions are part of the model identity.** CK2 and the published v12 refiner carry **Corridor Key Licence v2.0**, based on CC BY-NC-SA 4.0 with additional conditions. This includes conditions for redistribution/integration and a seat requirement for qualifying organisations above US$20m annual revenue. Show the full text and a restrained factual summary; never label the package simply “open source” or universally unrestricted for commercial use. [Pinned CK2 licence](https://huggingface.co/nikopueringer/CorridorKey2.0/blob/cf44a8db3f024bb49fd59daa408848ccf05f7477/LICENSE), [pinned refiner licence](https://huggingface.co/mantelmoritz/CorridorKey-Realtime-EdgeRefiner/blob/6e37255904c81ab224b1a1b39cbe4512c7a6dafb/LICENSE)
+**Licence versions are part of the model identity.** CK2 and the published v15 refiner carry **Corridor Key Licence v2.0**, based on CC BY-NC-SA 4.0 with additional conditions. This includes conditions for redistribution/integration and a seat requirement for qualifying organisations above US$20m annual revenue. Show the full text and a restrained factual summary; never label the package simply “open source” or universally unrestricted for commercial use. [Pinned CK2 licence](https://huggingface.co/nikopueringer/CorridorKey2.0/blob/cf44a8db3f024bb49fd59daa408848ccf05f7477/LICENSE), [pinned refiner licence](https://huggingface.co/mantelmoritz/CorridorKey-Realtime-EdgeRefiner/blob/db3adf8820653508bc617ff9a1f994dc273d08cb/LICENSE)
 
 CK1's GitHub `LICENSE` is **Corridor Key Licence v1.0**, not plain CC BY-NC-SA. Its HF card lists only `cc-by-nc-sa-4.0` and has no separate licence file in the inspected repository. Record both pieces of evidence and show v1 additional terms conservatively; resolve the weight-specific catalogue wording before release. Do not silently apply CK2 v2 to CK1. Keep the free-project scope and distribution boundaries above; use the published licence texts as the basis for acceptance. [CK1 licence](https://github.com/nikopueringer/CorridorKey/blob/main/LICENSE), [pinned HF card](https://huggingface.co/nikopueringer/CorridorKey_v1.0/blob/f6386ddf042d8e92aeb5fd16cb9b101cff508195/README.md)
 
 ## Verified publisher artifacts
 
-HF revisions and LFS SHA-256 values were read from the public HF model API with `blobs=true`. They have **not** been independently verified by downloading the multi-gigabyte files in this task. The RVM file already present in the research checkout was hashed locally; its MD5 matches the publisher's live `x-goog-hash` response.
+HF revisions and LFS SHA-256 values were read from the public HF model API with `blobs=true`. They have **not** been independently verified by downloading the multi-gigabyte files in this task. The v15 refiner checkpoint was downloaded anonymously and verified separately; see [its validation](../dev/refiner-v15.md). The RVM file already present in the research checkout was hashed locally; its MD5 matches the publisher's live `x-goog-hash` response.
 
 | ID / original publisher | Immutable revision | File | Bytes | Licence evidence |
 |---|---|---|---:|---|
@@ -23,7 +23,7 @@ HF revisions and LFS SHA-256 values were read from the public HF model API with 
 | `ck2-stats`, same | Same | `foundation_stats.safetensors` | 18,864 | Same; learned statistics are weights |
 | `moge2-vitb`, `Ruicheng/moge-2-vitb-normal` | `ca5f0e07ff01d3e5a364c1d954ed12ee1814b368` | `model.pt` | 419,110,160 | MIT model card; Microsoft MoGe code MIT, DINOv2 notices retained |
 | `rvm-mae-small`, Google DeepMind | Fixed checkpoint filename; immutable identity is SHA-256 below | `pretrain_rvm_small16_256_204031069.npz` | 270,086,372 | Code Apache-2.0; non-code materials CC-BY-4.0 |
-| `edge-v12`, `mantelmoritz/CorridorKey-Realtime-EdgeRefiner` | `6e37255904c81ab224b1a1b39cbe4512c7a6dafb` | `corridorkey_edge_refiner_v12.safetensors` | 94,336 | Corridor Key v2 |
+| `edge-v15`, `mantelmoritz/CorridorKey-Realtime-EdgeRefiner` | `db3adf8820653508bc617ff9a1f994dc273d08cb` | `corridorkey_edge_refiner_v15.safetensors` | 162,320 | Corridor Key v2 |
 | `ck1-green`, `nikopueringer/CorridorKey_v1.0` | `f6386ddf042d8e92aeb5fd16cb9b101cff508195` | `CorridorKey_v1.0.safetensors` | 398,849,256 | HF CC-BY-NC-SA-4.0 metadata; GitHub v1 additional terms, discrepancy above |
 | `ck1-blue`, `nikopueringer/CorridorKeyBlue_1.0` | `51e6ccaa4b703f54be20a72ac2c37784fb9ba1cd` | `CorridorKeyBlue_1.0.safetensors` | 398,849,256 | Same scope question; separate checkpoint, not channel swapping |
 
@@ -33,7 +33,7 @@ HF revisions and LFS SHA-256 values were read from the public HF model API with 
 | CK2 stats | `924783ceddd293fd470126332ce328166faea6c4c8d2f36402d5b95187166af3` |
 | MoGe | `16b8110e86d5dc5a849db120ca96ef3a223fd30b0c9146d1d81db504073da5f6` |
 | DeepMind RVM | `8821ba9f5d983b9a3746bb5fe86b9c2ea834fe9985ab7b02438b917438bf2ede` |
-| Refiner v12 | `377d7c60ab7f6a5691e9977a491bcea397ade1421bb6087f2bc79ad3a9ce315d` |
+| Refiner v15 | `b38746544edbdaa207723ffe1dd6e799e1fa7f176bd74ad4c7c91d5dd84abf74` |
 | CK1 green | `74d614f7d92fc559a118c30a7deadedc3cacd8ef83dcb85a030d0bed7af8b20b` |
 | CK1 blue | `43bc5f6a08a9e5effe5d633d0d84bb0aff91037b35ab85d16cd812b38c5cac23` |
 
@@ -59,7 +59,7 @@ This **structural example** cannot be installed. Angle-bracket placeholders are 
   "min_plugin": "<release-version>",
   "licenses": [{
     "id": "LicenseRef-Corridor-Key-2.0",
-    "applies_to": ["stage1", "ck2-main", "edge-v12"],
+    "applies_to": ["stage1", "ck2-main", "edge-v15"],
     "text_url": "<pinned-publisher-licence-URL>",
     "sha256": "<64-hex>",
     "requires_acceptance": true
@@ -117,7 +117,7 @@ Keep runtime ranges separate from immutable artifact identities. A graph hash, u
 |---|---|---|
 | CK2 / CUDA, TensorRT-RTX, DirectML, MIGraphX | No exported CK2 ORT package tested in this design | Exporter parity plus local session/output probe required; do not mark ready from provider enumeration alone |
 | CK1 / DirectML | Third-party design demonstrates a route; our independent export is untested | Consume our static-shape/rank-four graph and its parity evidence; third-party success is not our certification |
-| Refiner v12 / each EP | PyTorch research evidence; native ORT path untested | Admit only declared static tile shapes and verified color/halo contract |
+| Refiner v15 / each EP | [Native binding and DirectML smoke check](../dev/refiner-v15.md); other EPs not rerun for v15 | Admit only declared static tile shapes and verified color/halo contract |
 | Newer OBS, driver, core or runtime | Untested until a report exists | Resolve APIs, negotiate provider ABI and probe; retain an advisory if successful, fallback if an actual requirement fails |
 
 For example, the current NVIDIA matrix documents RTX EP 0.5 with ORT 1.25.0-1.30.0 and TensorRT-RTX 1.7.x.x. Treat that as vendor range evidence, not a reason to refuse an otherwise compatible newer core before negotiation. Store driver lower bounds per runtime bundle, not per model weight file. [NVIDIA provider matrix](https://github.com/NVIDIA/TensorRT-RTX-EP-ABI#test-matrix)

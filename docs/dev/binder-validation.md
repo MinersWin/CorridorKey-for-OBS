@@ -1,6 +1,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # Binder validation, 29 October 2026
 
+This run used v12. The shipped [v15 refiner](refiner-v15.md) has separate native
+binding checks against all four revision-5 exporter files.
+
 The native binder matched all 16 exporter reference files present for the final
 run, from 01:18 to 01:21 UTC. Each graph passed both an expected SHA-256 check and
 an independent chunk-by-chunk byte comparison. The local report also records the

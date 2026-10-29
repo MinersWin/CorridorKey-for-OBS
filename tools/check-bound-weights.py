@@ -47,7 +47,7 @@ def main():
         "stats": root / "CorridorKey2.0-master/weights/foundation_stats.safetensors",
         "rvm": root / "CorridorKey2.0-master/vfms/rvm/pretrain_rvm_small16_256_204031069.npz",
         "moge": Path(r"S:\CorridorKey2-Release\moge2_vitb_encoder\model.safetensors"),
-        "refiner": Path(r"E:\CorridorKey2-Cache\hf_release\CorridorKey-Realtime-EdgeRefiner\corridorkey_edge_refiner_v12.safetensors"),
+        "refiner": Path(r"E:\CorridorKey2-Cache\hf_release\CorridorKey-Realtime-EdgeRefiner\corridorkey_edge_refiner_v15.safetensors"),
     }
     for item in args.source:
         key, value = item.split("=", 1)

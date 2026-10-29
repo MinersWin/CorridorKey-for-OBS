@@ -23,7 +23,7 @@ Balanced / Quality; it does not start a download immediately.
 
 The manager shows the current download size. Balanced and Quality share a
 package; Facecam uses separate graphs and reuses the source checkpoints.
-Edge Refiner v12 is a separate installation. Storage shows cache usage and free
+Edge Refiner v15 is a separate installation. Storage shows cache usage and free
 space on the drive. Hover the folder path to read it in full, or choose Open folder.
 
 ## Accept the model licences
@@ -67,7 +67,7 @@ moving edges against your source. Open Crop to remove room edges outside the scr
 
 If you switch to a package that is not installed, the status explains that models
 are missing. Open Manage models to install that package. For learned refinement,
-install Edge Refiner v12 and enable **Edge refiner** near Model. The tile budget
+install Edge Refiner v15 and enable **Edge refiner** near Model. The tile budget
 is under Advanced; changing it prepares a replacement pipeline.
 
 Refinement is still experimental. Its current tile transfers can exceed the
