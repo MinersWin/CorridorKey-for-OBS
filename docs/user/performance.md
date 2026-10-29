@@ -33,6 +33,19 @@ backend failure may leave the source in passthrough with an explanation in the
 status. Unknown driver and runtime versions are attempted; a version string alone
 does not prevent the plugin from loading.
 
+## Running two cameras
+
+Each camera keeps its own preset, crop and temporal state, while active filters
+take turns on the GPU. In a controlled RTX 5070 Ti test, 1080p Facecam plus 4K
+Balanced, both with refinement, produced about 33 new keys/s each and used about
+8 GiB of whole-device VRAM. Median displayed age was about 50 ms for Facecam and
+66 ms for Balanced. See the [multi-instance results](../dev/multi-instance.md).
+
+Watch the status of both filters with your complete streaming scene running.
+Hiding a source releases its native frame buffers after pending work drains;
+model sessions stay loaded for reuse when it becomes visible again. Engine
+preparation can need additional temporary memory beyond steady operation.
+
 ## Measured on the RTX 5070 Ti
 
 With D3D11/CUDA transport on Windows, a 4K source produced these results:

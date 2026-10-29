@@ -1,0 +1,5012 @@
+{
+  "date": "2026-10-29",
+  "graphs": {
+    "ck2_revision": "5d88114f169cb082cda238426af47feffb9724af",
+    "ck1_modnet_revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b"
+  },
+  "runtime_commits": [
+    "41d4fa2",
+    "6b3f482",
+    "36d8089"
+  ],
+  "host": {
+    "obs": "33.0.0",
+    "os": "Windows 11",
+    "gpu": "RTX 5070 Ti 16 GB",
+    "driver": "616.92",
+    "canvas": [
+      3840,
+      2160
+    ],
+    "canvas_fps": 60,
+    "encoder": false,
+    "media_decode": "CPU"
+  },
+  "sources": {
+    "1": {
+      "input": "looping prerecorded reporter",
+      "size": [
+        1920,
+        1080
+      ],
+      "profile": "Facecam",
+      "grid_hw": [
+        256,
+        512
+      ],
+      "refiner_tiles": 384
+    },
+    "2": {
+      "input": "looping prerecorded dancer",
+      "size": [
+        3840,
+        2160
+      ],
+      "profile": "Balanced",
+      "grid_hw": [
+        512,
+        512
+      ],
+      "refiner_tiles": 512
+    },
+    "3": {
+      "input": "solid color",
+      "size": [
+        719,
+        1281
+      ],
+      "profile": "Facecam",
+      "grid_hw": [
+        256,
+        512
+      ],
+      "refiner_tiles": 384
+    }
+  },
+  "memory_scope": "Whole-device NVIDIA memory includes desktop applications. Process private memory is Windows PrivateUsage.",
+  "timing_scope": "Idle GPU reserved for W16; no export/evaluation process. Sampled rolling frame telemetry, not full-run frame percentiles.",
+  "checks": {
+    "native_ctest_suites": 14,
+    "asan_portable_suites": 13,
+    "reconstruction_fixtures": 17,
+    "half_native_max_error": 0.00157646166,
+    "half_native_limit": 0.002,
+    "portable_lifecycle": [
+      "30.2.0",
+      "33.0.0"
+    ],
+    "baseline_canvas_stall_completed": 281,
+    "candidate_canvas_completed": 2390,
+    "capture_failure_reproduced": [
+      900,
+      906
+    ],
+    "production_build": true,
+    "clang_format": "19",
+    "gersemi": "0.22.2",
+    "shutdown_plugin_unloaded": true,
+    "shutdown_obs_leaks": 0,
+    "post_exit_device_mib": 2396,
+    "capture_errors_final_host": 0
+  },
+  "vram": {
+    "1": {
+      "duration_s": 60.093000000109896,
+      "samples": 7,
+      "utc_start": 1793280783.8434985,
+      "utc_end": 1793280843.934753,
+      "instances": {
+        "1": {
+          "keyed_fps": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 59.399,
+            "median": 59.599,
+            "max": 59.601
+          },
+          "age_median_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 33.438,
+            "median": 33.456,
+            "max": 33.47
+          },
+          "age_p95_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 33.644,
+            "median": 33.672,
+            "max": 33.822
+          },
+          "completed": {
+            "start": 1792,
+            "end": 5382,
+            "delta": 3590
+          },
+          "dropped": {
+            "start": 7,
+            "end": 13,
+            "delta": 6
+          },
+          "submitted": {
+            "start": 1792,
+            "end": 5382,
+            "delta": 3590
+          },
+          "unchanged_counter_samples": 0
+        }
+      },
+      "gpu_mib": {
+        "min": 4841.0,
+        "max": 4848.0,
+        "start": 4848.0,
+        "end": 4844.0,
+        "growth": -4.0,
+        "slope_mib_per_minute": -3.6389040014140845
+      },
+      "private_mib": {
+        "min": 5967.1875,
+        "max": 5971.57421875,
+        "start": 5970.20703125,
+        "end": 5967.38671875,
+        "growth": -2.8203125,
+        "slope_mib_per_minute": -0.7519962700352106
+      },
+      "working_set_mib": {
+        "min": 3182.0,
+        "max": 3186.63671875,
+        "start": 3185.59375,
+        "end": 3183.6796875,
+        "growth": -1.9140625
+      }
+    },
+    "2": {
+      "duration_s": 60.125,
+      "samples": 7,
+      "utc_start": 1793281024.6440744,
+      "utc_end": 1793281084.7628207,
+      "instances": {
+        "1": {
+          "keyed_fps": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 32.909,
+            "median": 33.307,
+            "max": 33.712
+          },
+          "age_median_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 50.42,
+            "median": 50.492,
+            "max": 50.6
+          },
+          "age_p95_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 67.318,
+            "median": 67.489,
+            "max": 67.801
+          },
+          "completed": {
+            "start": 15382,
+            "end": 17403,
+            "delta": 2021
+          },
+          "dropped": {
+            "start": 763,
+            "end": 2325,
+            "delta": 1562
+          },
+          "submitted": {
+            "start": 15383,
+            "end": 17403,
+            "delta": 2020
+          },
+          "unchanged_counter_samples": 0
+        },
+        "2": {
+          "keyed_fps": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 32.519,
+            "median": 32.918,
+            "max": 33.318
+          },
+          "age_median_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 65.546,
+            "median": 66.019,
+            "max": 66.295
+          },
+          "age_p95_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 83.828,
+            "median": 84.015,
+            "max": 84.217
+          },
+          "completed": {
+            "start": 1009,
+            "end": 3025,
+            "delta": 2016
+          },
+          "dropped": {
+            "start": 781,
+            "end": 2349,
+            "delta": 1568
+          },
+          "submitted": {
+            "start": 1010,
+            "end": 3026,
+            "delta": 2016
+          },
+          "unchanged_counter_samples": 0
+        }
+      },
+      "gpu_mib": {
+        "min": 8023.0,
+        "max": 8029.0,
+        "start": 8029.0,
+        "end": 8026.0,
+        "growth": -3.0,
+        "slope_mib_per_minute": -2.567255388913199
+      },
+      "private_mib": {
+        "min": 11878.703125,
+        "max": 11896.19140625,
+        "start": 11889.6015625,
+        "end": 11878.703125,
+        "growth": -10.8984375,
+        "slope_mib_per_minute": 0.21309081347505635
+      },
+      "working_set_mib": {
+        "min": 5843.046875,
+        "max": 5860.4296875,
+        "start": 5854.3515625,
+        "end": 5843.046875,
+        "growth": -11.3046875
+      }
+    },
+    "3": {
+      "duration_s": 60.125,
+      "samples": 7,
+      "utc_start": 1793281280.4762793,
+      "utc_end": 1793281340.5989926,
+      "instances": {
+        "1": {
+          "keyed_fps": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 22.073,
+            "median": 22.471,
+            "max": 22.875
+          },
+          "age_median_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 66.656,
+            "median": 66.678,
+            "max": 66.784
+          },
+          "age_p95_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 84.103,
+            "median": 84.402,
+            "max": 99.677
+          },
+          "completed": {
+            "start": 23278,
+            "end": 24649,
+            "delta": 1371
+          },
+          "dropped": {
+            "start": 7749,
+            "end": 9948,
+            "delta": 2199
+          },
+          "submitted": {
+            "start": 23278,
+            "end": 24649,
+            "delta": 1371
+          },
+          "unchanged_counter_samples": 0
+        },
+        "2": {
+          "keyed_fps": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 22.282,
+            "median": 22.477,
+            "max": 22.88
+          },
+          "age_median_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 66.627,
+            "median": 66.814,
+            "max": 67.07
+          },
+          "age_p95_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 85.151,
+            "median": 98.569,
+            "max": 100.333
+          },
+          "completed": {
+            "start": 8872,
+            "end": 10243,
+            "delta": 1371
+          },
+          "dropped": {
+            "start": 7802,
+            "end": 10001,
+            "delta": 2199
+          },
+          "submitted": {
+            "start": 8873,
+            "end": 10243,
+            "delta": 1370
+          },
+          "unchanged_counter_samples": 0
+        },
+        "3": {
+          "keyed_fps": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 22.678,
+            "median": 22.882,
+            "max": 23.284
+          },
+          "age_median_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 65.267,
+            "median": 65.569,
+            "max": 66.033
+          },
+          "age_p95_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 83.7,
+            "median": 84.027,
+            "max": 84.336
+          },
+          "completed": {
+            "start": 686,
+            "end": 2052,
+            "delta": 1366
+          },
+          "dropped": {
+            "start": 1098,
+            "end": 3302,
+            "delta": 2204
+          },
+          "submitted": {
+            "start": 686,
+            "end": 2052,
+            "delta": 1366
+          },
+          "unchanged_counter_samples": 0
+        }
+      },
+      "gpu_mib": {
+        "min": 10056.0,
+        "max": 10063.0,
+        "start": 10063.0,
+        "end": 10056.0,
+        "growth": -7.0,
+        "slope_mib_per_minute": -4.059109395011809
+      },
+      "private_mib": {
+        "min": 16108.8203125,
+        "max": 16151.6015625,
+        "start": 16124.25390625,
+        "end": 16151.6015625,
+        "growth": 27.34765625,
+        "slope_mib_per_minute": -0.9184122402951244
+      },
+      "working_set_mib": {
+        "min": 7970.39453125,
+        "max": 8013.0234375,
+        "start": 7982.49609375,
+        "end": 8013.0234375,
+        "growth": 30.52734375
+      }
+    }
+  },
+  "soak": {
+    "duration_s": 1800.1410000000615,
+    "samples": 179,
+    "utc_start": 1793281380.8401668,
+    "utc_end": 1793283181.0186222,
+    "instances": {
+      "1": {
+        "keyed_fps": {
+          "valid_samples": 178,
+          "unavailable_samples": 1,
+          "min": 17.862,
+          "median": 32.708,
+          "max": 33.518
+        },
+        "age_median_ms": {
+          "valid_samples": 178,
+          "unavailable_samples": 1,
+          "min": 50.38,
+          "median": 50.554,
+          "max": 84.488
+        },
+        "age_p95_ms": {
+          "valid_samples": 178,
+          "unavailable_samples": 1,
+          "min": 67.281,
+          "median": 67.8695,
+          "max": 151.864
+        },
+        "completed": {
+          "start": 25882,
+          "end": 83923,
+          "delta": 58041
+        },
+        "dropped": {
+          "start": 11104,
+          "end": 60193,
+          "delta": 49089
+        },
+        "submitted": {
+          "start": 25883,
+          "end": 83923,
+          "delta": 58040
+        },
+        "unchanged_counter_samples": 1
+      },
+      "2": {
+        "keyed_fps": {
+          "valid_samples": 178,
+          "unavailable_samples": 1,
+          "min": 17.676,
+          "median": 32.317499999999995,
+          "max": 33.321
+        },
+        "age_median_ms": {
+          "valid_samples": 178,
+          "unavailable_samples": 1,
+          "min": 65.47,
+          "median": 66.2165,
+          "max": 101.827
+        },
+        "age_p95_ms": {
+          "valid_samples": 178,
+          "unavailable_samples": 1,
+          "min": 83.695,
+          "median": 84.458,
+          "max": 183.857
+        },
+        "completed": {
+          "start": 11507,
+          "end": 69450,
+          "delta": 57943
+        },
+        "dropped": {
+          "start": 11126,
+          "end": 60147,
+          "delta": 49021
+        },
+        "submitted": {
+          "start": 11508,
+          "end": 69450,
+          "delta": 57942
+        },
+        "unchanged_counter_samples": 1
+      }
+    },
+    "gpu_mib": {
+      "min": 8039.0,
+      "max": 8192.0,
+      "start": 8039.0,
+      "end": 8145.0,
+      "growth": 106.0,
+      "slope_mib_per_minute": 3.8598314262720916
+    },
+    "private_mib": {
+      "min": 12012.125,
+      "max": 12374.87890625,
+      "start": 12052.62109375,
+      "end": 12121.4765625,
+      "growth": 68.85546875,
+      "slope_mib_per_minute": 2.9826856737895335
+    },
+    "working_set_mib": {
+      "min": 5938.625,
+      "max": 6261.65234375,
+      "start": 5980.3203125,
+      "end": 6007.4140625,
+      "growth": 27.09375
+    },
+    "samples_series": [
+      {
+        "elapsed_s": 0.0,
+        "gpu_mib": 8039.0,
+        "private_mib": 12052.62109375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.111,
+            "age_median_ms": 50.646,
+            "age_p95_ms": 67.78,
+            "completed": 25882.0,
+            "dropped": 11104.0,
+            "submitted": 25883.0
+          },
+          "2": {
+            "keyed_fps": 32.494,
+            "age_median_ms": 65.939,
+            "age_p95_ms": 84.122,
+            "completed": 11507.0,
+            "dropped": 11126.0,
+            "submitted": 11508.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 10.125,
+        "gpu_mib": 8041.0,
+        "private_mib": 12051.3984375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.118,
+            "age_median_ms": 50.505,
+            "age_p95_ms": 68.158,
+            "completed": 26216.0,
+            "dropped": 11367.0,
+            "submitted": 26217.0
+          },
+          "2": {
+            "keyed_fps": 32.301,
+            "age_median_ms": 66.436,
+            "age_p95_ms": 84.808,
+            "completed": 11839.0,
+            "dropped": 11392.0,
+            "submitted": 11840.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 20.25,
+        "gpu_mib": 8041.0,
+        "private_mib": 12054.62109375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.112,
+            "age_median_ms": 50.615,
+            "age_p95_ms": 68.384,
+            "completed": 26550.0,
+            "dropped": 11631.0,
+            "submitted": 26550.0
+          },
+          "2": {
+            "keyed_fps": 32.7,
+            "age_median_ms": 66.075,
+            "age_p95_ms": 83.978,
+            "completed": 12173.0,
+            "dropped": 11655.0,
+            "submitted": 12173.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 30.375,
+        "gpu_mib": 8041.0,
+        "private_mib": 12053.65625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.706,
+            "age_median_ms": 50.456,
+            "age_p95_ms": 67.441,
+            "completed": 26881.0,
+            "dropped": 11898.0,
+            "submitted": 26882.0
+          },
+          "2": {
+            "keyed_fps": 32.704,
+            "age_median_ms": 66.062,
+            "age_p95_ms": 84.104,
+            "completed": 12506.0,
+            "dropped": 11920.0,
+            "submitted": 12507.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 40.5,
+        "gpu_mib": 8041.0,
+        "private_mib": 12050.7421875,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.114,
+            "age_median_ms": 50.549,
+            "age_p95_ms": 67.846,
+            "completed": 27216.0,
+            "dropped": 12159.0,
+            "submitted": 27216.0
+          },
+          "2": {
+            "keyed_fps": 32.504,
+            "age_median_ms": 65.902,
+            "age_p95_ms": 84.159,
+            "completed": 12839.0,
+            "dropped": 12183.0,
+            "submitted": 12840.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 50.625,
+        "gpu_mib": 8042.0,
+        "private_mib": 12054.5703125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.111,
+            "age_median_ms": 50.65,
+            "age_p95_ms": 82.775,
+            "completed": 27548.0,
+            "dropped": 12425.0,
+            "submitted": 27549.0
+          },
+          "2": {
+            "keyed_fps": 32.697,
+            "age_median_ms": 66.286,
+            "age_p95_ms": 84.5,
+            "completed": 13173.0,
+            "dropped": 12447.0,
+            "submitted": 13173.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 60.75,
+        "gpu_mib": 8042.0,
+        "private_mib": 12051.6640625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.31,
+            "age_median_ms": 50.569,
+            "age_p95_ms": 82.878,
+            "completed": 28217.0,
+            "dropped": 12949.0,
+            "submitted": 28217.0
+          },
+          "2": {
+            "keyed_fps": 32.504,
+            "age_median_ms": 66.335,
+            "age_p95_ms": 84.988,
+            "completed": 13505.0,
+            "dropped": 12710.0,
+            "submitted": 13506.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 70.875,
+        "gpu_mib": 8042.0,
+        "private_mib": 12054.63671875,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.311,
+            "age_median_ms": 50.494,
+            "age_p95_ms": 67.976,
+            "completed": 28551.0,
+            "dropped": 13212.0,
+            "submitted": 28552.0
+          },
+          "2": {
+            "keyed_fps": 32.816,
+            "age_median_ms": 66.041,
+            "age_p95_ms": 84.345,
+            "completed": 13841.0,
+            "dropped": 12972.0,
+            "submitted": 13842.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 81.0,
+        "gpu_mib": 8042.0,
+        "private_mib": 12035.7890625,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.498,
+            "age_median_ms": 50.65,
+            "age_p95_ms": 83.752,
+            "completed": 28879.0,
+            "dropped": 13480.0,
+            "submitted": 28880.0
+          },
+          "2": {
+            "keyed_fps": 33.117,
+            "age_median_ms": 66.042,
+            "age_p95_ms": 84.096,
+            "completed": 14176.0,
+            "dropped": 13235.0,
+            "submitted": 14176.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 91.14100000006147,
+        "gpu_mib": 8042.0,
+        "private_mib": 12054.93359375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.518,
+            "age_median_ms": 50.497,
+            "age_p95_ms": 67.502,
+            "completed": 29215.0,
+            "dropped": 13743.0,
+            "submitted": 29216.0
+          },
+          "2": {
+            "keyed_fps": 31.706,
+            "age_median_ms": 66.692,
+            "age_p95_ms": 98.079,
+            "completed": 14503.0,
+            "dropped": 13505.0,
+            "submitted": 14503.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 101.25,
+        "gpu_mib": 8043.0,
+        "private_mib": 12057.34765625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.105,
+            "age_median_ms": 50.486,
+            "age_p95_ms": 67.753,
+            "completed": 29552.0,
+            "dropped": 14003.0,
+            "submitted": 29553.0
+          },
+          "2": {
+            "keyed_fps": 32.716,
+            "age_median_ms": 65.998,
+            "age_p95_ms": 84.393,
+            "completed": 14841.0,
+            "dropped": 13765.0,
+            "submitted": 14841.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 111.375,
+        "gpu_mib": 8043.0,
+        "private_mib": 12052.36328125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.11,
+            "age_median_ms": 50.526,
+            "age_p95_ms": 67.678,
+            "completed": 29887.0,
+            "dropped": 14265.0,
+            "submitted": 29887.0
+          },
+          "2": {
+            "keyed_fps": 32.11,
+            "age_median_ms": 66.129,
+            "age_p95_ms": 84.716,
+            "completed": 15176.0,
+            "dropped": 14027.0,
+            "submitted": 15177.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 121.5,
+        "gpu_mib": 8043.0,
+        "private_mib": 12055.3359375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.706,
+            "age_median_ms": 50.511,
+            "age_p95_ms": 67.645,
+            "completed": 30220.0,
+            "dropped": 14529.0,
+            "submitted": 30221.0
+          },
+          "2": {
+            "keyed_fps": 33.108,
+            "age_median_ms": 65.921,
+            "age_p95_ms": 84.318,
+            "completed": 15513.0,
+            "dropped": 14287.0,
+            "submitted": 15513.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 131.625,
+        "gpu_mib": 8043.0,
+        "private_mib": 12036.5234375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.312,
+            "age_median_ms": 50.534,
+            "age_p95_ms": 67.673,
+            "completed": 30554.0,
+            "dropped": 14792.0,
+            "submitted": 30555.0
+          },
+          "2": {
+            "keyed_fps": 32.706,
+            "age_median_ms": 65.645,
+            "age_p95_ms": 83.908,
+            "completed": 15845.0,
+            "dropped": 14551.0,
+            "submitted": 15846.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 141.73400000017136,
+        "gpu_mib": 8051.0,
+        "private_mib": 12055.42578125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.315,
+            "age_median_ms": 50.455,
+            "age_p95_ms": 67.521,
+            "completed": 30892.0,
+            "dropped": 15053.0,
+            "submitted": 30893.0
+          },
+          "2": {
+            "keyed_fps": 32.716,
+            "age_median_ms": 66.285,
+            "age_p95_ms": 84.273,
+            "completed": 16183.0,
+            "dropped": 14811.0,
+            "submitted": 16183.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 151.85900000017136,
+        "gpu_mib": 8051.0,
+        "private_mib": 12055.67578125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.912,
+            "age_median_ms": 50.59,
+            "age_p95_ms": 68.515,
+            "completed": 31228.0,
+            "dropped": 15314.0,
+            "submitted": 31228.0
+          },
+          "2": {
+            "keyed_fps": 32.315,
+            "age_median_ms": 65.904,
+            "age_p95_ms": 84.075,
+            "completed": 16519.0,
+            "dropped": 15074.0,
+            "submitted": 16519.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 161.98400000017136,
+        "gpu_mib": 8051.0,
+        "private_mib": 12052.70703125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.914,
+            "age_median_ms": 50.597,
+            "age_p95_ms": 67.814,
+            "completed": 31564.0,
+            "dropped": 15575.0,
+            "submitted": 31564.0
+          },
+          "2": {
+            "keyed_fps": 32.307,
+            "age_median_ms": 66.402,
+            "age_p95_ms": 84.164,
+            "completed": 16855.0,
+            "dropped": 15334.0,
+            "submitted": 16855.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 172.10900000017136,
+        "gpu_mib": 8050.0,
+        "private_mib": 12055.6484375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.706,
+            "age_median_ms": 50.477,
+            "age_p95_ms": 67.517,
+            "completed": 31898.0,
+            "dropped": 15838.0,
+            "submitted": 31898.0
+          },
+          "2": {
+            "keyed_fps": 32.514,
+            "age_median_ms": 65.734,
+            "age_p95_ms": 84.487,
+            "completed": 17190.0,
+            "dropped": 15596.0,
+            "submitted": 17190.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 182.21900000004098,
+        "gpu_mib": 8050.0,
+        "private_mib": 12039.8125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.111,
+            "age_median_ms": 50.59,
+            "age_p95_ms": 75.163,
+            "completed": 32231.0,
+            "dropped": 16102.0,
+            "submitted": 32231.0
+          },
+          "2": {
+            "keyed_fps": 32.712,
+            "age_median_ms": 65.94,
+            "age_p95_ms": 84.334,
+            "completed": 17521.0,
+            "dropped": 15862.0,
+            "submitted": 17522.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 192.34400000004098,
+        "gpu_mib": 8050.0,
+        "private_mib": 12055.76953125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.507,
+            "age_median_ms": 50.531,
+            "age_p95_ms": 67.789,
+            "completed": 32563.0,
+            "dropped": 16368.0,
+            "submitted": 32563.0
+          },
+          "2": {
+            "keyed_fps": 32.709,
+            "age_median_ms": 66.171,
+            "age_p95_ms": 84.385,
+            "completed": 17856.0,
+            "dropped": 16124.0,
+            "submitted": 17857.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 202.46900000004098,
+        "gpu_mib": 8054.0,
+        "private_mib": 12055.76953125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.508,
+            "age_median_ms": 50.457,
+            "age_p95_ms": 67.883,
+            "completed": 32895.0,
+            "dropped": 16633.0,
+            "submitted": 32896.0
+          },
+          "2": {
+            "keyed_fps": 32.31,
+            "age_median_ms": 66.249,
+            "age_p95_ms": 84.364,
+            "completed": 18189.0,
+            "dropped": 16389.0,
+            "submitted": 18190.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 212.59400000004098,
+        "gpu_mib": 8054.0,
+        "private_mib": 12052.796875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.706,
+            "age_median_ms": 50.602,
+            "age_p95_ms": 67.474,
+            "completed": 33228.0,
+            "dropped": 16897.0,
+            "submitted": 33228.0
+          },
+          "2": {
+            "keyed_fps": 32.304,
+            "age_median_ms": 66.622,
+            "age_p95_ms": 84.323,
+            "completed": 18520.0,
+            "dropped": 16655.0,
+            "submitted": 18521.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 222.7029999999795,
+        "gpu_mib": 8054.0,
+        "private_mib": 12012.125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.71,
+            "age_median_ms": 50.483,
+            "age_p95_ms": 67.513,
+            "completed": 33563.0,
+            "dropped": 17160.0,
+            "submitted": 33563.0
+          },
+          "2": {
+            "keyed_fps": 32.712,
+            "age_median_ms": 66.103,
+            "age_p95_ms": 84.613,
+            "completed": 18853.0,
+            "dropped": 16919.0,
+            "submitted": 18854.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 232.8279999999795,
+        "gpu_mib": 8054.0,
+        "private_mib": 12055.7734375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.704,
+            "age_median_ms": 50.601,
+            "age_p95_ms": 83.07,
+            "completed": 33896.0,
+            "dropped": 17423.0,
+            "submitted": 33896.0
+          },
+          "2": {
+            "keyed_fps": 32.508,
+            "age_median_ms": 65.814,
+            "age_p95_ms": 83.951,
+            "completed": 19186.0,
+            "dropped": 17183.0,
+            "submitted": 19186.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 242.9529999999795,
+        "gpu_mib": 8054.0,
+        "private_mib": 12055.7734375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.912,
+            "age_median_ms": 50.574,
+            "age_p95_ms": 67.855,
+            "completed": 34229.0,
+            "dropped": 17689.0,
+            "submitted": 34229.0
+          },
+          "2": {
+            "keyed_fps": 32.514,
+            "age_median_ms": 66.034,
+            "age_p95_ms": 83.79,
+            "completed": 19519.0,
+            "dropped": 17447.0,
+            "submitted": 19520.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 253.0779999999795,
+        "gpu_mib": 8054.0,
+        "private_mib": 12055.77734375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.314,
+            "age_median_ms": 50.52,
+            "age_p95_ms": 67.704,
+            "completed": 34563.0,
+            "dropped": 17951.0,
+            "submitted": 34563.0
+          },
+          "2": {
+            "keyed_fps": 32.51,
+            "age_median_ms": 65.99,
+            "age_p95_ms": 84.194,
+            "completed": 19851.0,
+            "dropped": 17714.0,
+            "submitted": 19851.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 263.2029999999795,
+        "gpu_mib": 8054.0,
+        "private_mib": 12052.8046875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.108,
+            "age_median_ms": 50.676,
+            "age_p95_ms": 82.627,
+            "completed": 34894.0,
+            "dropped": 18217.0,
+            "submitted": 34895.0
+          },
+          "2": {
+            "keyed_fps": 33.115,
+            "age_median_ms": 66.17,
+            "age_p95_ms": 83.945,
+            "completed": 20186.0,
+            "dropped": 17976.0,
+            "submitted": 20186.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 273.3279999999795,
+        "gpu_mib": 8054.0,
+        "private_mib": 12039.90234375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.708,
+            "age_median_ms": 50.5,
+            "age_p95_ms": 67.771,
+            "completed": 35227.0,
+            "dropped": 18481.0,
+            "submitted": 35227.0
+          },
+          "2": {
+            "keyed_fps": 32.114,
+            "age_median_ms": 66.305,
+            "age_p95_ms": 84.19,
+            "completed": 20515.0,
+            "dropped": 18243.0,
+            "submitted": 20516.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 283.4529999999795,
+        "gpu_mib": 8054.0,
+        "private_mib": 12055.8359375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.515,
+            "age_median_ms": 50.526,
+            "age_p95_ms": 67.471,
+            "completed": 35564.0,
+            "dropped": 18742.0,
+            "submitted": 35564.0
+          },
+          "2": {
+            "keyed_fps": 32.917,
+            "age_median_ms": 66.128,
+            "age_p95_ms": 83.886,
+            "completed": 20849.0,
+            "dropped": 18506.0,
+            "submitted": 20850.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 293.5779999999795,
+        "gpu_mib": 8054.0,
+        "private_mib": 12055.9609375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.114,
+            "age_median_ms": 50.552,
+            "age_p95_ms": 68.108,
+            "completed": 35897.0,
+            "dropped": 19006.0,
+            "submitted": 35897.0
+          },
+          "2": {
+            "keyed_fps": 32.311,
+            "age_median_ms": 66.047,
+            "age_p95_ms": 84.738,
+            "completed": 21520.0,
+            "dropped": 19031.0,
+            "submitted": 21521.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 303.6870000001509,
+        "gpu_mib": 8054.0,
+        "private_mib": 12055.9375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.911,
+            "age_median_ms": 50.535,
+            "age_p95_ms": 82.644,
+            "completed": 36232.0,
+            "dropped": 19268.0,
+            "submitted": 36233.0
+          },
+          "2": {
+            "keyed_fps": 32.715,
+            "age_median_ms": 65.878,
+            "age_p95_ms": 83.957,
+            "completed": 21856.0,
+            "dropped": 19291.0,
+            "submitted": 21857.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 313.8120000001509,
+        "gpu_mib": 8058.0,
+        "private_mib": 12052.9921875,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.112,
+            "age_median_ms": 50.546,
+            "age_p95_ms": 67.647,
+            "completed": 36568.0,
+            "dropped": 19530.0,
+            "submitted": 36568.0
+          },
+          "2": {
+            "keyed_fps": 32.115,
+            "age_median_ms": 65.936,
+            "age_p95_ms": 84.676,
+            "completed": 22190.0,
+            "dropped": 19555.0,
+            "submitted": 22191.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 323.9370000001509,
+        "gpu_mib": 8058.0,
+        "private_mib": 12040.09765625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.707,
+            "age_median_ms": 50.566,
+            "age_p95_ms": 82.509,
+            "completed": 36899.0,
+            "dropped": 19796.0,
+            "submitted": 36899.0
+          },
+          "2": {
+            "keyed_fps": 32.913,
+            "age_median_ms": 65.98,
+            "age_p95_ms": 84.212,
+            "completed": 22525.0,
+            "dropped": 19818.0,
+            "submitted": 22525.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 334.0620000001509,
+        "gpu_mib": 8044.0,
+        "private_mib": 12056.11328125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.313,
+            "age_median_ms": 50.554,
+            "age_p95_ms": 67.985,
+            "completed": 37230.0,
+            "dropped": 20063.0,
+            "submitted": 37231.0
+          },
+          "2": {
+            "keyed_fps": 32.11,
+            "age_median_ms": 66.079,
+            "age_p95_ms": 84.005,
+            "completed": 22855.0,
+            "dropped": 20085.0,
+            "submitted": 22855.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 344.1870000001509,
+        "gpu_mib": 8044.0,
+        "private_mib": 12056.1171875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.919,
+            "age_median_ms": 50.581,
+            "age_p95_ms": 82.24,
+            "completed": 37561.0,
+            "dropped": 20329.0,
+            "submitted": 37561.0
+          },
+          "2": {
+            "keyed_fps": 32.515,
+            "age_median_ms": 66.505,
+            "age_p95_ms": 84.576,
+            "completed": 23190.0,
+            "dropped": 20347.0,
+            "submitted": 23190.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 354.3120000001509,
+        "gpu_mib": 8044.0,
+        "private_mib": 12056.11328125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.312,
+            "age_median_ms": 50.491,
+            "age_p95_ms": 67.779,
+            "completed": 37897.0,
+            "dropped": 20590.0,
+            "submitted": 37897.0
+          },
+          "2": {
+            "keyed_fps": 32.914,
+            "age_median_ms": 65.924,
+            "age_p95_ms": 83.999,
+            "completed": 23524.0,
+            "dropped": 20610.0,
+            "submitted": 23525.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 364.4370000001509,
+        "gpu_mib": 8044.0,
+        "private_mib": 12053.14453125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.109,
+            "age_median_ms": 50.38,
+            "age_p95_ms": 67.476,
+            "completed": 38232.0,
+            "dropped": 20851.0,
+            "submitted": 38233.0
+          },
+          "2": {
+            "keyed_fps": 32.515,
+            "age_median_ms": 65.86,
+            "age_p95_ms": 84.25,
+            "completed": 23858.0,
+            "dropped": 20873.0,
+            "submitted": 23858.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 374.5620000001509,
+        "gpu_mib": 8048.0,
+        "private_mib": 12056.140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.111,
+            "age_median_ms": 50.383,
+            "age_p95_ms": 67.467,
+            "completed": 38566.0,
+            "dropped": 21115.0,
+            "submitted": 38566.0
+          },
+          "2": {
+            "keyed_fps": 32.915,
+            "age_median_ms": 66.4,
+            "age_p95_ms": 84.549,
+            "completed": 24193.0,
+            "dropped": 21135.0,
+            "submitted": 24193.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 384.6870000001509,
+        "gpu_mib": 8051.0,
+        "private_mib": 12056.14453125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.518,
+            "age_median_ms": 50.511,
+            "age_p95_ms": 67.281,
+            "completed": 38904.0,
+            "dropped": 21374.0,
+            "submitted": 38905.0
+          },
+          "2": {
+            "keyed_fps": 32.115,
+            "age_median_ms": 66.392,
+            "age_p95_ms": 84.737,
+            "completed": 24526.0,
+            "dropped": 21399.0,
+            "submitted": 24527.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 394.7970000000205,
+        "gpu_mib": 8052.0,
+        "private_mib": 12053.30078125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.91,
+            "age_median_ms": 50.468,
+            "age_p95_ms": 67.972,
+            "completed": 39239.0,
+            "dropped": 21637.0,
+            "submitted": 39239.0
+          },
+          "2": {
+            "keyed_fps": 33.119,
+            "age_median_ms": 65.85,
+            "age_p95_ms": 83.867,
+            "completed": 24863.0,
+            "dropped": 21660.0,
+            "submitted": 24863.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 404.9220000000205,
+        "gpu_mib": 8052.0,
+        "private_mib": 12056.2734375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.111,
+            "age_median_ms": 50.475,
+            "age_p95_ms": 67.635,
+            "completed": 39573.0,
+            "dropped": 21900.0,
+            "submitted": 39574.0
+          },
+          "2": {
+            "keyed_fps": 31.712,
+            "age_median_ms": 66.145,
+            "age_p95_ms": 84.287,
+            "completed": 25197.0,
+            "dropped": 21923.0,
+            "submitted": 25198.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 415.0620000001509,
+        "gpu_mib": 8051.0,
+        "private_mib": 12037.421875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.913,
+            "age_median_ms": 50.526,
+            "age_p95_ms": 67.482,
+            "completed": 39906.0,
+            "dropped": 22164.0,
+            "submitted": 39906.0
+          },
+          "2": {
+            "keyed_fps": 32.917,
+            "age_median_ms": 65.743,
+            "age_p95_ms": 84.157,
+            "completed": 25531.0,
+            "dropped": 22186.0,
+            "submitted": 25532.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 425.1870000001509,
+        "gpu_mib": 8054.0,
+        "private_mib": 12056.265625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.308,
+            "age_median_ms": 50.484,
+            "age_p95_ms": 67.559,
+            "completed": 40242.0,
+            "dropped": 22425.0,
+            "submitted": 40242.0
+          },
+          "2": {
+            "keyed_fps": 32.698,
+            "age_median_ms": 66.088,
+            "age_p95_ms": 84.332,
+            "completed": 25867.0,
+            "dropped": 22448.0,
+            "submitted": 25867.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 435.3279999999795,
+        "gpu_mib": 8055.0,
+        "private_mib": 12056.29296875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.107,
+            "age_median_ms": 50.657,
+            "age_p95_ms": 67.748,
+            "completed": 40571.0,
+            "dropped": 22693.0,
+            "submitted": 40571.0
+          },
+          "2": {
+            "keyed_fps": 32.3,
+            "age_median_ms": 66.536,
+            "age_p95_ms": 84.77,
+            "completed": 26194.0,
+            "dropped": 22717.0,
+            "submitted": 26195.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 445.4370000001509,
+        "gpu_mib": 8055.0,
+        "private_mib": 12053.3203125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.516,
+            "age_median_ms": 50.48,
+            "age_p95_ms": 67.689,
+            "completed": 40905.0,
+            "dropped": 22958.0,
+            "submitted": 40905.0
+          },
+          "2": {
+            "keyed_fps": 32.9,
+            "age_median_ms": 65.917,
+            "age_p95_ms": 84.128,
+            "completed": 26530.0,
+            "dropped": 22979.0,
+            "submitted": 26531.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 455.5620000001509,
+        "gpu_mib": 8055.0,
+        "private_mib": 12056.29296875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.711,
+            "age_median_ms": 50.503,
+            "age_p95_ms": 67.494,
+            "completed": 41239.0,
+            "dropped": 23220.0,
+            "submitted": 41240.0
+          },
+          "2": {
+            "keyed_fps": 33.106,
+            "age_median_ms": 66.216,
+            "age_p95_ms": 84.36,
+            "completed": 26863.0,
+            "dropped": 23244.0,
+            "submitted": 26863.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 465.6870000001509,
+        "gpu_mib": 8055.0,
+        "private_mib": 12040.4296875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.714,
+            "age_median_ms": 50.522,
+            "age_p95_ms": 82.719,
+            "completed": 41572.0,
+            "dropped": 23485.0,
+            "submitted": 41572.0
+          },
+          "2": {
+            "keyed_fps": 33.3,
+            "age_median_ms": 66.245,
+            "age_p95_ms": 84.103,
+            "completed": 27198.0,
+            "dropped": 23505.0,
+            "submitted": 27199.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 475.8120000001509,
+        "gpu_mib": 8055.0,
+        "private_mib": 12056.296875,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.514,
+            "age_median_ms": 50.452,
+            "age_p95_ms": 67.45,
+            "completed": 41908.0,
+            "dropped": 23745.0,
+            "submitted": 41908.0
+          },
+          "2": {
+            "keyed_fps": 32.502,
+            "age_median_ms": 66.364,
+            "age_p95_ms": 84.43,
+            "completed": 27533.0,
+            "dropped": 23768.0,
+            "submitted": 27534.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 485.9370000001509,
+        "gpu_mib": 8059.0,
+        "private_mib": 12056.296875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.705,
+            "age_median_ms": 50.597,
+            "age_p95_ms": 83.439,
+            "completed": 42241.0,
+            "dropped": 24010.0,
+            "submitted": 42241.0
+          },
+          "2": {
+            "keyed_fps": 32.699,
+            "age_median_ms": 66.154,
+            "age_p95_ms": 84.581,
+            "completed": 27864.0,
+            "dropped": 24034.0,
+            "submitted": 27864.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 496.0620000001509,
+        "gpu_mib": 8059.0,
+        "private_mib": 12053.32421875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.305,
+            "age_median_ms": 50.697,
+            "age_p95_ms": 82.816,
+            "completed": 42572.0,
+            "dropped": 24275.0,
+            "submitted": 42573.0
+          },
+          "2": {
+            "keyed_fps": 32.307,
+            "age_median_ms": 65.971,
+            "age_p95_ms": 83.823,
+            "completed": 28195.0,
+            "dropped": 24300.0,
+            "submitted": 28195.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 506.1870000001509,
+        "gpu_mib": 8059.0,
+        "private_mib": 12056.51953125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.107,
+            "age_median_ms": 50.496,
+            "age_p95_ms": 67.525,
+            "completed": 42906.0,
+            "dropped": 24539.0,
+            "submitted": 42906.0
+          },
+          "2": {
+            "keyed_fps": 32.303,
+            "age_median_ms": 66.087,
+            "age_p95_ms": 84.242,
+            "completed": 28528.0,
+            "dropped": 24563.0,
+            "submitted": 28529.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 516.3120000001509,
+        "gpu_mib": 8059.0,
+        "private_mib": 12056.5703125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.114,
+            "age_median_ms": 50.593,
+            "age_p95_ms": 67.967,
+            "completed": 43242.0,
+            "dropped": 24800.0,
+            "submitted": 43242.0
+          },
+          "2": {
+            "keyed_fps": 32.101,
+            "age_median_ms": 65.939,
+            "age_p95_ms": 84.696,
+            "completed": 28864.0,
+            "dropped": 24825.0,
+            "submitted": 28865.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 526.4370000001509,
+        "gpu_mib": 8059.0,
+        "private_mib": 12056.8203125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.709,
+            "age_median_ms": 50.554,
+            "age_p95_ms": 67.57,
+            "completed": 43574.0,
+            "dropped": 25065.0,
+            "submitted": 43575.0
+          },
+          "2": {
+            "keyed_fps": 31.712,
+            "age_median_ms": 66.317,
+            "age_p95_ms": 84.511,
+            "completed": 29195.0,
+            "dropped": 25091.0,
+            "submitted": 29195.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 536.5620000001509,
+        "gpu_mib": 8091.0,
+        "private_mib": 12088.7578125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.313,
+            "age_median_ms": 50.644,
+            "age_p95_ms": 82.626,
+            "completed": 43898.0,
+            "dropped": 25332.0,
+            "submitted": 43898.0
+          },
+          "2": {
+            "keyed_fps": 30.71,
+            "age_median_ms": 66.139,
+            "age_p95_ms": 84.568,
+            "completed": 29518.0,
+            "dropped": 25360.0,
+            "submitted": 29518.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 546.7029999999795,
+        "gpu_mib": 8091.0,
+        "private_mib": 12085.78125,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.904,
+            "age_median_ms": 50.499,
+            "age_p95_ms": 67.508,
+            "completed": 44221.0,
+            "dropped": 25605.0,
+            "submitted": 44221.0
+          },
+          "2": {
+            "keyed_fps": 31.915,
+            "age_median_ms": 66.607,
+            "age_p95_ms": 84.455,
+            "completed": 29840.0,
+            "dropped": 25633.0,
+            "submitted": 29841.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 556.8279999999795,
+        "gpu_mib": 8091.0,
+        "private_mib": 12074.8984375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.709,
+            "age_median_ms": 50.475,
+            "age_p95_ms": 67.634,
+            "completed": 44550.0,
+            "dropped": 25873.0,
+            "submitted": 44551.0
+          },
+          "2": {
+            "keyed_fps": 32.518,
+            "age_median_ms": 66.373,
+            "age_p95_ms": 84.479,
+            "completed": 30171.0,
+            "dropped": 25900.0,
+            "submitted": 30171.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 566.9529999999795,
+        "gpu_mib": 8092.0,
+        "private_mib": 12088.75390625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.909,
+            "age_median_ms": 50.585,
+            "age_p95_ms": 68.301,
+            "completed": 44882.0,
+            "dropped": 26138.0,
+            "submitted": 44882.0
+          },
+          "2": {
+            "keyed_fps": 32.714,
+            "age_median_ms": 66.062,
+            "age_p95_ms": 84.064,
+            "completed": 30502.0,
+            "dropped": 26165.0,
+            "submitted": 30502.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 577.0779999999795,
+        "gpu_mib": 8092.0,
+        "private_mib": 12088.75390625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.308,
+            "age_median_ms": 50.512,
+            "age_p95_ms": 67.385,
+            "completed": 45211.0,
+            "dropped": 26406.0,
+            "submitted": 45211.0
+          },
+          "2": {
+            "keyed_fps": 32.119,
+            "age_median_ms": 66.502,
+            "age_p95_ms": 84.75,
+            "completed": 30830.0,
+            "dropped": 26435.0,
+            "submitted": 30830.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 587.219000000041,
+        "gpu_mib": 8092.0,
+        "private_mib": 12088.75390625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.709,
+            "age_median_ms": 50.576,
+            "age_p95_ms": 67.86,
+            "completed": 45541.0,
+            "dropped": 26672.0,
+            "submitted": 45542.0
+          },
+          "2": {
+            "keyed_fps": 32.715,
+            "age_median_ms": 66.368,
+            "age_p95_ms": 84.911,
+            "completed": 31162.0,
+            "dropped": 26699.0,
+            "submitted": 31162.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 597.344000000041,
+        "gpu_mib": 8092.0,
+        "private_mib": 12085.78125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.909,
+            "age_median_ms": 50.57,
+            "age_p95_ms": 82.709,
+            "completed": 45873.0,
+            "dropped": 26938.0,
+            "submitted": 45874.0
+          },
+          "2": {
+            "keyed_fps": 32.71,
+            "age_median_ms": 65.964,
+            "age_p95_ms": 83.695,
+            "completed": 31495.0,
+            "dropped": 26963.0,
+            "submitted": 31496.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 607.469000000041,
+        "gpu_mib": 8090.0,
+        "private_mib": 12072.88671875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.711,
+            "age_median_ms": 50.553,
+            "age_p95_ms": 67.673,
+            "completed": 46208.0,
+            "dropped": 27200.0,
+            "submitted": 46209.0
+          },
+          "2": {
+            "keyed_fps": 31.715,
+            "age_median_ms": 65.799,
+            "age_p95_ms": 84.52,
+            "completed": 31828.0,
+            "dropped": 27228.0,
+            "submitted": 31829.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 617.594000000041,
+        "gpu_mib": 8081.0,
+        "private_mib": 12088.7578125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.91,
+            "age_median_ms": 50.46,
+            "age_p95_ms": 67.443,
+            "completed": 46541.0,
+            "dropped": 27464.0,
+            "submitted": 46541.0
+          },
+          "2": {
+            "keyed_fps": 32.317,
+            "age_median_ms": 66.197,
+            "age_p95_ms": 84.469,
+            "completed": 32161.0,
+            "dropped": 27492.0,
+            "submitted": 32161.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 627.7029999999795,
+        "gpu_mib": 8084.0,
+        "private_mib": 12085.78125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.714,
+            "age_median_ms": 50.449,
+            "age_p95_ms": 67.646,
+            "completed": 46874.0,
+            "dropped": 27729.0,
+            "submitted": 46875.0
+          },
+          "2": {
+            "keyed_fps": 32.915,
+            "age_median_ms": 66.099,
+            "age_p95_ms": 84.482,
+            "completed": 32494.0,
+            "dropped": 27756.0,
+            "submitted": 32494.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 637.844000000041,
+        "gpu_mib": 8084.0,
+        "private_mib": 12088.7265625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.711,
+            "age_median_ms": 50.52,
+            "age_p95_ms": 68.437,
+            "completed": 47206.0,
+            "dropped": 27994.0,
+            "submitted": 47207.0
+          },
+          "2": {
+            "keyed_fps": 32.53,
+            "age_median_ms": 66.246,
+            "age_p95_ms": 84.503,
+            "completed": 32826.0,
+            "dropped": 28021.0,
+            "submitted": 32827.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 647.969000000041,
+        "gpu_mib": 8084.0,
+        "private_mib": 12085.78125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.507,
+            "age_median_ms": 50.48,
+            "age_p95_ms": 67.683,
+            "completed": 47536.0,
+            "dropped": 28261.0,
+            "submitted": 47537.0
+          },
+          "2": {
+            "keyed_fps": 32.114,
+            "age_median_ms": 66.324,
+            "age_p95_ms": 84.133,
+            "completed": 33158.0,
+            "dropped": 28287.0,
+            "submitted": 33159.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 658.094000000041,
+        "gpu_mib": 8084.0,
+        "private_mib": 12088.76953125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.313,
+            "age_median_ms": 50.475,
+            "age_p95_ms": 67.825,
+            "completed": 47872.0,
+            "dropped": 28523.0,
+            "submitted": 47873.0
+          },
+          "2": {
+            "keyed_fps": 32.317,
+            "age_median_ms": 66.256,
+            "age_p95_ms": 84.529,
+            "completed": 33492.0,
+            "dropped": 28550.0,
+            "submitted": 33493.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 668.219000000041,
+        "gpu_mib": 8087.0,
+        "private_mib": 12095.9296875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.917,
+            "age_median_ms": 50.6,
+            "age_p95_ms": 68.713,
+            "completed": 48206.0,
+            "dropped": 28786.0,
+            "submitted": 48206.0
+          },
+          "2": {
+            "keyed_fps": 30.702,
+            "age_median_ms": 66.357,
+            "age_p95_ms": 84.899,
+            "completed": 33819.0,
+            "dropped": 28820.0,
+            "submitted": 33820.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 678.5160000000615,
+        "gpu_mib": 8087.0,
+        "private_mib": 12091.9765625,
+        "instances": {
+          "1": {
+            "keyed_fps": 25.086,
+            "age_median_ms": 66.89,
+            "age_p95_ms": 100.295,
+            "completed": 48482.0,
+            "dropped": 29105.0,
+            "submitted": 48482.0
+          },
+          "2": {
+            "keyed_fps": 29.522,
+            "age_median_ms": 67.263,
+            "age_p95_ms": 97.761,
+            "completed": 34097.0,
+            "dropped": 29137.0,
+            "submitted": 34097.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 688.655999999959,
+        "gpu_mib": 8087.0,
+        "private_mib": 12091.98046875,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.307,
+            "age_median_ms": 50.864,
+            "age_p95_ms": 83.174,
+            "completed": 48800.0,
+            "dropped": 29382.0,
+            "submitted": 48801.0
+          },
+          "2": {
+            "keyed_fps": 30.115,
+            "age_median_ms": 66.701,
+            "age_p95_ms": 86.568,
+            "completed": 34410.0,
+            "dropped": 29419.0,
+            "submitted": 34411.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 698.7970000000205,
+        "gpu_mib": 8092.0,
+        "private_mib": 12073.125,
+        "instances": {
+          "1": {
+            "keyed_fps": 30.908,
+            "age_median_ms": 50.711,
+            "age_p95_ms": 82.723,
+            "completed": 49104.0,
+            "dropped": 29675.0,
+            "submitted": 49104.0
+          },
+          "2": {
+            "keyed_fps": 29.91,
+            "age_median_ms": 66.53,
+            "age_p95_ms": 107.319,
+            "completed": 34714.0,
+            "dropped": 29712.0,
+            "submitted": 34714.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 708.9370000001509,
+        "gpu_mib": 8092.0,
+        "private_mib": 12089.01171875,
+        "instances": {
+          "1": {
+            "keyed_fps": 30.119,
+            "age_median_ms": 51.208,
+            "age_p95_ms": 84.294,
+            "completed": 49385.0,
+            "dropped": 29991.0,
+            "submitted": 49385.0
+          },
+          "2": {
+            "keyed_fps": 30.308,
+            "age_median_ms": 67.584,
+            "age_p95_ms": 97.541,
+            "completed": 34994.0,
+            "dropped": 30029.0,
+            "submitted": 34994.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 719.4840000001714,
+        "gpu_mib": 8102.0,
+        "private_mib": 12092.48046875,
+        "instances": {
+          "1": {
+            "keyed_fps": 21.067,
+            "age_median_ms": 68.066,
+            "age_p95_ms": 150.066,
+            "completed": 49638.0,
+            "dropped": 30327.0,
+            "submitted": 49638.0
+          },
+          "2": {
+            "keyed_fps": 19.275,
+            "age_median_ms": 93.954,
+            "age_p95_ms": 183.857,
+            "completed": 35223.0,
+            "dropped": 30387.0,
+            "submitted": 35223.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 729.7660000000615,
+        "gpu_mib": 8110.0,
+        "private_mib": 12155.49609375,
+        "instances": {
+          "1": {
+            "keyed_fps": 26.091,
+            "age_median_ms": 66.561,
+            "age_p95_ms": 85.13,
+            "completed": 49885.0,
+            "dropped": 30668.0,
+            "submitted": 49885.0
+          },
+          "2": {
+            "keyed_fps": 24.289,
+            "age_median_ms": 73.764,
+            "age_p95_ms": 133.076,
+            "completed": 35479.0,
+            "dropped": 30719.0,
+            "submitted": 35480.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 740.2660000000615,
+        "gpu_mib": 8115.0,
+        "private_mib": 12105.078125,
+        "instances": {
+          "1": {
+            "keyed_fps": 23.876,
+            "age_median_ms": 66.99,
+            "age_p95_ms": 110.51,
+            "completed": 50138.0,
+            "dropped": 30999.0,
+            "submitted": 50139.0
+          },
+          "2": {
+            "keyed_fps": 25.295,
+            "age_median_ms": 71.093,
+            "age_p95_ms": 135.535,
+            "completed": 35748.0,
+            "dropped": 31038.0,
+            "submitted": 35748.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 750.405999999959,
+        "gpu_mib": 8115.0,
+        "private_mib": 12089.6171875,
+        "instances": {
+          "1": {
+            "keyed_fps": 30.904,
+            "age_median_ms": 50.738,
+            "age_p95_ms": 82.346,
+            "completed": 50447.0,
+            "dropped": 31288.0,
+            "submitted": 50447.0
+          },
+          "2": {
+            "keyed_fps": 31.699,
+            "age_median_ms": 66.211,
+            "age_p95_ms": 84.983,
+            "completed": 36062.0,
+            "dropped": 31319.0,
+            "submitted": 36062.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 760.530999999959,
+        "gpu_mib": 8115.0,
+        "private_mib": 12105.49609375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.709,
+            "age_median_ms": 50.559,
+            "age_p95_ms": 67.503,
+            "completed": 50775.0,
+            "dropped": 31556.0,
+            "submitted": 50776.0
+          },
+          "2": {
+            "keyed_fps": 32.297,
+            "age_median_ms": 66.283,
+            "age_p95_ms": 84.192,
+            "completed": 36391.0,
+            "dropped": 31587.0,
+            "submitted": 36392.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 770.6720000000205,
+        "gpu_mib": 8115.0,
+        "private_mib": 12105.46875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.707,
+            "age_median_ms": 50.508,
+            "age_p95_ms": 67.56,
+            "completed": 51105.0,
+            "dropped": 31823.0,
+            "submitted": 51106.0
+          },
+          "2": {
+            "keyed_fps": 32.1,
+            "age_median_ms": 66.506,
+            "age_p95_ms": 84.732,
+            "completed": 36721.0,
+            "dropped": 31854.0,
+            "submitted": 36722.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 780.7970000000205,
+        "gpu_mib": 8116.0,
+        "private_mib": 12102.5,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.512,
+            "age_median_ms": 50.631,
+            "age_p95_ms": 83.354,
+            "completed": 51762.0,
+            "dropped": 32360.0,
+            "submitted": 51762.0
+          },
+          "2": {
+            "keyed_fps": 31.695,
+            "age_median_ms": 66.09,
+            "age_p95_ms": 84.848,
+            "completed": 37047.0,
+            "dropped": 32125.0,
+            "submitted": 37048.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 790.9220000000205,
+        "gpu_mib": 8116.0,
+        "private_mib": 12105.4765625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.316,
+            "age_median_ms": 50.562,
+            "age_p95_ms": 67.447,
+            "completed": 52089.0,
+            "dropped": 32630.0,
+            "submitted": 52090.0
+          },
+          "2": {
+            "keyed_fps": 32.501,
+            "age_median_ms": 66.211,
+            "age_p95_ms": 84.356,
+            "completed": 37377.0,
+            "dropped": 32393.0,
+            "submitted": 37378.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 801.0620000001509,
+        "gpu_mib": 8116.0,
+        "private_mib": 12105.49609375,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.504,
+            "age_median_ms": 50.567,
+            "age_p95_ms": 67.432,
+            "completed": 52410.0,
+            "dropped": 32906.0,
+            "submitted": 52411.0
+          },
+          "2": {
+            "keyed_fps": 31.29,
+            "age_median_ms": 66.324,
+            "age_p95_ms": 84.775,
+            "completed": 37700.0,
+            "dropped": 32666.0,
+            "submitted": 37701.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 811.2029999999795,
+        "gpu_mib": 8121.0,
+        "private_mib": 12103.53125,
+        "instances": {
+          "1": {
+            "keyed_fps": 30.918,
+            "age_median_ms": 50.812,
+            "age_p95_ms": 83.731,
+            "completed": 52694.0,
+            "dropped": 33220.0,
+            "submitted": 52694.0
+          },
+          "2": {
+            "keyed_fps": 29.712,
+            "age_median_ms": 67.268,
+            "age_p95_ms": 102.27,
+            "completed": 38017.0,
+            "dropped": 32947.0,
+            "submitted": 38018.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 821.344000000041,
+        "gpu_mib": 8121.0,
+        "private_mib": 12105.49609375,
+        "instances": {
+          "1": {
+            "keyed_fps": 27.544,
+            "age_median_ms": 51.33,
+            "age_p95_ms": 116.293,
+            "completed": 52986.0,
+            "dropped": 33522.0,
+            "submitted": 52987.0
+          },
+          "2": {
+            "keyed_fps": 31.719,
+            "age_median_ms": 66.595,
+            "age_p95_ms": 86.94,
+            "completed": 38309.0,
+            "dropped": 33253.0,
+            "submitted": 38310.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 831.5,
+        "gpu_mib": 8121.0,
+        "private_mib": 12102.52734375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.424,
+            "age_median_ms": 50.527,
+            "age_p95_ms": 67.839,
+            "completed": 53303.0,
+            "dropped": 33802.0,
+            "submitted": 53304.0
+          },
+          "2": {
+            "keyed_fps": 29.505,
+            "age_median_ms": 68.632,
+            "age_p95_ms": 84.64,
+            "completed": 38595.0,
+            "dropped": 33562.0,
+            "submitted": 38596.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 841.6410000000615,
+        "gpu_mib": 8120.0,
+        "private_mib": 12089.640625,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.707,
+            "age_median_ms": 50.693,
+            "age_p95_ms": 70.065,
+            "completed": 53627.0,
+            "dropped": 34071.0,
+            "submitted": 53628.0
+          },
+          "2": {
+            "keyed_fps": 31.712,
+            "age_median_ms": 66.703,
+            "age_p95_ms": 84.718,
+            "completed": 38920.0,
+            "dropped": 33834.0,
+            "submitted": 38921.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 851.7660000000615,
+        "gpu_mib": 8120.0,
+        "private_mib": 12105.5078125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.106,
+            "age_median_ms": 50.612,
+            "age_p95_ms": 82.873,
+            "completed": 53953.0,
+            "dropped": 34338.0,
+            "submitted": 53953.0
+          },
+          "2": {
+            "keyed_fps": 32.119,
+            "age_median_ms": 66.259,
+            "age_p95_ms": 84.115,
+            "completed": 39246.0,
+            "dropped": 34102.0,
+            "submitted": 39246.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 861.905999999959,
+        "gpu_mib": 8113.0,
+        "private_mib": 12102.53515625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.306,
+            "age_median_ms": 50.537,
+            "age_p95_ms": 68.687,
+            "completed": 54282.0,
+            "dropped": 34606.0,
+            "submitted": 54283.0
+          },
+          "2": {
+            "keyed_fps": 32.319,
+            "age_median_ms": 66.042,
+            "age_p95_ms": 84.155,
+            "completed": 39570.0,
+            "dropped": 34370.0,
+            "submitted": 39571.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 872.030999999959,
+        "gpu_mib": 8114.0,
+        "private_mib": 12105.5078125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.513,
+            "age_median_ms": 50.658,
+            "age_p95_ms": 82.535,
+            "completed": 54609.0,
+            "dropped": 34875.0,
+            "submitted": 54610.0
+          },
+          "2": {
+            "keyed_fps": 31.921,
+            "age_median_ms": 66.415,
+            "age_p95_ms": 85.098,
+            "completed": 39897.0,
+            "dropped": 34640.0,
+            "submitted": 39898.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 882.155999999959,
+        "gpu_mib": 8114.0,
+        "private_mib": 12104.54296875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.907,
+            "age_median_ms": 50.531,
+            "age_p95_ms": 67.623,
+            "completed": 54940.0,
+            "dropped": 35142.0,
+            "submitted": 54940.0
+          },
+          "2": {
+            "keyed_fps": 32.325,
+            "age_median_ms": 66.239,
+            "age_p95_ms": 84.769,
+            "completed": 40226.0,
+            "dropped": 34908.0,
+            "submitted": 40227.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 892.2970000000205,
+        "gpu_mib": 8113.0,
+        "private_mib": 12089.62890625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.309,
+            "age_median_ms": 50.61,
+            "age_p95_ms": 67.454,
+            "completed": 55269.0,
+            "dropped": 35410.0,
+            "submitted": 55269.0
+          },
+          "2": {
+            "keyed_fps": 32.722,
+            "age_median_ms": 65.861,
+            "age_p95_ms": 84.219,
+            "completed": 40558.0,
+            "dropped": 35173.0,
+            "submitted": 40559.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 902.4220000000205,
+        "gpu_mib": 8117.0,
+        "private_mib": 12105.5,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.903,
+            "age_median_ms": 50.529,
+            "age_p95_ms": 67.842,
+            "completed": 55598.0,
+            "dropped": 35678.0,
+            "submitted": 55599.0
+          },
+          "2": {
+            "keyed_fps": 32.317,
+            "age_median_ms": 66.246,
+            "age_p95_ms": 84.19,
+            "completed": 40888.0,
+            "dropped": 35440.0,
+            "submitted": 40888.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 912.5470000000205,
+        "gpu_mib": 8117.0,
+        "private_mib": 12092.61328125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.705,
+            "age_median_ms": 50.52,
+            "age_p95_ms": 67.737,
+            "completed": 55928.0,
+            "dropped": 35945.0,
+            "submitted": 55929.0
+          },
+          "2": {
+            "keyed_fps": 32.118,
+            "age_median_ms": 66.061,
+            "age_p95_ms": 84.551,
+            "completed": 41218.0,
+            "dropped": 35708.0,
+            "submitted": 41218.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 922.6720000000205,
+        "gpu_mib": 8117.0,
+        "private_mib": 12105.46875,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.11,
+            "age_median_ms": 50.525,
+            "age_p95_ms": 68.043,
+            "completed": 56261.0,
+            "dropped": 36211.0,
+            "submitted": 56261.0
+          },
+          "2": {
+            "keyed_fps": 32.515,
+            "age_median_ms": 65.56,
+            "age_p95_ms": 83.96,
+            "completed": 41548.0,
+            "dropped": 35974.0,
+            "submitted": 41549.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 932.8120000001509,
+        "gpu_mib": 8117.0,
+        "private_mib": 12105.46875,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.109,
+            "age_median_ms": 50.598,
+            "age_p95_ms": 82.96,
+            "completed": 56590.0,
+            "dropped": 36478.0,
+            "submitted": 56590.0
+          },
+          "2": {
+            "keyed_fps": 32.52,
+            "age_median_ms": 66.379,
+            "age_p95_ms": 84.608,
+            "completed": 41879.0,
+            "dropped": 36241.0,
+            "submitted": 41879.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 942.9370000001509,
+        "gpu_mib": 8117.0,
+        "private_mib": 12105.46875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.907,
+            "age_median_ms": 50.574,
+            "age_p95_ms": 67.443,
+            "completed": 56921.0,
+            "dropped": 36744.0,
+            "submitted": 56921.0
+          },
+          "2": {
+            "keyed_fps": 32.316,
+            "age_median_ms": 66.097,
+            "age_p95_ms": 84.21,
+            "completed": 42210.0,
+            "dropped": 36507.0,
+            "submitted": 42210.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 953.0620000001509,
+        "gpu_mib": 8117.0,
+        "private_mib": 12105.59375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.505,
+            "age_median_ms": 50.52,
+            "age_p95_ms": 67.528,
+            "completed": 57254.0,
+            "dropped": 37008.0,
+            "submitted": 57255.0
+          },
+          "2": {
+            "keyed_fps": 32.922,
+            "age_median_ms": 66.3,
+            "age_p95_ms": 84.335,
+            "completed": 42542.0,
+            "dropped": 36772.0,
+            "submitted": 42542.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 963.1870000001509,
+        "gpu_mib": 8121.0,
+        "private_mib": 12102.6484375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.921,
+            "age_median_ms": 50.544,
+            "age_p95_ms": 67.623,
+            "completed": 57585.0,
+            "dropped": 37275.0,
+            "submitted": 57585.0
+          },
+          "2": {
+            "keyed_fps": 32.115,
+            "age_median_ms": 66.694,
+            "age_p95_ms": 84.695,
+            "completed": 42872.0,
+            "dropped": 37039.0,
+            "submitted": 42872.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 973.3279999999795,
+        "gpu_mib": 8121.0,
+        "private_mib": 12105.62109375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.306,
+            "age_median_ms": 50.655,
+            "age_p95_ms": 82.842,
+            "completed": 57913.0,
+            "dropped": 37545.0,
+            "submitted": 57913.0
+          },
+          "2": {
+            "keyed_fps": 32.525,
+            "age_median_ms": 66.166,
+            "age_p95_ms": 84.156,
+            "completed": 43204.0,
+            "dropped": 37305.0,
+            "submitted": 43204.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 983.4529999999795,
+        "gpu_mib": 8121.0,
+        "private_mib": 12092.62109375,
+        "instances": {
+          "1": {
+            "keyed_fps": 27.69,
+            "age_median_ms": 66.395,
+            "age_p95_ms": 84.816,
+            "completed": 58215.0,
+            "dropped": 37836.0,
+            "submitted": 58215.0
+          },
+          "2": {
+            "keyed_fps": 32.115,
+            "age_median_ms": 66.509,
+            "age_p95_ms": 84.384,
+            "completed": 43531.0,
+            "dropped": 37575.0,
+            "submitted": 43532.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 993.6090000001714,
+        "gpu_mib": 8121.0,
+        "private_mib": 12106.484375,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.91,
+            "age_median_ms": 50.536,
+            "age_p95_ms": 67.957,
+            "completed": 58524.0,
+            "dropped": 38120.0,
+            "submitted": 58525.0
+          },
+          "2": {
+            "keyed_fps": 32.29,
+            "age_median_ms": 65.964,
+            "age_p95_ms": 84.42,
+            "completed": 44144.0,
+            "dropped": 38148.0,
+            "submitted": 44144.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1003.75,
+        "gpu_mib": 8121.0,
+        "private_mib": 12106.4921875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.501,
+            "age_median_ms": 50.445,
+            "age_p95_ms": 67.331,
+            "completed": 58855.0,
+            "dropped": 38386.0,
+            "submitted": 58855.0
+          },
+          "2": {
+            "keyed_fps": 32.697,
+            "age_median_ms": 66.046,
+            "age_p95_ms": 84.016,
+            "completed": 44473.0,
+            "dropped": 38417.0,
+            "submitted": 44473.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1013.8910000000615,
+        "gpu_mib": 8121.0,
+        "private_mib": 12103.515625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.907,
+            "age_median_ms": 50.523,
+            "age_p95_ms": 67.545,
+            "completed": 59186.0,
+            "dropped": 38652.0,
+            "submitted": 59186.0
+          },
+          "2": {
+            "keyed_fps": 32.094,
+            "age_median_ms": 66.259,
+            "age_p95_ms": 84.382,
+            "completed": 44804.0,
+            "dropped": 38682.0,
+            "submitted": 44805.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1024.0160000000615,
+        "gpu_mib": 8121.0,
+        "private_mib": 12106.4921875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.909,
+            "age_median_ms": 50.411,
+            "age_p95_ms": 67.471,
+            "completed": 59518.0,
+            "dropped": 38917.0,
+            "submitted": 59518.0
+          },
+          "2": {
+            "keyed_fps": 32.493,
+            "age_median_ms": 66.55,
+            "age_p95_ms": 84.6,
+            "completed": 45136.0,
+            "dropped": 38948.0,
+            "submitted": 45136.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1034.155999999959,
+        "gpu_mib": 8122.0,
+        "private_mib": 12090.61328125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.309,
+            "age_median_ms": 50.604,
+            "age_p95_ms": 83.217,
+            "completed": 59846.0,
+            "dropped": 39186.0,
+            "submitted": 59846.0
+          },
+          "2": {
+            "keyed_fps": 32.094,
+            "age_median_ms": 66.41,
+            "age_p95_ms": 84.445,
+            "completed": 45462.0,
+            "dropped": 39219.0,
+            "submitted": 45463.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1044.280999999959,
+        "gpu_mib": 8122.0,
+        "private_mib": 12106.453125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.511,
+            "age_median_ms": 50.611,
+            "age_p95_ms": 82.782,
+            "completed": 60175.0,
+            "dropped": 39454.0,
+            "submitted": 60176.0
+          },
+          "2": {
+            "keyed_fps": 32.292,
+            "age_median_ms": 66.477,
+            "age_p95_ms": 84.641,
+            "completed": 45793.0,
+            "dropped": 39485.0,
+            "submitted": 45793.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1054.4220000000205,
+        "gpu_mib": 8122.0,
+        "private_mib": 12106.48046875,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.902,
+            "age_median_ms": 50.763,
+            "age_p95_ms": 82.411,
+            "completed": 60497.0,
+            "dropped": 39729.0,
+            "submitted": 60497.0
+          },
+          "2": {
+            "keyed_fps": 31.072,
+            "age_median_ms": 66.815,
+            "age_p95_ms": 98.076,
+            "completed": 46110.0,
+            "dropped": 39765.0,
+            "submitted": 46110.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1064.5620000001509,
+        "gpu_mib": 8122.0,
+        "private_mib": 12103.50390625,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.711,
+            "age_median_ms": 50.976,
+            "age_p95_ms": 83.266,
+            "completed": 60816.0,
+            "dropped": 40008.0,
+            "submitted": 60816.0
+          },
+          "2": {
+            "keyed_fps": 28.707,
+            "age_median_ms": 67.958,
+            "age_p95_ms": 116.001,
+            "completed": 46416.0,
+            "dropped": 40056.0,
+            "submitted": 46416.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1075.030999999959,
+        "gpu_mib": 8122.0,
+        "private_mib": 12110.49609375,
+        "instances": {
+          "1": {
+            "keyed_fps": 30.7,
+            "age_median_ms": 50.816,
+            "age_p95_ms": 84.88,
+            "completed": 61094.0,
+            "dropped": 40326.0,
+            "submitted": 61094.0
+          },
+          "2": {
+            "keyed_fps": 28.296,
+            "age_median_ms": 68.342,
+            "age_p95_ms": 104.666,
+            "completed": 46696.0,
+            "dropped": 40373.0,
+            "submitted": 46697.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1085.2340000001714,
+        "gpu_mib": 8125.0,
+        "private_mib": 12112.43359375,
+        "instances": {
+          "1": {
+            "keyed_fps": 25.481,
+            "age_median_ms": 67.012,
+            "age_p95_ms": 118.046,
+            "completed": 61357.0,
+            "dropped": 40658.0,
+            "submitted": 61357.0
+          },
+          "2": {
+            "keyed_fps": 24.299,
+            "age_median_ms": 71.289,
+            "age_p95_ms": 147.697,
+            "completed": 46944.0,
+            "dropped": 40720.0,
+            "submitted": 46944.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1095.5160000000615,
+        "gpu_mib": 8116.0,
+        "private_mib": 12109.46875,
+        "instances": {
+          "1": {
+            "keyed_fps": 22.478,
+            "age_median_ms": 67.591,
+            "age_p95_ms": 115.943,
+            "completed": 61592.0,
+            "dropped": 41016.0,
+            "submitted": 61592.0
+          },
+          "2": {
+            "keyed_fps": 24.914,
+            "age_median_ms": 82.413,
+            "age_p95_ms": 116.51,
+            "completed": 47189.0,
+            "dropped": 41069.0,
+            "submitted": 47190.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1106.0470000000205,
+        "gpu_mib": 8119.0,
+        "private_mib": 12112.44140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 28.004,
+            "age_median_ms": 66.141,
+            "age_p95_ms": 101.612,
+            "completed": 61869.0,
+            "dropped": 41337.0,
+            "submitted": 61869.0
+          },
+          "2": {
+            "keyed_fps": 31.926,
+            "age_median_ms": 66.359,
+            "age_p95_ms": 84.346,
+            "completed": 47484.0,
+            "dropped": 41371.0,
+            "submitted": 47484.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1116.1870000001509,
+        "gpu_mib": 8119.0,
+        "private_mib": 12109.46875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.505,
+            "age_median_ms": 50.602,
+            "age_p95_ms": 67.727,
+            "completed": 62194.0,
+            "dropped": 41608.0,
+            "submitted": 62194.0
+          },
+          "2": {
+            "keyed_fps": 31.712,
+            "age_median_ms": 66.253,
+            "age_p95_ms": 84.892,
+            "completed": 47809.0,
+            "dropped": 41643.0,
+            "submitted": 47810.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1126.344000000041,
+        "gpu_mib": 8119.0,
+        "private_mib": 12100.58203125,
+        "instances": {
+          "1": {
+            "keyed_fps": 30.101,
+            "age_median_ms": 50.988,
+            "age_p95_ms": 83.263,
+            "completed": 62506.0,
+            "dropped": 41893.0,
+            "submitted": 62507.0
+          },
+          "2": {
+            "keyed_fps": 30.318,
+            "age_median_ms": 68.13,
+            "age_p95_ms": 97.897,
+            "completed": 48115.0,
+            "dropped": 41933.0,
+            "submitted": 48116.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1136.5,
+        "gpu_mib": 8119.0,
+        "private_mib": 12112.4375,
+        "instances": {
+          "1": {
+            "keyed_fps": 30.709,
+            "age_median_ms": 50.802,
+            "age_p95_ms": 83.386,
+            "completed": 62814.0,
+            "dropped": 42182.0,
+            "submitted": 62814.0
+          },
+          "2": {
+            "keyed_fps": 31.53,
+            "age_median_ms": 66.51,
+            "age_p95_ms": 84.834,
+            "completed": 48431.0,
+            "dropped": 42215.0,
+            "submitted": 48432.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1146.625,
+        "gpu_mib": 8122.0,
+        "private_mib": 12109.46875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.912,
+            "age_median_ms": 50.472,
+            "age_p95_ms": 67.346,
+            "completed": 63145.0,
+            "dropped": 42449.0,
+            "submitted": 63145.0
+          },
+          "2": {
+            "keyed_fps": 32.524,
+            "age_median_ms": 66.189,
+            "age_p95_ms": 83.93,
+            "completed": 48764.0,
+            "dropped": 42479.0,
+            "submitted": 48764.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1156.7660000000615,
+        "gpu_mib": 8122.0,
+        "private_mib": 12112.4375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.911,
+            "age_median_ms": 50.482,
+            "age_p95_ms": 67.523,
+            "completed": 63477.0,
+            "dropped": 42714.0,
+            "submitted": 63478.0
+          },
+          "2": {
+            "keyed_fps": 31.713,
+            "age_median_ms": 66.353,
+            "age_p95_ms": 84.748,
+            "completed": 49095.0,
+            "dropped": 42745.0,
+            "submitted": 49096.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1166.8910000000615,
+        "gpu_mib": 8122.0,
+        "private_mib": 12114.4453125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.711,
+            "age_median_ms": 50.748,
+            "age_p95_ms": 83.13,
+            "completed": 63809.0,
+            "dropped": 42979.0,
+            "submitted": 63810.0
+          },
+          "2": {
+            "keyed_fps": 32.721,
+            "age_median_ms": 65.564,
+            "age_p95_ms": 83.88,
+            "completed": 49424.0,
+            "dropped": 43012.0,
+            "submitted": 49425.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1177.030999999959,
+        "gpu_mib": 8122.0,
+        "private_mib": 12096.7890625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.112,
+            "age_median_ms": 50.508,
+            "age_p95_ms": 67.556,
+            "completed": 64142.0,
+            "dropped": 43243.0,
+            "submitted": 64142.0
+          },
+          "2": {
+            "keyed_fps": 32.919,
+            "age_median_ms": 66.161,
+            "age_p95_ms": 84.133,
+            "completed": 49761.0,
+            "dropped": 43273.0,
+            "submitted": 49761.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1187.155999999959,
+        "gpu_mib": 8122.0,
+        "private_mib": 12112.6640625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.312,
+            "age_median_ms": 50.46,
+            "age_p95_ms": 67.341,
+            "completed": 64479.0,
+            "dropped": 43502.0,
+            "submitted": 64480.0
+          },
+          "2": {
+            "keyed_fps": 33.12,
+            "age_median_ms": 66.138,
+            "age_p95_ms": 84.01,
+            "completed": 50098.0,
+            "dropped": 43533.0,
+            "submitted": 50099.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1197.280999999959,
+        "gpu_mib": 8122.0,
+        "private_mib": 12109.72265625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.704,
+            "age_median_ms": 50.529,
+            "age_p95_ms": 67.668,
+            "completed": 64813.0,
+            "dropped": 43766.0,
+            "submitted": 64813.0
+          },
+          "2": {
+            "keyed_fps": 32.914,
+            "age_median_ms": 65.807,
+            "age_p95_ms": 83.775,
+            "completed": 50430.0,
+            "dropped": 43798.0,
+            "submitted": 50431.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1207.405999999959,
+        "gpu_mib": 8126.0,
+        "private_mib": 12112.69140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.112,
+            "age_median_ms": 50.451,
+            "age_p95_ms": 67.769,
+            "completed": 65146.0,
+            "dropped": 44030.0,
+            "submitted": 65147.0
+          },
+          "2": {
+            "keyed_fps": 32.513,
+            "age_median_ms": 65.925,
+            "age_p95_ms": 84.181,
+            "completed": 50762.0,
+            "dropped": 44063.0,
+            "submitted": 50762.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1217.5470000000205,
+        "gpu_mib": 8127.0,
+        "private_mib": 12112.69140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.112,
+            "age_median_ms": 50.568,
+            "age_p95_ms": 82.615,
+            "completed": 65480.0,
+            "dropped": 44293.0,
+            "submitted": 65481.0
+          },
+          "2": {
+            "keyed_fps": 33.321,
+            "age_median_ms": 66.091,
+            "age_p95_ms": 83.994,
+            "completed": 51098.0,
+            "dropped": 44324.0,
+            "submitted": 51099.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1227.6720000000205,
+        "gpu_mib": 8127.0,
+        "private_mib": 12112.6875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.304,
+            "age_median_ms": 50.555,
+            "age_p95_ms": 82.788,
+            "completed": 65812.0,
+            "dropped": 44557.0,
+            "submitted": 65812.0
+          },
+          "2": {
+            "keyed_fps": 32.713,
+            "age_median_ms": 66.126,
+            "age_p95_ms": 84.186,
+            "completed": 51429.0,
+            "dropped": 44588.0,
+            "submitted": 51430.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1237.8120000001509,
+        "gpu_mib": 8127.0,
+        "private_mib": 12115.3203125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.516,
+            "age_median_ms": 50.42,
+            "age_p95_ms": 67.438,
+            "completed": 66147.0,
+            "dropped": 44820.0,
+            "submitted": 66147.0
+          },
+          "2": {
+            "keyed_fps": 33.109,
+            "age_median_ms": 66.348,
+            "age_p95_ms": 83.935,
+            "completed": 51765.0,
+            "dropped": 44850.0,
+            "submitted": 51765.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1247.9370000001509,
+        "gpu_mib": 8127.0,
+        "private_mib": 12110.34375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.714,
+            "age_median_ms": 50.508,
+            "age_p95_ms": 67.67,
+            "completed": 66480.0,
+            "dropped": 45083.0,
+            "submitted": 66481.0
+          },
+          "2": {
+            "keyed_fps": 32.701,
+            "age_median_ms": 66.217,
+            "age_p95_ms": 84.651,
+            "completed": 52099.0,
+            "dropped": 45114.0,
+            "submitted": 52099.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1258.0620000001509,
+        "gpu_mib": 8127.0,
+        "private_mib": 12113.3125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.708,
+            "age_median_ms": 50.458,
+            "age_p95_ms": 67.716,
+            "completed": 66813.0,
+            "dropped": 45347.0,
+            "submitted": 66814.0
+          },
+          "2": {
+            "keyed_fps": 32.698,
+            "age_median_ms": 66.282,
+            "age_p95_ms": 84.462,
+            "completed": 52431.0,
+            "dropped": 45379.0,
+            "submitted": 52431.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1268.2029999999795,
+        "gpu_mib": 8127.0,
+        "private_mib": 12097.44140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.309,
+            "age_median_ms": 50.6,
+            "age_p95_ms": 67.71,
+            "completed": 67146.0,
+            "dropped": 45612.0,
+            "submitted": 67146.0
+          },
+          "2": {
+            "keyed_fps": 32.501,
+            "age_median_ms": 66.012,
+            "age_p95_ms": 84.482,
+            "completed": 52768.0,
+            "dropped": 45639.0,
+            "submitted": 52769.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1278.3279999999795,
+        "gpu_mib": 8127.0,
+        "private_mib": 12110.34375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.117,
+            "age_median_ms": 50.582,
+            "age_p95_ms": 82.806,
+            "completed": 67479.0,
+            "dropped": 45876.0,
+            "submitted": 67479.0
+          },
+          "2": {
+            "keyed_fps": 32.902,
+            "age_median_ms": 66.193,
+            "age_p95_ms": 84.09,
+            "completed": 53101.0,
+            "dropped": 45902.0,
+            "submitted": 53102.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1288.4529999999795,
+        "gpu_mib": 8127.0,
+        "private_mib": 12113.30859375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.708,
+            "age_median_ms": 50.53,
+            "age_p95_ms": 83.063,
+            "completed": 67811.0,
+            "dropped": 46140.0,
+            "submitted": 67811.0
+          },
+          "2": {
+            "keyed_fps": 32.102,
+            "age_median_ms": 65.869,
+            "age_p95_ms": 84.446,
+            "completed": 53433.0,
+            "dropped": 46167.0,
+            "submitted": 53434.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1298.5779999999795,
+        "gpu_mib": 8127.0,
+        "private_mib": 12110.34375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.115,
+            "age_median_ms": 50.417,
+            "age_p95_ms": 67.916,
+            "completed": 68144.0,
+            "dropped": 46404.0,
+            "submitted": 68144.0
+          },
+          "2": {
+            "keyed_fps": 33.306,
+            "age_median_ms": 66.264,
+            "age_p95_ms": 84.309,
+            "completed": 53769.0,
+            "dropped": 46429.0,
+            "submitted": 53769.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1308.719000000041,
+        "gpu_mib": 8127.0,
+        "private_mib": 12113.3046875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.903,
+            "age_median_ms": 50.478,
+            "age_p95_ms": 67.508,
+            "completed": 68480.0,
+            "dropped": 46664.0,
+            "submitted": 68480.0
+          },
+          "2": {
+            "keyed_fps": 32.703,
+            "age_median_ms": 65.966,
+            "age_p95_ms": 84.435,
+            "completed": 54104.0,
+            "dropped": 46691.0,
+            "submitted": 54105.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1318.844000000041,
+        "gpu_mib": 8127.0,
+        "private_mib": 12097.43359375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.109,
+            "age_median_ms": 50.606,
+            "age_p95_ms": 83.006,
+            "completed": 68809.0,
+            "dropped": 46934.0,
+            "submitted": 68809.0
+          },
+          "2": {
+            "keyed_fps": 32.498,
+            "age_median_ms": 66.035,
+            "age_p95_ms": 84.678,
+            "completed": 54433.0,
+            "dropped": 46960.0,
+            "submitted": 54433.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1328.969000000041,
+        "gpu_mib": 8124.0,
+        "private_mib": 12113.3046875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.905,
+            "age_median_ms": 50.412,
+            "age_p95_ms": 67.537,
+            "completed": 69143.0,
+            "dropped": 47196.0,
+            "submitted": 69144.0
+          },
+          "2": {
+            "keyed_fps": 33.104,
+            "age_median_ms": 66.45,
+            "age_p95_ms": 84.734,
+            "completed": 54768.0,
+            "dropped": 47222.0,
+            "submitted": 54769.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1339.1090000001714,
+        "gpu_mib": 8116.0,
+        "private_mib": 12113.3046875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.82,
+            "age_median_ms": 50.554,
+            "age_p95_ms": 67.979,
+            "completed": 69478.0,
+            "dropped": 47458.0,
+            "submitted": 69478.0
+          },
+          "2": {
+            "keyed_fps": 32.703,
+            "age_median_ms": 66.064,
+            "age_p95_ms": 84.466,
+            "completed": 55102.0,
+            "dropped": 47485.0,
+            "submitted": 55103.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1349.2340000001714,
+        "gpu_mib": 8120.0,
+        "private_mib": 12110.33203125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.017,
+            "age_median_ms": 50.48,
+            "age_p95_ms": 67.722,
+            "completed": 69813.0,
+            "dropped": 47720.0,
+            "submitted": 69813.0
+          },
+          "2": {
+            "keyed_fps": 32.497,
+            "age_median_ms": 65.942,
+            "age_p95_ms": 84.17,
+            "completed": 55436.0,
+            "dropped": 47748.0,
+            "submitted": 55437.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1359.375,
+        "gpu_mib": 8120.0,
+        "private_mib": 12113.3046875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.306,
+            "age_median_ms": 50.615,
+            "age_p95_ms": 69.466,
+            "completed": 70142.0,
+            "dropped": 47988.0,
+            "submitted": 70143.0
+          },
+          "2": {
+            "keyed_fps": 32.116,
+            "age_median_ms": 66.671,
+            "age_p95_ms": 84.51,
+            "completed": 55767.0,
+            "dropped": 48014.0,
+            "submitted": 55768.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1369.5160000000615,
+        "gpu_mib": 8120.0,
+        "private_mib": 12113.3046875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.109,
+            "age_median_ms": 50.648,
+            "age_p95_ms": 82.94,
+            "completed": 70471.0,
+            "dropped": 48257.0,
+            "submitted": 70472.0
+          },
+          "2": {
+            "keyed_fps": 32.516,
+            "age_median_ms": 66.065,
+            "age_p95_ms": 84.205,
+            "completed": 56096.0,
+            "dropped": 48282.0,
+            "submitted": 56097.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1379.6410000000615,
+        "gpu_mib": 8123.0,
+        "private_mib": 12110.33203125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.905,
+            "age_median_ms": 50.462,
+            "age_p95_ms": 82.436,
+            "completed": 70806.0,
+            "dropped": 48520.0,
+            "submitted": 70806.0
+          },
+          "2": {
+            "keyed_fps": 32.318,
+            "age_median_ms": 66.249,
+            "age_p95_ms": 84.948,
+            "completed": 56428.0,
+            "dropped": 48548.0,
+            "submitted": 56429.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1389.7660000000615,
+        "gpu_mib": 8123.0,
+        "private_mib": 12140.0625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.694,
+            "age_median_ms": 50.45,
+            "age_p95_ms": 67.631,
+            "completed": 71138.0,
+            "dropped": 48785.0,
+            "submitted": 71138.0
+          },
+          "2": {
+            "keyed_fps": 31.909,
+            "age_median_ms": 66.316,
+            "age_p95_ms": 84.634,
+            "completed": 56759.0,
+            "dropped": 48814.0,
+            "submitted": 56760.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1399.9370000001509,
+        "gpu_mib": 8123.0,
+        "private_mib": 12125.19921875,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.707,
+            "age_median_ms": 50.732,
+            "age_p95_ms": 82.823,
+            "completed": 71460.0,
+            "dropped": 49059.0,
+            "submitted": 71461.0
+          },
+          "2": {
+            "keyed_fps": 32.517,
+            "age_median_ms": 65.926,
+            "age_p95_ms": 84.881,
+            "completed": 57087.0,
+            "dropped": 49083.0,
+            "submitted": 57088.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1410.0779999999795,
+        "gpu_mib": 8123.0,
+        "private_mib": 12097.42578125,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.904,
+            "age_median_ms": 50.788,
+            "age_p95_ms": 82.795,
+            "completed": 71790.0,
+            "dropped": 49325.0,
+            "submitted": 71791.0
+          },
+          "2": {
+            "keyed_fps": 30.901,
+            "age_median_ms": 66.498,
+            "age_p95_ms": 85.174,
+            "completed": 57408.0,
+            "dropped": 49359.0,
+            "submitted": 57409.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1420.219000000041,
+        "gpu_mib": 8123.0,
+        "private_mib": 12113.30859375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.101,
+            "age_median_ms": 50.516,
+            "age_p95_ms": 68.403,
+            "completed": 72110.0,
+            "dropped": 49603.0,
+            "submitted": 72111.0
+          },
+          "2": {
+            "keyed_fps": 32.117,
+            "age_median_ms": 66.21,
+            "age_p95_ms": 85.675,
+            "completed": 57729.0,
+            "dropped": 49635.0,
+            "submitted": 57730.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1430.344000000041,
+        "gpu_mib": 8123.0,
+        "private_mib": 12110.33203125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.7,
+            "age_median_ms": 50.585,
+            "age_p95_ms": 67.428,
+            "completed": 72437.0,
+            "dropped": 49873.0,
+            "submitted": 72437.0
+          },
+          "2": {
+            "keyed_fps": 32.113,
+            "age_median_ms": 66.265,
+            "age_p95_ms": 84.762,
+            "completed": 58060.0,
+            "dropped": 49901.0,
+            "submitted": 58061.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1440.5,
+        "gpu_mib": 8089.0,
+        "private_mib": 12374.87890625,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.101,
+            "age_median_ms": 50.905,
+            "age_p95_ms": 83.544,
+            "completed": 72759.0,
+            "dropped": 50149.0,
+            "submitted": 72759.0
+          },
+          "2": {
+            "keyed_fps": 30.917,
+            "age_median_ms": 66.625,
+            "age_p95_ms": 85.632,
+            "completed": 58377.0,
+            "dropped": 50181.0,
+            "submitted": 58377.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1450.6410000000615,
+        "gpu_mib": 8128.0,
+        "private_mib": 12096.72265625,
+        "instances": {
+          "1": {
+            "keyed_fps": -1.0,
+            "age_median_ms": -1.0,
+            "age_p95_ms": -1.0,
+            "completed": 73041.0,
+            "dropped": 50397.0,
+            "submitted": 73041.0
+          },
+          "2": {
+            "keyed_fps": -1.0,
+            "age_median_ms": -1.0,
+            "age_p95_ms": -1.0,
+            "completed": 58568.0,
+            "dropped": 50350.0,
+            "submitted": 58568.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1460.780999999959,
+        "gpu_mib": 8133.0,
+        "private_mib": 12100.68359375,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.293,
+            "age_median_ms": 50.687,
+            "age_p95_ms": 83.66,
+            "completed": 73248.0,
+            "dropped": 50594.0,
+            "submitted": 73248.0
+          },
+          "2": {
+            "keyed_fps": 31.656,
+            "age_median_ms": 66.197,
+            "age_p95_ms": 84.483,
+            "completed": 58774.0,
+            "dropped": 50548.0,
+            "submitted": 58775.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1470.9220000000205,
+        "gpu_mib": 8133.0,
+        "private_mib": 12114.671875,
+        "instances": {
+          "1": {
+            "keyed_fps": 28.695,
+            "age_median_ms": 51.118,
+            "age_p95_ms": 83.646,
+            "completed": 73518.0,
+            "dropped": 50914.0,
+            "submitted": 73519.0
+          },
+          "2": {
+            "keyed_fps": 28.701,
+            "age_median_ms": 66.824,
+            "age_p95_ms": 84.843,
+            "completed": 59045.0,
+            "dropped": 50867.0,
+            "submitted": 59046.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1481.1410000000615,
+        "gpu_mib": 8138.0,
+        "private_mib": 12114.921875,
+        "instances": {
+          "1": {
+            "keyed_fps": 26.918,
+            "age_median_ms": 66.604,
+            "age_p95_ms": 100.425,
+            "completed": 73787.0,
+            "dropped": 51240.0,
+            "submitted": 73788.0
+          },
+          "2": {
+            "keyed_fps": 26.905,
+            "age_median_ms": 70.452,
+            "age_p95_ms": 117.108,
+            "completed": 59314.0,
+            "dropped": 51193.0,
+            "submitted": 59315.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1491.405999999959,
+        "gpu_mib": 8138.0,
+        "private_mib": 12117.89453125,
+        "instances": {
+          "1": {
+            "keyed_fps": 24.479,
+            "age_median_ms": 67.03,
+            "age_p95_ms": 97.12,
+            "completed": 73980.0,
+            "dropped": 51641.0,
+            "submitted": 73980.0
+          },
+          "2": {
+            "keyed_fps": 24.295,
+            "age_median_ms": 75.454,
+            "age_p95_ms": 126.002,
+            "completed": 59506.0,
+            "dropped": 51595.0,
+            "submitted": 59506.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1501.5470000000205,
+        "gpu_mib": 8139.0,
+        "private_mib": 12114.921875,
+        "instances": {
+          "1": {
+            "keyed_fps": 29.096,
+            "age_median_ms": 51.03,
+            "age_p95_ms": 84.277,
+            "completed": 74274.0,
+            "dropped": 51937.0,
+            "submitted": 74274.0
+          },
+          "2": {
+            "keyed_fps": 28.689,
+            "age_median_ms": 67.179,
+            "age_p95_ms": 102.422,
+            "completed": 59799.0,
+            "dropped": 51891.0,
+            "submitted": 59799.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1511.6720000000205,
+        "gpu_mib": 8139.0,
+        "private_mib": 12117.95703125,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.905,
+            "age_median_ms": 50.614,
+            "age_p95_ms": 68.064,
+            "completed": 74601.0,
+            "dropped": 52206.0,
+            "submitted": 74602.0
+          },
+          "2": {
+            "keyed_fps": 32.096,
+            "age_median_ms": 66.367,
+            "age_p95_ms": 84.603,
+            "completed": 60125.0,
+            "dropped": 52163.0,
+            "submitted": 60126.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1521.8120000001509,
+        "gpu_mib": 8139.0,
+        "private_mib": 12114.98828125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.914,
+            "age_median_ms": 50.594,
+            "age_p95_ms": 67.66,
+            "completed": 74934.0,
+            "dropped": 52471.0,
+            "submitted": 74934.0
+          },
+          "2": {
+            "keyed_fps": 32.701,
+            "age_median_ms": 66.074,
+            "age_p95_ms": 84.02,
+            "completed": 60456.0,
+            "dropped": 52428.0,
+            "submitted": 60457.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1531.9370000001509,
+        "gpu_mib": 8139.0,
+        "private_mib": 12114.98828125,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.914,
+            "age_median_ms": 50.579,
+            "age_p95_ms": 68.247,
+            "completed": 75259.0,
+            "dropped": 52743.0,
+            "submitted": 75259.0
+          },
+          "2": {
+            "keyed_fps": 31.898,
+            "age_median_ms": 66.692,
+            "age_p95_ms": 84.893,
+            "completed": 60782.0,
+            "dropped": 52700.0,
+            "submitted": 60782.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1542.0779999999795,
+        "gpu_mib": 8139.0,
+        "private_mib": 12117.95703125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.914,
+            "age_median_ms": 50.459,
+            "age_p95_ms": 67.398,
+            "completed": 75590.0,
+            "dropped": 53008.0,
+            "submitted": 75590.0
+          },
+          "2": {
+            "keyed_fps": 32.3,
+            "age_median_ms": 66.429,
+            "age_p95_ms": 96.919,
+            "completed": 61113.0,
+            "dropped": 52965.0,
+            "submitted": 61113.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1552.219000000041,
+        "gpu_mib": 8139.0,
+        "private_mib": 12099.1171875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.507,
+            "age_median_ms": 50.524,
+            "age_p95_ms": 67.513,
+            "completed": 75920.0,
+            "dropped": 53275.0,
+            "submitted": 75920.0
+          },
+          "2": {
+            "keyed_fps": 32.695,
+            "age_median_ms": 66.359,
+            "age_p95_ms": 84.294,
+            "completed": 61445.0,
+            "dropped": 53229.0,
+            "submitted": 61446.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1562.3590000001714,
+        "gpu_mib": 8137.0,
+        "private_mib": 12117.95703125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.112,
+            "age_median_ms": 50.472,
+            "age_p95_ms": 67.595,
+            "completed": 76253.0,
+            "dropped": 53540.0,
+            "submitted": 76253.0
+          },
+          "2": {
+            "keyed_fps": 32.897,
+            "age_median_ms": 66.154,
+            "age_p95_ms": 84.164,
+            "completed": 61778.0,
+            "dropped": 53494.0,
+            "submitted": 61778.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1572.4840000001714,
+        "gpu_mib": 8137.0,
+        "private_mib": 12114.98828125,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.111,
+            "age_median_ms": 50.535,
+            "age_p95_ms": 82.783,
+            "completed": 76587.0,
+            "dropped": 53802.0,
+            "submitted": 76587.0
+          },
+          "2": {
+            "keyed_fps": 32.3,
+            "age_median_ms": 65.47,
+            "age_p95_ms": 84.016,
+            "completed": 62112.0,
+            "dropped": 53757.0,
+            "submitted": 62113.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1582.625,
+        "gpu_mib": 8131.0,
+        "private_mib": 12114.9609375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.316,
+            "age_median_ms": 50.56,
+            "age_p95_ms": 67.549,
+            "completed": 76918.0,
+            "dropped": 54068.0,
+            "submitted": 76918.0
+          },
+          "2": {
+            "keyed_fps": 32.299,
+            "age_median_ms": 65.87,
+            "age_p95_ms": 84.139,
+            "completed": 62445.0,
+            "dropped": 54021.0,
+            "submitted": 62445.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1592.75,
+        "gpu_mib": 8192.0,
+        "private_mib": 12119.9375,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.709,
+            "age_median_ms": 50.475,
+            "age_p95_ms": 67.847,
+            "completed": 77252.0,
+            "dropped": 54331.0,
+            "submitted": 77252.0
+          },
+          "2": {
+            "keyed_fps": 32.504,
+            "age_median_ms": 66.061,
+            "age_p95_ms": 84.143,
+            "completed": 62778.0,
+            "dropped": 54285.0,
+            "submitted": 62779.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1602.8910000000615,
+        "gpu_mib": 8132.0,
+        "private_mib": 12099.0859375,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.113,
+            "age_median_ms": 50.496,
+            "age_p95_ms": 67.386,
+            "completed": 77585.0,
+            "dropped": 54595.0,
+            "submitted": 77586.0
+          },
+          "2": {
+            "keyed_fps": 32.49,
+            "age_median_ms": 66.027,
+            "age_p95_ms": 84.218,
+            "completed": 63112.0,
+            "dropped": 54548.0,
+            "submitted": 63112.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1613.030999999959,
+        "gpu_mib": 8132.0,
+        "private_mib": 12114.95703125,
+        "instances": {
+          "1": {
+            "keyed_fps": 31.908,
+            "age_median_ms": 50.51,
+            "age_p95_ms": 67.403,
+            "completed": 77911.0,
+            "dropped": 54866.0,
+            "submitted": 77912.0
+          },
+          "2": {
+            "keyed_fps": 31.713,
+            "age_median_ms": 65.825,
+            "age_p95_ms": 84.461,
+            "completed": 63437.0,
+            "dropped": 54819.0,
+            "submitted": 63438.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1623.469000000041,
+        "gpu_mib": 8134.0,
+        "private_mib": 12121.16015625,
+        "instances": {
+          "1": {
+            "keyed_fps": 25.477,
+            "age_median_ms": 66.818,
+            "age_p95_ms": 100.743,
+            "completed": 78205.0,
+            "dropped": 55169.0,
+            "submitted": 78206.0
+          },
+          "2": {
+            "keyed_fps": 25.684,
+            "age_median_ms": 71.028,
+            "age_p95_ms": 119.194,
+            "completed": 63733.0,
+            "dropped": 55120.0,
+            "submitted": 63734.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1633.7970000000205,
+        "gpu_mib": 8144.0,
+        "private_mib": 12124.3828125,
+        "instances": {
+          "1": {
+            "keyed_fps": 17.862,
+            "age_median_ms": 84.488,
+            "age_p95_ms": 151.864,
+            "completed": 78676.0,
+            "dropped": 55886.0,
+            "submitted": 78677.0
+          },
+          "2": {
+            "keyed_fps": 17.676,
+            "age_median_ms": 101.827,
+            "age_p95_ms": 175.853,
+            "completed": 64205.0,
+            "dropped": 55836.0,
+            "submitted": 64206.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1644.2660000000615,
+        "gpu_mib": 8140.0,
+        "private_mib": 12124.3828125,
+        "instances": {
+          "1": {
+            "keyed_fps": 30.914,
+            "age_median_ms": 50.732,
+            "age_p95_ms": 82.833,
+            "completed": 78949.0,
+            "dropped": 56210.0,
+            "submitted": 78949.0
+          },
+          "2": {
+            "keyed_fps": 30.543,
+            "age_median_ms": 66.768,
+            "age_p95_ms": 97.15,
+            "completed": 64478.0,
+            "dropped": 56162.0,
+            "submitted": 64479.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1654.405999999959,
+        "gpu_mib": 8140.0,
+        "private_mib": 12123.44921875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.913,
+            "age_median_ms": 50.554,
+            "age_p95_ms": 67.601,
+            "completed": 79278.0,
+            "dropped": 56479.0,
+            "submitted": 79278.0
+          },
+          "2": {
+            "keyed_fps": 32.921,
+            "age_median_ms": 66.368,
+            "age_p95_ms": 83.984,
+            "completed": 64806.0,
+            "dropped": 56430.0,
+            "submitted": 64807.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1664.530999999959,
+        "gpu_mib": 8140.0,
+        "private_mib": 12121.44140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.692,
+            "age_median_ms": 50.578,
+            "age_p95_ms": 67.558,
+            "completed": 79610.0,
+            "dropped": 56743.0,
+            "submitted": 79610.0
+          },
+          "2": {
+            "keyed_fps": 32.313,
+            "age_median_ms": 66.297,
+            "age_p95_ms": 84.829,
+            "completed": 65137.0,
+            "dropped": 56698.0,
+            "submitted": 65138.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1674.6720000000205,
+        "gpu_mib": 8140.0,
+        "private_mib": 12124.4140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.712,
+            "age_median_ms": 50.538,
+            "age_p95_ms": 67.669,
+            "completed": 79943.0,
+            "dropped": 57007.0,
+            "submitted": 79943.0
+          },
+          "2": {
+            "keyed_fps": 32.521,
+            "age_median_ms": 66.049,
+            "age_p95_ms": 84.468,
+            "completed": 65470.0,
+            "dropped": 56962.0,
+            "submitted": 65470.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1684.7970000000205,
+        "gpu_mib": 8144.0,
+        "private_mib": 12121.44140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.913,
+            "age_median_ms": 50.479,
+            "age_p95_ms": 67.389,
+            "completed": 80275.0,
+            "dropped": 57272.0,
+            "submitted": 80275.0
+          },
+          "2": {
+            "keyed_fps": 32.527,
+            "age_median_ms": 66.5,
+            "age_p95_ms": 84.729,
+            "completed": 65801.0,
+            "dropped": 57227.0,
+            "submitted": 65801.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1694.9529999999795,
+        "gpu_mib": 8144.0,
+        "private_mib": 12108.546875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.712,
+            "age_median_ms": 50.492,
+            "age_p95_ms": 67.846,
+            "completed": 80609.0,
+            "dropped": 57536.0,
+            "submitted": 80610.0
+          },
+          "2": {
+            "keyed_fps": 32.516,
+            "age_median_ms": 66.136,
+            "age_p95_ms": 84.58,
+            "completed": 66135.0,
+            "dropped": 57492.0,
+            "submitted": 66136.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1705.094000000041,
+        "gpu_mib": 8144.0,
+        "private_mib": 12121.44140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.707,
+            "age_median_ms": 50.616,
+            "age_p95_ms": 83.439,
+            "completed": 80944.0,
+            "dropped": 57798.0,
+            "submitted": 80944.0
+          },
+          "2": {
+            "keyed_fps": 32.921,
+            "age_median_ms": 66.823,
+            "age_p95_ms": 84.448,
+            "completed": 66469.0,
+            "dropped": 57755.0,
+            "submitted": 66469.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1715.219000000041,
+        "gpu_mib": 8144.0,
+        "private_mib": 12121.44140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 33.311,
+            "age_median_ms": 50.475,
+            "age_p95_ms": 67.323,
+            "completed": 81277.0,
+            "dropped": 58062.0,
+            "submitted": 81278.0
+          },
+          "2": {
+            "keyed_fps": 32.713,
+            "age_median_ms": 66.229,
+            "age_p95_ms": 84.091,
+            "completed": 66802.0,
+            "dropped": 58018.0,
+            "submitted": 66803.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1725.3590000001714,
+        "gpu_mib": 8144.0,
+        "private_mib": 12126.421875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.912,
+            "age_median_ms": 50.521,
+            "age_p95_ms": 67.855,
+            "completed": 81613.0,
+            "dropped": 58324.0,
+            "submitted": 81614.0
+          },
+          "2": {
+            "keyed_fps": 32.517,
+            "age_median_ms": 65.731,
+            "age_p95_ms": 84.169,
+            "completed": 67139.0,
+            "dropped": 58279.0,
+            "submitted": 67140.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1735.5,
+        "gpu_mib": 8144.0,
+        "private_mib": 12121.44140625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.104,
+            "age_median_ms": 50.621,
+            "age_p95_ms": 68.422,
+            "completed": 81939.0,
+            "dropped": 58594.0,
+            "submitted": 81939.0
+          },
+          "2": {
+            "keyed_fps": 31.921,
+            "age_median_ms": 66.065,
+            "age_p95_ms": 84.45,
+            "completed": 67465.0,
+            "dropped": 58549.0,
+            "submitted": 67465.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1745.625,
+        "gpu_mib": 8145.0,
+        "private_mib": 12105.57421875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.706,
+            "age_median_ms": 50.64,
+            "age_p95_ms": 67.822,
+            "completed": 82268.0,
+            "dropped": 58862.0,
+            "submitted": 82268.0
+          },
+          "2": {
+            "keyed_fps": 32.517,
+            "age_median_ms": 66.12,
+            "age_p95_ms": 84.666,
+            "completed": 67795.0,
+            "dropped": 58816.0,
+            "submitted": 67795.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1755.7660000000615,
+        "gpu_mib": 8145.0,
+        "private_mib": 12121.4453125,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.704,
+            "age_median_ms": 50.602,
+            "age_p95_ms": 67.879,
+            "completed": 82601.0,
+            "dropped": 59126.0,
+            "submitted": 82601.0
+          },
+          "2": {
+            "keyed_fps": 32.32,
+            "age_median_ms": 66.245,
+            "age_p95_ms": 84.445,
+            "completed": 68127.0,
+            "dropped": 59081.0,
+            "submitted": 68127.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1765.905999999959,
+        "gpu_mib": 8145.0,
+        "private_mib": 12121.50390625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.503,
+            "age_median_ms": 50.614,
+            "age_p95_ms": 82.958,
+            "completed": 82929.0,
+            "dropped": 59396.0,
+            "submitted": 82929.0
+          },
+          "2": {
+            "keyed_fps": 32.324,
+            "age_median_ms": 65.67,
+            "age_p95_ms": 84.368,
+            "completed": 68457.0,
+            "dropped": 59349.0,
+            "submitted": 68457.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1776.0620000001509,
+        "gpu_mib": 8145.0,
+        "private_mib": 12124.44921875,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.51,
+            "age_median_ms": 50.461,
+            "age_p95_ms": 67.437,
+            "completed": 83258.0,
+            "dropped": 59665.0,
+            "submitted": 83258.0
+          },
+          "2": {
+            "keyed_fps": 32.311,
+            "age_median_ms": 66.762,
+            "age_p95_ms": 84.763,
+            "completed": 68784.0,
+            "dropped": 59618.0,
+            "submitted": 68785.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1786.2029999999795,
+        "gpu_mib": 8145.0,
+        "private_mib": 12121.4765625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.904,
+            "age_median_ms": 50.538,
+            "age_p95_ms": 82.587,
+            "completed": 83590.0,
+            "dropped": 59928.0,
+            "submitted": 83591.0
+          },
+          "2": {
+            "keyed_fps": 32.717,
+            "age_median_ms": 66.098,
+            "age_p95_ms": 84.002,
+            "completed": 69117.0,
+            "dropped": 59882.0,
+            "submitted": 69118.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1796.344000000041,
+        "gpu_mib": 8145.0,
+        "private_mib": 12121.4765625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.511,
+            "age_median_ms": 50.568,
+            "age_p95_ms": 82.936,
+            "completed": 83923.0,
+            "dropped": 60193.0,
+            "submitted": 83923.0
+          },
+          "2": {
+            "keyed_fps": 32.114,
+            "age_median_ms": 66.001,
+            "age_p95_ms": 84.145,
+            "completed": 69450.0,
+            "dropped": 60147.0,
+            "submitted": 69450.0
+          }
+        }
+      },
+      {
+        "elapsed_s": 1800.1410000000615,
+        "gpu_mib": 8145.0,
+        "private_mib": 12121.4765625,
+        "instances": {
+          "1": {
+            "keyed_fps": 32.511,
+            "age_median_ms": 50.568,
+            "age_p95_ms": 82.936,
+            "completed": 83923.0,
+            "dropped": 60193.0,
+            "submitted": 83923.0
+          },
+          "2": {
+            "keyed_fps": 32.114,
+            "age_median_ms": 66.001,
+            "age_p95_ms": 84.145,
+            "completed": 69450.0,
+            "dropped": 60147.0,
+            "submitted": 69450.0
+          }
+        }
+      }
+    ],
+    "interruption": {
+      "local_time_cet": "15:07:01 to 15:07:10",
+      "behavior": "Both filters briefly reported Warming up, then recovered without a command or CUDA error. Trigger unknown.",
+      "invalid_timing_samples_per_instance": 1
+    },
+    "counter_sampling_note": "The final 3.8-second interval reused the previous ten-second log counters; all other sampled intervals advanced for both instances."
+  },
+  "lifecycle_samples": {
+    "hidden1": {
+      "duration_s": 30.140999999828637,
+      "samples": 4,
+      "utc_start": 1793283188.9377725,
+      "utc_end": 1793283219.0715585,
+      "instances": {
+        "2": {
+          "keyed_fps": {
+            "valid_samples": 4,
+            "unavailable_samples": 0,
+            "min": 33.724,
+            "median": 38.8305,
+            "max": 39.924
+          },
+          "age_median_ms": {
+            "valid_samples": 4,
+            "unavailable_samples": 0,
+            "min": 34.356,
+            "median": 34.701499999999996,
+            "max": 65.154
+          },
+          "age_p95_ms": {
+            "valid_samples": 4,
+            "unavailable_samples": 0,
+            "min": 51.591,
+            "median": 51.629,
+            "max": 84.191
+          },
+          "completed": {
+            "start": 69804,
+            "end": 71565,
+            "delta": 1761
+          },
+          "dropped": {
+            "start": 60390,
+            "end": 60396,
+            "delta": 6
+          },
+          "submitted": {
+            "start": 69804,
+            "end": 71566,
+            "delta": 1762
+          },
+          "unchanged_counter_samples": 0
+        }
+      },
+      "gpu_mib": {
+        "min": 7726.0,
+        "max": 7733.0,
+        "start": 7733.0,
+        "end": 7731.0,
+        "growth": -2.0,
+        "slope_mib_per_minute": -0.6217069959237642
+      },
+      "private_mib": {
+        "min": 11537.69140625,
+        "max": 11624.8359375,
+        "start": 11624.8359375,
+        "end": 11537.69140625,
+        "growth": -87.14453125,
+        "slope_mib_per_minute": -154.91196880675278
+      },
+      "working_set_mib": {
+        "min": 5904.37890625,
+        "max": 5993.23046875,
+        "start": 5993.21484375,
+        "end": 5904.37890625,
+        "growth": -88.8359375
+      }
+    },
+    "hidden-all": {
+      "duration_s": 30.110000000102445,
+      "samples": 4,
+      "utc_start": 1793283224.400223,
+      "utc_end": 1793283254.511104,
+      "instances": {},
+      "gpu_mib": {
+        "min": 6747.0,
+        "max": 6754.0,
+        "start": 6747.0,
+        "end": 6754.0,
+        "growth": 7.0,
+        "slope_mib_per_minute": 14.313183764738861
+      },
+      "private_mib": {
+        "min": 10345.62109375,
+        "max": 10345.6328125,
+        "start": 10345.62109375,
+        "end": 10345.6328125,
+        "growth": 0.01171875,
+        "slope_mib_per_minute": 0.021062150087403666
+      },
+      "working_set_mib": {
+        "min": 5822.3984375,
+        "max": 5822.41015625,
+        "start": 5822.3984375,
+        "end": 5822.41015625,
+        "growth": 0.01171875
+      }
+    },
+    "restored": {
+      "duration_s": 30.139999999897555,
+      "samples": 4,
+      "utc_start": 1793283280.1421733,
+      "utc_end": 1793283310.29253,
+      "instances": {
+        "1": {
+          "keyed_fps": {
+            "valid_samples": 4,
+            "unavailable_samples": 0,
+            "min": 32.3,
+            "median": 32.408500000000004,
+            "max": 32.508
+          },
+          "age_median_ms": {
+            "valid_samples": 4,
+            "unavailable_samples": 0,
+            "min": 50.412,
+            "median": 50.5005,
+            "max": 50.56
+          },
+          "age_p95_ms": {
+            "valid_samples": 4,
+            "unavailable_samples": 0,
+            "min": 67.154,
+            "median": 67.517,
+            "max": 67.615
+          },
+          "completed": {
+            "start": 84790,
+            "end": 85774,
+            "delta": 984
+          },
+          "dropped": {
+            "start": 60887,
+            "end": 61695,
+            "delta": 808
+          },
+          "submitted": {
+            "start": 84791,
+            "end": 85774,
+            "delta": 983
+          },
+          "unchanged_counter_samples": 0
+        },
+        "2": {
+          "keyed_fps": {
+            "valid_samples": 4,
+            "unavailable_samples": 0,
+            "min": 31.917,
+            "median": 32.2195,
+            "max": 32.513
+          },
+          "age_median_ms": {
+            "valid_samples": 4,
+            "unavailable_samples": 0,
+            "min": 66.278,
+            "median": 66.509,
+            "max": 66.754
+          },
+          "age_p95_ms": {
+            "valid_samples": 4,
+            "unavailable_samples": 0,
+            "min": 84.394,
+            "median": 84.519,
+            "max": 85.617
+          },
+          "completed": {
+            "start": 72424,
+            "end": 73409,
+            "delta": 985
+          },
+          "dropped": {
+            "start": 60847,
+            "end": 61653,
+            "delta": 806
+          },
+          "submitted": {
+            "start": 72425,
+            "end": 73409,
+            "delta": 984
+          },
+          "unchanged_counter_samples": 0
+        }
+      },
+      "gpu_mib": {
+        "min": 8090.0,
+        "max": 8132.0,
+        "start": 8132.0,
+        "end": 8094.0,
+        "growth": -38.0,
+        "slope_mib_per_minute": -65.85834679569106
+      },
+      "private_mib": {
+        "min": 12033.3125,
+        "max": 12037.1015625,
+        "start": 12033.3125,
+        "end": 12037.1015625,
+        "growth": 3.7890625,
+        "slope_mib_per_minute": 7.401082562811273
+      },
+      "working_set_mib": {
+        "min": 5952.53125,
+        "max": 5957.69140625,
+        "start": 5952.53125,
+        "end": 5957.69140625,
+        "growth": 5.16015625
+      }
+    },
+    "mixed": {
+      "duration_s": 60.14100000006147,
+      "samples": 7,
+      "utc_start": 1793283647.418122,
+      "utc_end": 1793283707.5559072,
+      "instances": {
+        "1": {
+          "keyed_fps": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 22.072,
+            "median": 33.496,
+            "max": 39.537
+          },
+          "age_median_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 32.928,
+            "median": 33.442,
+            "max": 49.614
+          },
+          "age_p95_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 34.283,
+            "median": 50.631,
+            "max": 116.953
+          },
+          "completed": {
+            "start": 87126,
+            "end": 89107,
+            "delta": 1981
+          },
+          "dropped": {
+            "start": 62455,
+            "end": 64026,
+            "delta": 1571
+          },
+          "submitted": {
+            "start": 87126,
+            "end": 89108,
+            "delta": 1982
+          },
+          "unchanged_counter_samples": 0
+        },
+        "2": {
+          "keyed_fps": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 24.476,
+            "median": 34.685,
+            "max": 38.732
+          },
+          "age_median_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 51.652,
+            "median": 65.652,
+            "max": 69.953
+          },
+          "age_p95_ms": {
+            "valid_samples": 7,
+            "unavailable_samples": 0,
+            "min": 68.946,
+            "median": 88.52,
+            "max": 212.343
+          },
+          "completed": {
+            "start": 91595,
+            "end": 93572,
+            "delta": 1977
+          },
+          "dropped": {
+            "start": 63756,
+            "end": 65332,
+            "delta": 1576
+          },
+          "submitted": {
+            "start": 91595,
+            "end": 93573,
+            "delta": 1978
+          },
+          "unchanged_counter_samples": 0
+        }
+      },
+      "gpu_mib": {
+        "min": 6564.0,
+        "max": 6591.0,
+        "start": 6564.0,
+        "end": 6591.0,
+        "growth": 27.0,
+        "slope_mib_per_minute": 31.302195904834917
+      },
+      "private_mib": {
+        "min": 8872.37109375,
+        "max": 8891.8359375,
+        "start": 8880.1171875,
+        "end": 8891.8359375,
+        "growth": 11.71875,
+        "slope_mib_per_minute": 6.7902443755981
+      },
+      "working_set_mib": {
+        "min": 4324.0234375,
+        "max": 4342.8515625,
+        "start": 4336.41015625,
+        "end": 4342.8515625,
+        "growth": 6.44140625
+      },
+      "configuration": {
+        "1": {
+          "model": "CK1 experimental",
+          "hint": "MODNet",
+          "grid_hw": [
+            384,
+            384
+          ],
+          "size": [
+            1920,
+            1080
+          ],
+          "refiner": false
+        },
+        "2": {
+          "model": "CK2",
+          "profile": "Balanced",
+          "size": [
+            3840,
+            2160
+          ],
+          "refiner": true,
+          "refiner_tiles": 512
+        }
+      }
+    }
+  },
+  "decisions": {
+    "sessions": "Private captured sessions and fixed bindings; shared verified model packages and serialized engines. No shared live-session benchmark.",
+    "native_capture_storage": "RGBA16F saves 316.40625 MiB for five 4K native captures.",
+    "open_followups": [
+      "Profile the positive memory trend over a longer run.",
+      "Identify the trigger for the brief simultaneous warm-up interruption.",
+      "Physical-camera, encoder/game-load and hardware TDR tests remain unperformed."
+    ]
+  },
+  "measurement_base_commit": "9a5577e",
+  "final_base_commit": "327bb68",
+  "rebase_note": "Runtime source files match the measured pre-rebase build; subsequent main changes concern catalogue signing and packaging."
+}
