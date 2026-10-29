@@ -86,7 +86,7 @@ int run_post_tests(const char *directory)
 	gs_begin_scene();
 	gs_enable_depth_test(false);
 	gs_set_cull_mode(GS_NEITHER);
-	for (unsigned fixture = 0; fixture < 12; ++fixture) {
+	for (unsigned fixture = 0; fixture < 13; ++fixture) {
 		const unsigned w = fixture >= 9 && fixture <= 10   ? 512
 				   : fixture == 1 || fixture == 11 ? 1
 				   : fixture == 2                  ? 5
@@ -133,8 +133,25 @@ int run_post_tests(const char *directory)
 		}
 		if (fixture == 7)
 			settings.quality.unmix_mode = UnmixMode::compositing_equation;
+		Image network = model;
+		if (fixture == 12) {
+			network = Image(2, 2);
+			network.pixels = {{0.1, 0.2, 0.3, 0},
+					  {0.8, 0.4, 0.2, 0.8},
+					  {0.3, 0.7, 0.1, 0.6},
+					  {0.9, 0.8, 0.5, 1}};
+			for (unsigned y = 0; y < h; ++y)
+				for (unsigned x = 0; x < w; ++x) {
+					const auto u = std::clamp((x + 0.5) * 2 / w - 0.5, 0.0, 1.0);
+					const auto v = std::clamp((y + 0.5) * 2 / h - 0.5, 0.0, 1.0);
+					for (unsigned c = 0; c < 4; ++c)
+						model.at(x, y)[c] = std::lerp(
+							std::lerp(network.at(0, 0)[c], network.at(1, 0)[c], u),
+							std::lerp(network.at(0, 1)[c], network.at(1, 1)[c], u), v);
+				}
+		}
 		const auto reference = post_reference::reconstruct(native, guide, model, settings, roi);
-		auto *native_texture = upload(native), *guide_texture = upload(guide), *model_texture = upload(model);
+		auto *native_texture = upload(native), *guide_texture = upload(guide), *model_texture = upload(network);
 		auto *output = gs_texrender_create(GS_RGBA32F, GS_ZS_NONE);
 		std::printf("FIXTURE %u grid=%ux%u native=%ux%u\n", fixture, w, h, nw, nh);
 		{

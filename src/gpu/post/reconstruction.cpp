@@ -148,6 +148,10 @@ bool Reconstruction::prepare(gs_texture_t *native, gs_texture_t *guide, gs_textu
 	set("band_low", std::clamp(finite(q.refiner_band_lo, 0.004f), 0.0f, 0.5f));
 	texture("guide_image", guide);
 	texture("model_image", model);
+	vec2 model_dimensions;
+	vec2_set(&model_dimensions, static_cast<float>(gs_texture_get_width(model)),
+		 static_cast<float>(gs_texture_get_height(model)));
+	set("model_size", model_dimensions);
 	size(grid_);
 	if (!draw(reduction_, {32, 32}, "Reduce"))
 		return false;
