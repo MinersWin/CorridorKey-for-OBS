@@ -2,7 +2,7 @@
 # Filter properties captures
 
 Captured on 29 October 2026 in isolated portable OBS 33.0.0, Qt 6.11.1,
-with the D1 build compiled against the OBS 30.2 SDK. Each PNG is a real Qt
+with the R2 release-audit build compiled against the OBS 30.2 SDK. Each PNG is a real Qt
 widget capture, with no cursor or desktop overlays. The test profile disables
 obs-websocket and contains no browser sources. Installed OBS was left untouched.
 
@@ -22,5 +22,5 @@ property callbacks passed the libobs test, but this capture set is English.
 
 Run `tests/ui/run-obs-captures.ps1` with an isolated portable root and staged
 probe tools. Add `-Diagnostics` for the diagnostics set. The runner restores the
-test plugin and preferences after each run. See [the design review](../../dev/design-review.md)
-for the comparison, checks and remaining work.
+test plugin and preferences after each run. See [the release audit](../../dev/release-audit.md)
+for checks and remaining release gates.

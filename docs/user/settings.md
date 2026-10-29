@@ -22,7 +22,7 @@ Manage models opens installation, licence review and backend tests. Selecting a 
 
 ## Reading the panel
 
-The standard view contains Preset, Model and Edge refiner, followed by status, Manage models and Crop. Advanced reveals quality, edge, colour, hint, output and sync controls. Expert adds backend experiments. Crop, Output / debug and Sync / delay have Show details checkboxes that only expand the form.
+The standard view contains Preset and Edge refiner, followed by status, Manage models and Crop. Advanced reveals Model, backend selection, quality, edge, colour, hint, output and sync controls. Expert adds GPU, precision, transfer and less common controls. Crop, Output / debug and Sync / delay have Show details checkboxes that only expand the form.
 
 The status below Edge refiner explains what to do when models or a backend are missing. Once timing is available, one line shows the model, backend, keyed fps, milliseconds per key and filter delay. Delay is the age of the captured input when displayed; it excludes camera and encoder latency. Hover for error codes, p95 delay and dropped/repeated counts. Status refreshes every two seconds while the form is idle, and pauses while a control is being edited.
 
@@ -77,11 +77,11 @@ The panel uses OBS's font, spacing and colours. These captures show a test sourc
 | Colour method (`unmix_mode`) | Delta | Advanced; Delta / Compositing equation | Delta transfers model colour correction onto native detail. Compositing equation is experimental. |
 | Interior colour (`unmix_inner`) | 1 | Advanced; 0 to 1; step 0.05 | Model colour correction in solid areas. Edges retain full correction. |
 | Despill (`despill_strength`) | 0.65 | Advanced; 0 to 1; step 0.02 | Remove screen-colour spill after reconstruction/refinement. CK1 Blue uses the blue channel. Reduce if neutral or coloured details shift. |
-| Screen (`screen_color`) | Green | Advanced; Green / Blue | CK1 uses a separate blue-screen checkpoint. CK2 presets use green-screen input. |
+| Screen (`screen_color`) | Green | Advanced; Green / Blue | CK1 uses a separate blue-screen checkpoint. CK2 presets are evaluated for green. |
 
 ## Manual crop
 
-Each cut removes a percentage before inference. Pixels outside the crop become transparent while the output canvas keeps the source size. Moving a slider keeps the selected output view. Preview crop is disabled until the renderer can clear a temporary view when properties close. View → Crop is an explicit, saved inspection view.
+Each cut removes a percentage before inference. Pixels outside the crop become transparent while the output canvas keeps the source size. Moving a slider keeps the selected output view. Preview crop is unavailable in this release. View → Crop is an explicit, saved inspection view.
 
 | Option | Default | Visibility and range | Effect |
 | --- | --- | --- | --- |
@@ -94,7 +94,7 @@ Each cut removes a percentage before inference. Pixels outside the crop become t
 
 ## Hints
 
-CK1 defaults to MODNet. CK2 Stage 1 is also available when its dependencies are installed; it adds MoGe, RVM and a 512 x 512 Stage-1 pass. The last hint time appears separately and is included in the total inference time. A person hint can omit props or chairs. Chroma requires Expert and warns about teal objects and uneven screens. MediaPipe and future hint slots have no implementation or download package.
+CK1 defaults to MODNet. CK2 Stage 1 is also available when its dependencies are installed; it adds MoGe, RVM and a 512 x 512 Stage-1 pass. The last hint time appears separately and is included in the total inference time. A person hint can omit props or chairs. Chroma requires Expert and warns about teal objects and uneven screens. MediaPipe and external-mask hints are unavailable in this release.
 
 | Option | Default | Visibility and range | Effect |
 | --- | --- | --- | --- |
@@ -102,7 +102,7 @@ CK1 defaults to MODNet. CK2 Stage 1 is also available when its dependencies are 
 | Screen match (`hint_similarity`) | 0.40 | Expert; 0 to 1; step 0.01 | Chroma similarity used to seed background. Calibration is provisional; inspect Hint output. |
 | Hint softness (`hint_smoothness`) | 0.10 | Expert; 0.01 to 0.5; step 0.01 | Width of the chroma transition, not final matte sharpness. |
 | Hint rate (`hint_refresh`) | 1 frame | Advanced; disabled | Every hint uses the same capture as CK1. Older hints are never reused. |
-| Mask source (`hint_mask`) | None | Expert; Installed model or validated source ID | Use a validated full-frame linear mask aligned with this frame and crop. A source that creates a filter loop cannot be used. |
+| Mask source (`hint_mask`) | None | Expert; unavailable | External-mask input is not implemented in this release. |
 | Hint mode (`hint_mode`) | Off | Expert; Off / Previous / Chroma / Blend / External | CK2 hints are experimental. Measured profiles use Off. |
 | Previous hint (`temporal_hint_quality`) | 0 | Expert; 0 to 0.95; step 0.05 | Trust in previous alpha. Zero disables it; high values can leave trails. |
 | Chroma trust (`chroma_hint_quality`) | 0.75 (dormant) | Expert; 0 to 1; step 0.05 | Trust in the experimental CK2 chroma hint; not a native CK1 input. |
@@ -132,7 +132,7 @@ Auto lip-sync is off by default. Choose the microphone paired with this camera b
 | Delay limit (`sync_limit_ms`) | 250 ms | Expert; 50 to 1000 ms; step 10 | Maximum added audio delay. Large values cannot fix a backend that falls behind. |
 | Stale limit (`stale_timeout_ms`) | 250 ms | Expert; 100 to 1000 ms; step 10 | Return to live input if no fresh keyed result arrives in this time. |
 
-Filter delay shows the median age from captured input to the displayed result. Applied delay is the extra offset added to the microphone and its current sync state. Unavailable measurements are labelled rather than shown as zero. Neither readout includes camera or encoder delay.
+Filter delay shows the median age from captured input to the displayed result. Applied delay is the total offset applied to the microphone and its current sync state. Unavailable measurements are labelled rather than shown as zero. Neither readout includes camera or encoder delay.
 
 ## Expert controls
 

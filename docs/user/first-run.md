@@ -23,7 +23,8 @@ Balanced / Quality; it does not start a download immediately.
 
 The manager shows the current download size. Balanced and Quality share a
 package; Facecam uses separate graphs and reuses the source checkpoints.
-Edge Refiner v15 is a separate installation. Storage shows cache usage and free
+Edge Refiner v15 is a separate installation. Install it as well, or turn Edge
+refiner off in the filter. Storage shows cache usage and free
 space on the drive. Hover the folder path to read it in full, or choose Open folder.
 
 ## Accept the model licences
@@ -70,9 +71,10 @@ are missing. Open Manage models to install that package. For learned refinement,
 install Edge Refiner v15 and enable **Edge refiner** near Model. The tile budget
 is under Advanced; changing it prepares a replacement pipeline.
 
-Refinement is still experimental. Its current tile transfers can exceed the
-frame-age limit and return video to passthrough. See the
-[refiner measurements](../dev/refiner.md) for the current latency limits.
+On supported Windows GPUs, refinement can keep tiles on the GPU. Staged tile
+transfers are slower and can exceed the frame-age limit. If the status reports
+high displayed age or returns to passthrough, turn Edge refiner off and compare.
+See [performance](performance.md) for measured device and staged paths.
 
 ## If setup fails
 
@@ -85,9 +87,6 @@ and the status tooltip.
 The bundled DirectML backend needs no TensorRT engine. Optional TensorRT setup
 can spend time building an engine. Its activity bar means work is ongoing and
 does not estimate time remaining. Restart OBS after changing runtime bundles.
-
-Windows may ask about inbound access when a new portable OBS copy starts.
-CorridorKey needs no listening port; you can cancel that firewall prompt.
 
 These captures use real OBS 33 widgets. Setup and licence review use the bundled
 production catalogue. Progress and Ready use labelled synthetic state fixtures,

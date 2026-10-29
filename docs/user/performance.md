@@ -15,7 +15,7 @@ passthrough while it runs. Driver, runtime or graph changes can require a rebuil
 | RTX 5070 Ti | Facecam displayed about 56 distinct refined keys/s at 4K with 33.5 ms age in the controlled test. The 60 FPS target was not reached. See the measurements below. |
 | Other NVIDIA RTX GPUs | Device transport requires OBS and inference to use the same adapter and a working CUDA/TensorRT runtime. Throughput and memory use need measurements on the specific card. |
 | AMD/Intel on Windows | DirectML can keep CK2 tensors and refiner tiles on the GPU through D3D11/D3D12 sharing. If the device, shared textures or validation fail, it uses staged transfers. AMD and Intel hardware measurements are still needed. |
-| Linux | This D3D11 transport is Windows-only. Linux uses its existing transport and provider selection. |
+| Linux | GPU interop is not implemented. Runtime and live-host validation remain limited; see [compatibility](../compatibility.md). |
 
 Start with Facecam and refinement off when testing a new GPU. Facecam uses a
 256x512 model grid; Balanced uses 512x512, and Quality adds Stage 2. Refinement
@@ -28,7 +28,7 @@ when the model grid is small. Test with the scene, encoders and other GPU effect
 you intend to use while streaming.
 
 If device transport cannot initialize, the filter uses staged transfers. You can
-also select the staged transport in advanced settings to compare behaviour. A
+also select the staged transport in Expert settings to compare behaviour. A
 backend failure may leave the source in passthrough with an explanation in the
 status. Unknown driver and runtime versions are attempted; a version string alone
 does not prevent the plugin from loading.
@@ -42,6 +42,10 @@ Balanced, both with refinement, produced about 33 new keys/s each and used about
 66 ms for Balanced. See the [multi-instance results](../dev/multi-instance.md).
 
 Watch the status of both filters with your complete streaming scene running.
+The two-camera 30-minute soak showed rising memory use: about 106 MiB of device
+memory and 69 MiB of process private memory. The cause is unresolved; test longer
+sessions on your setup before relying on multiple filters for a stream.
+
 Hiding a source releases its native frame buffers after pending work drains;
 model sessions stay loaded for reuse when it becomes visible again. Engine
 preparation can need additional temporary memory beyond steady operation.

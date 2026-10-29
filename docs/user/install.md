@@ -3,9 +3,9 @@
 
 Use the packages from the project's [GitHub Releases](https://github.com/MinersWin/CorridorKey-for-OBS/releases).
 Close every OBS instance before installing, upgrading or removing the plugin.
-CorridorKey targets OBS 30.2 and newer. The current builds are still a passthrough
-foundation: installing a runtime does not supply a working neural pipeline or a
-production model catalogue. Check the release notes before using a build on stream.
+CorridorKey targets OBS 30.2 and newer. After installation, use the model manager
+to download the packages needed by your chosen preset. Check the release notes
+and test your scene before using a release candidate on stream.
 
 The Windows package includes ONNX Runtime and DirectML for AMD, Intel and NVIDIA
 GPUs supported by DirectML. Linux packages include the ORT core. Models and NVIDIA
@@ -20,8 +20,8 @@ Two tiny synthetic Add graphs let the backend helper test a runtime.
    and compare the result with the matching checksum line.
 2. Run the installer. These builds are unsigned. Windows SmartScreen may show
    "Windows protected your PC". Check the download source and checksum first;
-   if you trust the release, choose **More info**, then **Run anyway**. Signing
-   future builds is a maintainer decision.
+   if you trust the release, choose **More info**, then **Run anyway**. The model
+   catalogue is signed separately; that does not remove the SmartScreen warning.
 3. Read the licence and select your OBS folder. The installer detects the normal
    OBS installation, and lets you browse to a custom installation.
 4. Check the host range: OBS 33+ uses a flat plugin folder; OBS 30.2–32 uses
@@ -29,11 +29,7 @@ Two tiny synthetic Add graphs let the backend helper test a runtime.
 5. Finish installation, open OBS and add **CorridorKey** under a source's
    **Filters → Effect Filters**. Use **Manage models** to review model availability.
 
-![The real installer detects the OBS installation folder.](../images/install/installer-host.jpg)
-
-The installer example uses the 0.0.9 upgrade fixture. Version labels vary.
-
-![CorridorKey loaded in portable OBS 33, with a color source and no model installed.](../images/install/obs-filter.jpg)
+![CorridorKey properties in OBS 33, Yami.](../images/first-run/yami-properties.png)
 
 The installer writes to `%ProgramData%\obs-studio\plugins\corridorkey`.
 It never puts ORT or NVIDIA DLLs beside `obs64.exe`. If it finds a manual
@@ -75,8 +71,8 @@ and the optional NVIDIA core are different builds; they cannot run together in
 the same OBS process. A failed backend must leave video in passthrough and report
 the reason. **Test installed bundle** uses a separate helper and synthetic data;
 it does not certify model compatibility or predict CorridorKey frame rate.
-Runtime selection for live inference belongs to the engine integration; this
-foundation build only installs and probes bundles.
+Select the backend in the filter's Advanced controls, or leave it on Auto.
+The filter checks the selected model graphs before activating the pipeline.
 
 Allow about 0.53 GB for the Windows RTX download, or over 3 GB for conventional
 TensorRT/CUDA. The Linux NVIDIA bundle downloads about 5 GB. Leave room for both
