@@ -5,8 +5,15 @@ on:
     branches: ['**']
   pull_request:
   workflow_call:
+    inputs:
+      package_stages:
+        type: boolean
+        default: false
 permissions:
   contents: read
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   windows:
     runs-on: windows-2022
@@ -16,19 +23,35 @@ jobs:
         sdk: [baseline, current]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
       - name: Configure
-        run: cmake --preset windows-ci-x64 -DCORRIDORKEY_OBS_SDK=${{ matrix.sdk }} -DCORRIDORKEY_WINDOWS_LAYOUT=MODERN
+        run: cmake --preset windows-ci-x64 -DCORRIDORKEY_OBS_SDK=${{ matrix.sdk }} -DCORRIDORKEY_WINDOWS_LAYOUT=MODERN -DCORRIDORKEY_FETCH_ONNXRUNTIME=ON
       - name: Build
         run: cmake --build --preset windows-ci-x64 --parallel 4
       - name: Stage
         run: cmake --install build_x64 --config RelWithDebInfo --prefix stage
+      - name: Test
+        shell: pwsh
+        run: |
+          # SDK DLLs are needed only by the libobs-linked settings test.
+          $dllDirs = Get-ChildItem .deps -Filter '*.dll' -Recurse | ForEach-Object DirectoryName | Sort-Object -Unique
+          $env:PATH = ($dllDirs -join ';') + ';' + $env:PATH
+          ctest --test-dir build_x64 -C RelWithDebInfo --output-on-failure -LE local-models
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: inputs.package_stages && matrix.sdk == 'baseline'
         with:
           name: windows-x64-${{ matrix.sdk }}-stage
           path: stage/
           if-no-files-found: error
+          retention-days: 1
   linux:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-${{ matrix.distro }}
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ['24.04', '26.04']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install SDK build tools
@@ -38,18 +61,22 @@ jobs:
             python3 qt6-base-dev extra-cmake-modules libsimde-dev uthash-dev \
             libjansson-dev libx11-dev libx11-xcb-dev libxcb1-dev libxcb-xinput-dev \
             libdrm-dev libegl1-mesa-dev libgl1-mesa-dev libglib2.0-dev uuid-dev zlib1g-dev \
-            libcurl4-openssl-dev libssl-dev nlohmann-json3-dev \
+            libcurl4-openssl-dev libssl-dev nlohmann-json3-dev dpkg-dev libobs-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev
       - name: Build baseline OBS SDK
         run: python3 tools/bootstrap-linux-sdk.py --sdk baseline
       - name: Configure
-        run: cmake --preset ubuntu-ci-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk-baseline"
+        run: cmake --preset ubuntu-ci-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk-baseline" -DCORRIDORKEY_FETCH_ONNXRUNTIME=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBEXECDIR=libexec
       - name: Build
         run: cmake --build --preset ubuntu-ci-x86_64 --parallel 4
       - name: Stage
         run: DESTDIR="$PWD/stage" cmake --install build_x86_64 --prefix /usr
+      - name: Test
+        run: ctest --test-dir build_x86_64 --output-on-failure -LE local-models
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: inputs.package_stages
         with:
-          name: ubuntu-x86_64-stage
+          name: ubuntu-${{ matrix.distro }}-x86_64-stage
           path: stage/
           if-no-files-found: error
+          retention-days: 1
