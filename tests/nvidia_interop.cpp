@@ -31,6 +31,26 @@ int main()
 					&device, nullptr, &graphics));
 		auto cuda = std::make_shared<nvidia::Context>(0);
 		{
+			ComPtr<ID3D11Device> software;
+			check(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_WARP, nullptr, 0, nullptr, 0,
+						D3D11_SDK_VERSION, &software, nullptr, nullptr));
+			D3D11_TEXTURE2D_DESC desc{};
+			desc.Width = desc.Height = desc.MipLevels = desc.ArraySize = desc.SampleDesc.Count = 1;
+			desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			ComPtr<ID3D11Texture2D> texture;
+			check(software->CreateTexture2D(&desc, nullptr, &texture));
+			bool rejected = false;
+			try {
+				nvidia::D3D11Texture mismatch(cuda, texture.Get());
+			} catch (const std::exception &) {
+				rejected = true;
+			}
+			require(rejected, "Non-CUDA rendering adapter accepted for interop");
+			std::cout << "Non-CUDA rendering adapter rejected\n";
+		}
+		{
 			auto second = std::make_shared<nvidia::Context>(0);
 			auto a = cuda->allocate(sizeof(float)), b = second->allocate(sizeof(float));
 			float expected = .75f, actual = 0;
