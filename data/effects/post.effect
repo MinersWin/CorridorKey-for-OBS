@@ -13,6 +13,7 @@ uniform texture2d refined_image;
 uniform float2 texel;
 uniform float2 input_size;
 uniform float2 grid_size;
+uniform float2 model_size;
 uniform float2 coarse_size;
 uniform float4 roi;
 uniform float4 user_cut;
@@ -67,12 +68,12 @@ float4 sample_Background(float2 uv)
 }
 float4 sample_Network(float2 uv)
 {
-    float2 p = uv * grid_size - 0.5;
+    float2 p = uv * model_size - 0.5;
     float2 base = floor(p), weight = p - base;
-    float2 a = (base + 0.5) / grid_size;
-    float2 step_uv = 1.0 / grid_size;
-    return lerp(lerp(model_image.Sample(point_clamp, a), model_image.Sample(point_clamp, a + float2(step_uv.x, 0.0)), weight.x),
-                lerp(model_image.Sample(point_clamp, a + float2(0.0, step_uv.y)), model_image.Sample(point_clamp, a + step_uv), weight.x), weight.y);
+    float2 a = (base + 0.5) / model_size;
+    float2 step_uv = 1.0 / model_size;
+    return lerp(lerp(safe4(model_image.SampleLevel(point_clamp, a, 0.0)), safe4(model_image.SampleLevel(point_clamp, a + float2(step_uv.x, 0.0), 0.0)), weight.x),
+                lerp(safe4(model_image.SampleLevel(point_clamp, a + float2(0.0, step_uv.y), 0.0)), safe4(model_image.SampleLevel(point_clamp, a + step_uv, 0.0)), weight.x), weight.y);
 }
 float4 sample_Coarse(float2 uv)
 {
@@ -96,7 +97,7 @@ float4 Solve(Vertex v) : TARGET
             float2 uv = v.uv + float2(x, y) * texel;
             if (uv.x >= 0.0 && uv.y >= 0.0 && uv.x < 1.0 && uv.y < 1.0) {
                 float3 rgb = saturate(safe4(guide_image.Sample(point_clamp, uv))).rgb - origin;
-                float alpha = saturate(clean(model_image.Sample(point_clamp, uv).a));
+                float alpha = saturate(clean(sample_Network(uv).a));
                 mean += rgb; mean_alpha += alpha; cross_alpha += rgb * alpha;
                 diagonal += rgb * rgb; off += rgb.xxy * rgb.yzz; count += 1.0;
             }
@@ -128,14 +129,14 @@ float4 Box(Vertex v) : TARGET
 }
 float4 Delta(Vertex v) : TARGET
 {
-    return float4(saturate(safe4(model_image.Sample(point_clamp, v.uv))).rgb - saturate(safe4(guide_image.Sample(point_clamp, v.uv))).rgb, 0.0);
+    return float4(saturate(safe4(sample_Network(v.uv))).rgb - saturate(safe4(guide_image.Sample(point_clamp, v.uv))).rgb, 0.0);
 }
 float4 Band(Vertex v) : TARGET
 {
     float uncertain = 0.0, near_alpha = 0.0;
     for (int y = -2; y <= 2; ++y) {
         for (int x = -2; x <= 2; ++x) {
-            float a = saturate(clean(model_image.Sample(point_clamp, v.uv + float2(x, y) * texel).a));
+            float a = saturate(clean(sample_Network(v.uv + float2(x, y) * texel).a));
             uncertain = max(uncertain, (a > band_low && a < 1.0 - band_low) ? 1.0 : 0.0);
             near_alpha = max(near_alpha, a);
         }
@@ -145,7 +146,7 @@ float4 Band(Vertex v) : TARGET
 }
 float4 BackgroundSeed(Vertex v) : TARGET
 {
-    float a = saturate(clean(model_image.Sample(point_clamp, v.uv).a));
+    float a = saturate(clean(sample_Network(v.uv).a));
     float weight = (1.0 - a) * (1.0 - a); weight *= weight;
     return float4(decode(guide_image.Sample(point_clamp, v.uv).rgb) * weight, weight);
 }
@@ -158,7 +159,7 @@ float4 Reduce(Vertex v) : TARGET
     for (int y = int(first.y); y < int(end.y); ++y) for (int x = int(first.x); x < int(end.x); ++x) {
         float2 uv = (float2(x, y) + 0.5) / grid_size;
         sum += saturate(safe4(guide_image.SampleLevel(point_clamp, uv, 0.0))).rgb;
-        alpha = max(alpha, saturate(clean(model_image.SampleLevel(point_clamp, uv, 0.0).a))); count += 1.0;
+        alpha = max(alpha, saturate(clean(sample_Network(uv).a))); count += 1.0;
     }
     return float4(sum / max(count, 1.0), alpha);
 }
