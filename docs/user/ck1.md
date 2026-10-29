@@ -42,6 +42,31 @@ Adjust Screen match and Hint softness while watching Hint view. These controls
 change the hint, not the model's final edge sharpness. Every hint belongs to the
 current captured frame; the plugin never reuses an older hint.
 
+## Inspect the output
+
+These real OBS source renders use green CK1 at 384 with MODNet and RGB guided
+reconstruction. The hint and key show the same paused frame; the unfiltered
+image is a separate frame from the clip for context. Learned refinement is off.
+The microphone and gesturing hand make useful checks alongside hair and clothing.
+
+Unfiltered clip, shown for context:
+
+![Original reporter frame with a green background](../images/ck1/reporter-source.png)
+
+MODNet's raw hint:
+
+![MODNet hint, including the person silhouette and a faint outline of the gesturing hand](../images/ck1/ck1-modnet-384-hint-dml.png)
+
+CK1's keyed output:
+
+![CK1 green-384 output with the microphone retained and a transparent background](../images/ck1/ck1-modnet-384-key-dml.png)
+
+The background is transparent in the keyed PNG. Check the faint hand outline in
+Hint view: a person model can supply a weak hint outside the main silhouette.
+The [capture notes](../images/ck1/provenance.md) include all three grids, Alpha,
+the Expert chroma path and NVIDIA transport settings. A single frame does not
+show motion quality or replace the clip evaluation below.
+
 ## Quality and cost
 
 The export evaluation on real clips reported these edge errors. Lower is better.

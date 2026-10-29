@@ -57,7 +57,7 @@ All dimensions below are **H×W**. F/B/Q means Facecam 60 / Balanced / Quality. 
 | Stagger / head pass / C-RADIO | Off / Off / unavailable | Same | Same |
 | Output / auto sync | Key / Off | Same | Same |
 
-For CK1, choose **Custom** automatically on first selection, starting with a proposed 384×384 static grid, chroma hint, RGB guided reconstruction and refiner off. Offer tested CK1 grid choices 256/384/512 when the manifest supplies them. These are design defaults pending CK1 export evaluation. Per-pipeline saved settings avoid overwriting the user's CK2 setup. The v12 refiner becomes selectable for CK1 only with an explicit experimental capability and evaluated package; it is trained on CK2 outputs.
+For CK1, choose **Custom** automatically on first selection, starting at 384×384 with MODNet, RGB guided reconstruction and refiner off. The revision-4 owner decision keeps CK1 Advanced-only and labels it Experimental, with an honest quality note and the CK2 Facecam/refiner-off fallback recommendation. Offer the released 256/384/512 grids. CK2 Stage-1 alpha shows its dependencies and cost; chroma requires Expert and warns about teal or uneven screens. Per-pipeline saved settings preserve the user's CK2 setup. The learned refiner stays off until an evaluated CK1 package exists.
 
 The specified 0.05 motion threshold supersedes the Lua/CLI 0.035 default. Radius 2 and epsilon 5e-4 are authoritative. The shipped Facecam tile budget is 384: against 256 tiles it measured 5–9 % lower edge error for about 0.5 ms more on the reference GPU.
 
