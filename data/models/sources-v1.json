@@ -1,0 +1,81 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. Embedded licence texts retain their original terms.",
+  "sources": [
+    {
+      "id": "ck2",
+      "bytes": 2661698720,
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "path": "sources/ck2/corridorkey_v2.safetensors",
+      "sha256": "c43596de98cc8866d577c8a9f9ea239acdf3f7a130ff24e25db4375a50590436",
+      "origin": {
+        "revision": "cf44a8db3f024bb49fd59daa408848ccf05f7477",
+        "repo": "nikopueringer/CorridorKey2.0",
+        "file": "corridorkey_v2.safetensors"
+      },
+      "format": "safetensors"
+    },
+    {
+      "id": "stats",
+      "bytes": 18864,
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "path": "sources/stats/foundation_stats.safetensors",
+      "sha256": "924783ceddd293fd470126332ce328166faea6c4c8d2f36402d5b95187166af3",
+      "origin": {
+        "revision": "cf44a8db3f024bb49fd59daa408848ccf05f7477",
+        "repo": "nikopueringer/CorridorKey2.0",
+        "file": "foundation_stats.safetensors"
+      },
+      "format": "safetensors"
+    },
+    {
+      "id": "moge",
+      "bytes": 351063528,
+      "licenses": [
+        "LicenseRef-MoGe-MIT-DINOv2"
+      ],
+      "path": "sources/moge/model.safetensors",
+      "sha256": "be74d978c6a69cb467c057aa8b736e4b3a8eb9b2ec41622edd6b26c756573e3b",
+      "origin": {
+        "revision": "3090937b74a09929079cf6c77ad1edd40a0a9aaf",
+        "repo": "mantelmoritz/MoGe-2-ViT-B-Encoder-safetensors",
+        "file": "model.safetensors"
+      },
+      "format": "safetensors"
+    },
+    {
+      "id": "refiner",
+      "bytes": 94336,
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "path": "sources/refiner/corridorkey_edge_refiner_v12.safetensors",
+      "sha256": "377d7c60ab7f6a5691e9977a491bcea397ade1421bb6087f2bc79ad3a9ce315d",
+      "origin": {
+        "revision": "6e37255904c81ab224b1a1b39cbe4512c7a6dafb",
+        "repo": "mantelmoritz/CorridorKey-Realtime-EdgeRefiner",
+        "file": "corridorkey_edge_refiner_v12.safetensors"
+      },
+      "format": "safetensors"
+    },
+    {
+      "id": "rvm",
+      "bytes": 270086372,
+      "licenses": [
+        "CC-BY-4.0"
+      ],
+      "path": "sources/rvm/pretrain_rvm_small16_256_204031069.npz",
+      "sha256": "8821ba9f5d983b9a3746bb5fe86b9c2ea834fe9985ab7b02438b917438bf2ede",
+      "origin": {
+        "md5_base64": "ZJb6kj8+tasiJbVeplXu7Q==",
+        "revision": "8821ba9f5d983b9a3746bb5fe86b9c2ea834fe9985ab7b02438b917438bf2ede",
+        "url": "https://storage.googleapis.com/representations4d/checkpoints/pretrain_rvm_small16_256_204031069.npz"
+      },
+      "format": "npz"
+    }
+  ],
+  "schema_version": 1
+}
