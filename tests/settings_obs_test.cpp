@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
 #include "settings/obs_settings.hpp"
 #include "obs/properties.hpp"
+#include "obs/filter_control.hpp"
 #include <obs.h>
 #include <util/text-lookup.h>
 #include <cstdlib>
@@ -22,6 +23,12 @@ static void check(bool ok, const char *message)
 		std::exit(1);
 	}
 }
+struct StatusControl : corridorkey::FilterControl {
+	std::shared_ptr<corridorkey::Status> state = std::make_shared<corridorkey::Status>();
+	corridorkey::SettingsSnapshot settings_snapshot() const override { return {}; }
+	corridorkey::StatusSnapshot status_snapshot() const override { return state; }
+	void request_reset() noexcept override {}
+};
 int main(int argc, char **argv)
 {
 	check(argc == 2, "locale directory required");
@@ -37,6 +44,39 @@ int main(int argc, char **argv)
 		obs_properties_apply_settings(props, data);
 		check(obs_property_list_item_count(obs_properties_get(props, "profile")) == 4, "four presets");
 		check(!obs_property_visible(obs_properties_get(props, "expert")), "Expert hidden initially");
+		check(obs_property_visible(obs_properties_get(props, "refiner_enabled")),
+		      "Edge refiner stays in standard view");
+		for (const auto *key : {"group_edge", "group_color", "group_sync", "group_output"})
+			check(!obs_property_visible(obs_properties_get(props, key)),
+			      "Detailed sections stay behind Advanced");
+		auto *ordered = obs_properties_first(props);
+		for (const auto *key : {"profile", "model_id", "refiner_enabled", "status", "manage_models"}) {
+			check(std::string(obs_property_name(ordered)) == key, "Everyday property order");
+			obs_property_next(&ordered);
+		}
+		StatusControl control;
+		control.state->failure = corridorkey::error(corridorkey::ErrorCode::model_missing);
+		control.state->diagnostic_detail = "Developer-only diagnostic marker";
+		auto *status_props = corridorkey::create_filter_properties(&control);
+		obs_properties_apply_settings(status_props, data);
+		const std::string missing = obs_data_get_string(data, "status");
+		check(missing.find("CK-E") == std::string::npos && missing.find("Developer-only") == std::string::npos,
+		      "Status hides diagnostic identifiers and raw detail");
+		check(std::string(obs_property_long_description(obs_properties_get(status_props, "status")))
+				      .find("CK-E010") != std::string::npos,
+		      "Diagnostic code remains in the tooltip");
+		control.state->failure = {};
+		control.state->lifecycle = corridorkey::Lifecycle::ready;
+		control.state->backend = corridorkey::Backend::directml;
+		control.state->keyed_fps = 30.;
+		control.state->inference_median_ms = 12.;
+		control.state->age_median_ms = 40.;
+		obs_properties_apply_settings(status_props, data);
+		const std::string ready = obs_data_get_string(data, "status");
+		check(ready.find("<br>") == std::string::npos && ready.find("30.0") != std::string::npos &&
+			      ready.find("DirectML") != std::string::npos,
+		      "Ready status keeps backend, frame rate and delay on one line");
+		obs_properties_destroy(status_props);
 		check(!obs_property_visible(obs_properties_get(props, "group_performance")),
 		      "Advanced group hidden initially");
 		obs_data_set_bool(data, "advanced", true);
