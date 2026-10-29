@@ -132,11 +132,13 @@ same completion logic on a private thread. Fake timing fields describe simulated
 delay and are not performance measurements of a neural model.
 
 Configure the Windows preset with `-DCORRIDORKEY_ENABLE_FAKE_FILTER=ON` to add
-the explicit "Synthetic diagnostics (replaces video)" group. Its checkbox defaults
-off. It displays a 64x64 synthetic image at source size and never claims to key
-camera input. Delay, reorder and fault controls exercise the worker; failure or
-staleness returns to passthrough. Texture creation/destruction stays outside
-render. The default build has no diagnostic controls or fake worker in the filter.
+W03's "Input capture diagnostics (no neural model)" group. Its checkbox defaults
+off. It runs the fake on the actual filter input through a fenced staged transport.
+Delay, odd-frame delay and fault controls exercise the worker; failure or staleness
+returns to passthrough. Texture creation/destruction stays outside render. The
+core tests still use synthetic image fixtures. The default build has no
+diagnostic controls or fake worker in the filter. See the
+[W03 capture and validation notes](validation-w03.md) for ownership and measurements.
 
 ```sh
 cmake -S . -B build-contracts -DCORRIDORKEY_BUILD_PLUGIN=OFF

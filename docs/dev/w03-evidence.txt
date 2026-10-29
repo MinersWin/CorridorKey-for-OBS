@@ -1,0 +1,156 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+W03 validation excerpts, 29 October 2026.
+Diagnostic DLL SHA-256: ba2fa82046822388fe36930fa3d4b4907934711ef95d1be0b842fa1eac39da8c
+Times are cumulative per-instance histogram upper bounds in milliseconds.
+Graphics tasks execute on OBS graphics thread; callback self excludes upstream filter begin.
+
+OBS 33 final graphics-task run
+01:47:05.516: [Lua: obs-w03.lua] W03 action: image1920
+01:47:15.021: [Lua: obs-w03.lua] W03 action: image1920
+01:47:25.083: [corridorkey:w03] instance=3 native=1920x1080 callbacks=603 self_ms_p50<=0.03 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=306 submitted=305 completed=305 dropped=294 repeated=0 status=0 graphics_tasks=601 graphics_ms_p50<=0.44 graphics_ms_p95<=0.67
+01:47:35.084: [corridorkey:w03] instance=3 native=1920x1080 callbacks=1203 self_ms_p50<=0.03 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=612 submitted=612 completed=611 dropped=588 repeated=0 status=0 graphics_tasks=1201 graphics_ms_p50<=0.45 graphics_ms_p95<=0.67
+01:47:40.022: [Lua: obs-w03.lua] W03 action: color1920
+01:47:50.035: [corridorkey:w03] instance=4 native=1920x1080 callbacks=602 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=315 submitted=315 completed=314 dropped=285 repeated=0 status=0 graphics_tasks=601 graphics_ms_p50<=0.42 graphics_ms_p95<=0.69
+01:48:00.051: [corridorkey:w03] instance=4 native=1920x1080 callbacks=1203 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=627 submitted=627 completed=626 dropped=574 repeated=0 status=0 graphics_tasks=1201 graphics_ms_p50<=0.42 graphics_ms_p95<=0.71
+01:48:05.022: [Lua: obs-w03.lua] W03 action: color3840
+01:48:15.042: [corridorkey:w03] instance=5 native=3840x2160 callbacks=602 self_ms_p50<=0.03 self_ms_p95<=0.05 total_ms_p50<=0.03 total_ms_p95<=0.06 captures=311 submitted=311 completed=310 dropped=289 repeated=0 status=0 graphics_tasks=601 graphics_ms_p50<=0.36 graphics_ms_p95<=0.66
+01:48:25.051: [corridorkey:w03] instance=5 native=3840x2160 callbacks=1203 self_ms_p50<=0.03 self_ms_p95<=0.06 total_ms_p50<=0.03 total_ms_p95<=0.07 captures=615 submitted=614 completed=614 dropped=586 repeated=0 status=0 graphics_tasks=1170 graphics_ms_p50<=0.36 graphics_ms_p95<=0.84
+01:48:30.022: [Lua: obs-w03.lua] W03 action: image3840
+01:48:40.236: [corridorkey:w03] instance=6 native=3840x2160 callbacks=603 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.05 captures=302 submitted=302 completed=301 dropped=298 repeated=0 status=0 graphics_tasks=595 graphics_ms_p50<=0.36 graphics_ms_p95<=0.71
+01:48:50.253: [corridorkey:w03] instance=6 native=3840x2160 callbacks=1204 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=603 submitted=603 completed=602 dropped=598 repeated=0 status=0 graphics_tasks=1196 graphics_ms_p50<=0.36 graphics_ms_p95<=0.67
+01:48:55.023: [Lua: obs-w03.lua] W03 action: browser1920
+01:49:05.036: [corridorkey:w03] instance=7 native=1920x1080 callbacks=602 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=303 submitted=303 completed=302 dropped=297 repeated=0 status=0 graphics_tasks=601 graphics_ms_p50<=0.22 graphics_ms_p95<=0.63
+01:49:15.053: [corridorkey:w03] instance=7 native=1920x1080 callbacks=1203 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.05 captures=604 submitted=604 completed=603 dropped=597 repeated=0 status=0 graphics_tasks=1202 graphics_ms_p50<=0.23 graphics_ms_p95<=0.64
+01:49:20.023: [Lua: obs-w03.lua] W03 action: browser3840
+01:49:30.036: [corridorkey:w03] instance=8 native=3840x2160 callbacks=602 self_ms_p50<=0.03 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=302 submitted=301 completed=301 dropped=299 repeated=0 status=0 graphics_tasks=601 graphics_ms_p50<=0.21 graphics_ms_p95<=0.67
+01:49:40.054: [corridorkey:w03] instance=8 native=3840x2160 callbacks=1203 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=602 submitted=602 completed=601 dropped=600 repeated=0 status=0 graphics_tasks=1202 graphics_ms_p50<=0.23 graphics_ms_p95<=0.69
+01:49:45.025: [Lua: obs-w03.lua] W03 action: media1920
+01:49:55.037: [corridorkey:w03] instance=9 native=1920x1080 callbacks=602 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=299 submitted=299 completed=299 dropped=298 repeated=0 status=0 graphics_tasks=598 graphics_ms_p50<=0.38 graphics_ms_p95<=0.67
+01:50:05.037: [corridorkey:w03] instance=9 native=1920x1080 callbacks=1202 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=598 submitted=597 completed=597 dropped=599 repeated=0 status=0 graphics_tasks=1195 graphics_ms_p50<=0.39 graphics_ms_p95<=0.71
+01:50:10.025: [Lua: obs-w03.lua] W03 action: media3840
+01:50:20.038: [corridorkey:w03] instance=10 native=3840x2160 callbacks=602 self_ms_p50<=0.03 self_ms_p95<=0.06 total_ms_p50<=0.04 total_ms_p95<=0.08 captures=288 submitted=287 completed=286 dropped=303 repeated=0 status=0 graphics_tasks=552 graphics_ms_p50<=0.52 graphics_ms_p95<=1.25
+01:50:30.054: [corridorkey:w03] instance=10 native=3840x2160 callbacks=1203 self_ms_p50<=0.03 self_ms_p95<=0.06 total_ms_p50<=0.04 total_ms_p95<=0.08 captures=582 submitted=581 completed=581 dropped=610 repeated=0 status=0 graphics_tasks=1128 graphics_ms_p50<=0.52 graphics_ms_p95<=1.17
+01:50:35.025: [Lua: obs-w03.lua] W03 action: color1920
+01:50:37.026: [Lua: obs-w03.lua] W03 action: duplicate
+01:50:45.038: [corridorkey:w03] instance=11 native=1920x1080 callbacks=2507 self_ms_p50<=0.01 self_ms_p95<=0.04 total_ms_p50<=0.01 total_ms_p95<=0.04 captures=369 submitted=368 completed=367 dropped=229 repeated=1908 status=0 graphics_tasks=598 graphics_ms_p50<=0.44 graphics_ms_p95<=0.79
+01:50:55.039: [corridorkey:w03] instance=11 native=1920x1080 callbacks=5507 self_ms_p50<=0.01 self_ms_p95<=0.03 total_ms_p50<=0.01 total_ms_p95<=0.04 captures=749 submitted=749 completed=748 dropped=449 repeated=4308 status=0 graphics_tasks=1197 graphics_ms_p50<=0.44 graphics_ms_p95<=0.78
+01:50:59.025: [Lua: obs-w03.lua] W03 action: disable
+01:51:00.025: [Lua: obs-w03.lua] W03 action: enable
+01:51:02.027: [Lua: obs-w03.lua] W03 action: resize4k
+01:51:04.027: [Lua: obs-w03.lua] W03 action: status
+01:51:04.027: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=3840x2160
+01:51:05.027: [Lua: obs-w03.lua] W03 action: zero
+01:51:05.040: [corridorkey:w03] instance=11 native=1x1 callbacks=8201 self_ms_p50<=0.01 self_ms_p95<=0.03 total_ms_p50<=0.01 total_ms_p95<=0.04 captures=1083 submitted=1080 completed=1080 dropped=651 repeated=6446 status=1 graphics_tasks=1796 graphics_ms_p50<=0.42 graphics_ms_p95<=0.78
+01:51:07.027: [Lua: obs-w03.lua] W03 action: status
+01:51:07.027: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=1x1
+01:51:08.026: [Lua: obs-w03.lua] W03 action: resize1080
+01:51:10.027: [Lua: obs-w03.lua] W03 action: switch
+01:51:13.027: [Lua: obs-w03.lua] W03 action: status
+01:51:13.027: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=1920x1080
+01:51:14.026: [Lua: obs-w03.lua] W03 action: slow
+01:51:15.054: [corridorkey:w03] instance=11 native=1920x1080 callbacks=10297 self_ms_p50<=0.01 self_ms_p95<=0.03 total_ms_p50<=0.01 total_ms_p95<=0.04 captures=1445 submitted=1409 completed=1408 dropped=917 repeated=7933 status=9 graphics_tasks=2396 graphics_ms_p50<=0.41 graphics_ms_p95<=0.78
+01:51:17.025: [Lua: obs-w03.lua] W03 action: status
+01:51:17.026: [Lua: obs-w03.lua] W03 status: Result exceeds the maximum frame age; passthrough.; native=1920x1080
+01:51:18.025: [Lua: obs-w03.lua] W03 action: remove
+01:51:20.026: [Lua: obs-w03.lua] W03 action: readd
+01:51:23.026: [Lua: obs-w03.lua] W03 action: fault1
+01:51:25.027: [Lua: obs-w03.lua] W03 action: status
+01:51:25.027: [Lua: obs-w03.lua] W03 status: Try a smaller profile or close another model instance.; native=1920x1080
+01:51:26.026: [Lua: obs-w03.lua] W03 action: fault2
+01:51:28.026: [Lua: obs-w03.lua] W03 action: status
+01:51:28.026: [Lua: obs-w03.lua] W03 status: Choose a backend that passes the capability test.; native=1920x1080
+01:51:29.026: [Lua: obs-w03.lua] W03 action: fault3
+01:51:30.039: [corridorkey:w03] instance=12 native=1920x1080 callbacks=1204 self_ms_p50<=0.02 self_ms_p95<=0.04 total_ms_p50<=0.02 total_ms_p95<=0.05 captures=537 submitted=354 completed=353 dropped=242 repeated=601 status=5 graphics_tasks=602 graphics_ms_p50<=0.12 graphics_ms_p95<=0.62
+01:51:31.026: [Lua: obs-w03.lua] W03 action: status
+01:51:31.026: [Lua: obs-w03.lua] W03 status: Discard the output and reset model state.; native=1920x1080
+01:51:32.025: [Lua: obs-w03.lua] W03 action: normal
+01:51:35.026: [Lua: obs-w03.lua] W03 action: status
+01:51:35.026: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=1920x1080
+01:51:36.026: [Lua: obs-w03.lua] W03 action: reorder
+01:51:39.027: [Lua: obs-w03.lua] W03 action: status
+01:51:39.027: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=1920x1080
+01:51:40.027: [Lua: obs-w03.lua] W03 action: image0
+01:51:43.027: [Lua: obs-w03.lua] W03 action: status
+01:51:43.027: [Lua: obs-w03.lua] W03 status: No valid source frame; passthrough.; native=0x0
+01:51:44.027: [Lua: obs-w03.lua] W03 action: image1920
+01:51:47.027: [Lua: obs-w03.lua] W03 action: status
+01:51:47.027: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=1920x1080
+01:51:54.090: [corridorkey:w03] instance=14 native=1920x1080 callbacks=1202 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.02 total_ms_p95<=0.04 captures=365 submitted=365 completed=364 dropped=236 repeated=599 status=0 graphics_tasks=601 graphics_ms_p50<=0.40 graphics_ms_p95<=0.75
+01:52:04.107: [corridorkey:w03] instance=14 native=1920x1080 callbacks=2403 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.02 total_ms_p95<=0.04 captures=737 submitted=736 completed=735 dropped=465 repeated=1199 status=0 graphics_tasks=1202 graphics_ms_p50<=0.40 graphics_ms_p95<=0.73
+01:52:05.742: Number of memory leaks: 1
+
+OBS 30 final graphics-task run
+01:52:42.169: [Lua: obs-w03.lua] W03 action: image1920
+01:52:48.669: [Lua: obs-w03.lua] W03 action: image1920
+01:52:58.737: [corridorkey:w03] instance=3 native=1920x1080 callbacks=603 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.05 captures=327 submitted=327 completed=326 dropped=275 repeated=0 status=0 graphics_tasks=602 graphics_ms_p50<=0.35 graphics_ms_p95<=0.49
+01:53:08.754: [corridorkey:w03] instance=3 native=1920x1080 callbacks=1204 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.05 captures=648 submitted=647 completed=646 dropped=555 repeated=0 status=0 graphics_tasks=1203 graphics_ms_p50<=0.27 graphics_ms_p95<=0.47
+01:53:13.670: [Lua: obs-w03.lua] W03 action: color1920
+01:53:23.671: [corridorkey:w03] instance=4 native=1920x1080 callbacks=601 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=301 submitted=301 completed=300 dropped=299 repeated=0 status=0 graphics_tasks=601 graphics_ms_p50<=0.24 graphics_ms_p95<=0.39
+01:53:33.686: [corridorkey:w03] instance=4 native=1920x1080 callbacks=1202 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=602 submitted=601 completed=601 dropped=599 repeated=0 status=0 graphics_tasks=1202 graphics_ms_p50<=0.24 graphics_ms_p95<=0.40
+01:53:38.670: [Lua: obs-w03.lua] W03 action: color3840
+01:53:48.671: [corridorkey:w03] instance=5 native=3840x2160 callbacks=601 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=301 submitted=301 completed=300 dropped=299 repeated=0 status=0 graphics_tasks=601 graphics_ms_p50<=0.24 graphics_ms_p95<=0.42
+01:53:58.672: [corridorkey:w03] instance=5 native=3840x2160 callbacks=1201 self_ms_p50<=0.03 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=601 submitted=601 completed=600 dropped=599 repeated=0 status=0 graphics_tasks=1201 graphics_ms_p50<=0.24 graphics_ms_p95<=0.42
+01:54:03.671: [Lua: obs-w03.lua] W03 action: image3840
+01:54:13.887: [corridorkey:w03] instance=6 native=3840x2160 callbacks=603 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=309 submitted=308 completed=308 dropped=293 repeated=0 status=0 graphics_tasks=602 graphics_ms_p50<=0.26 graphics_ms_p95<=0.46
+01:54:23.889: [corridorkey:w03] instance=6 native=3840x2160 callbacks=1203 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.05 captures=629 submitted=629 completed=628 dropped=573 repeated=0 status=0 graphics_tasks=1202 graphics_ms_p50<=0.34 graphics_ms_p95<=0.52
+01:54:28.677: [Lua: obs-w03.lua] W03 action: browser1920
+01:54:38.689: [corridorkey:w03] instance=7 native=1920x1080 callbacks=602 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.04 total_ms_p95<=0.05 captures=338 submitted=338 completed=337 dropped=262 repeated=0 status=0 graphics_tasks=601 graphics_ms_p50<=0.34 graphics_ms_p95<=0.49
+01:54:48.705: [corridorkey:w03] instance=7 native=1920x1080 callbacks=1203 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.04 total_ms_p95<=0.05 captures=669 submitted=668 completed=668 dropped=532 repeated=0 status=0 graphics_tasks=1202 graphics_ms_p50<=0.35 graphics_ms_p95<=0.48
+01:54:53.672: [Lua: obs-w03.lua] W03 action: browser3840
+01:55:03.690: [corridorkey:w03] instance=8 native=3840x2160 callbacks=602 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.04 total_ms_p95<=0.05 captures=308 submitted=308 completed=307 dropped=293 repeated=0 status=0 graphics_tasks=602 graphics_ms_p50<=0.35 graphics_ms_p95<=0.65
+01:55:13.707: [corridorkey:w03] instance=8 native=3840x2160 callbacks=1203 self_ms_p50<=0.03 self_ms_p95<=0.04 total_ms_p50<=0.04 total_ms_p95<=0.05 captures=615 submitted=615 completed=614 dropped=587 repeated=0 status=0 graphics_tasks=1202 graphics_ms_p50<=0.37 graphics_ms_p95<=0.66
+01:55:18.676: [Lua: obs-w03.lua] W03 action: media1920
+01:55:28.691: [corridorkey:w03] instance=9 native=1920x1080 callbacks=602 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=300 submitted=300 completed=299 dropped=298 repeated=0 status=0 graphics_tasks=599 graphics_ms_p50<=0.38 graphics_ms_p95<=0.97
+01:55:38.708: [corridorkey:w03] instance=9 native=1920x1080 callbacks=1203 self_ms_p50<=0.02 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.04 captures=601 submitted=601 completed=600 dropped=598 repeated=0 status=0 graphics_tasks=1200 graphics_ms_p50<=0.38 graphics_ms_p95<=0.96
+01:55:43.673: [Lua: obs-w03.lua] W03 action: media3840
+01:55:53.674: [corridorkey:w03] instance=10 native=3840x2160 callbacks=601 self_ms_p50<=0.03 self_ms_p95<=0.06 total_ms_p50<=0.04 total_ms_p95<=0.07 captures=308 submitted=307 completed=307 dropped=284 repeated=0 status=0 graphics_tasks=587 graphics_ms_p50<=0.44 graphics_ms_p95<=1.06
+01:56:03.678: [corridorkey:w03] instance=10 native=3840x2160 callbacks=1201 self_ms_p50<=0.03 self_ms_p95<=0.05 total_ms_p50<=0.04 total_ms_p95<=0.07 captures=614 submitted=614 completed=613 dropped=578 repeated=0 status=0 graphics_tasks=1166 graphics_ms_p50<=0.45 graphics_ms_p95<=1.06
+01:56:08.674: [Lua: obs-w03.lua] W03 action: color1920
+01:56:10.673: [Lua: obs-w03.lua] W03 action: duplicate
+01:56:18.692: [corridorkey:w03] instance=11 native=1920x1080 callbacks=2505 self_ms_p50<=0.01 self_ms_p95<=0.04 total_ms_p50<=0.01 total_ms_p95<=0.04 captures=386 submitted=386 completed=385 dropped=213 repeated=1905 status=0 graphics_tasks=597 graphics_ms_p50<=0.47 graphics_ms_p95<=0.82
+01:56:28.694: [corridorkey:w03] instance=11 native=1920x1080 callbacks=5436 self_ms_p50<=0.01 self_ms_p95<=0.04 total_ms_p50<=0.01 total_ms_p95<=0.04 captures=777 submitted=777 completed=776 dropped=422 repeated=4236 status=0 graphics_tasks=1184 graphics_ms_p50<=0.49 graphics_ms_p95<=0.92
+01:56:32.674: [Lua: obs-w03.lua] W03 action: disable
+01:56:33.674: [Lua: obs-w03.lua] W03 action: enable
+01:56:35.674: [Lua: obs-w03.lua] W03 action: resize4k
+01:56:37.674: [Lua: obs-w03.lua] W03 action: status
+01:56:37.674: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=3840x2160
+01:56:38.674: [Lua: obs-w03.lua] W03 action: zero
+01:56:38.708: [corridorkey:w03] instance=11 native=0x0 callbacks=8123 self_ms_p50<=0.01 self_ms_p95<=0.04 total_ms_p50<=0.01 total_ms_p95<=0.04 captures=1129 submitted=1126 completed=1126 dropped=606 repeated=6362 status=4 graphics_tasks=1783 graphics_ms_p50<=0.47 graphics_ms_p95<=0.88
+01:56:40.675: [Lua: obs-w03.lua] W03 action: status
+01:56:40.675: [Lua: obs-w03.lua] W03 status: No valid source frame; passthrough.; native=0x0
+01:56:41.679: [Lua: obs-w03.lua] W03 action: resize1080
+01:56:43.674: [Lua: obs-w03.lua] W03 action: switch
+01:56:46.675: [Lua: obs-w03.lua] W03 action: status
+01:56:46.675: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=1920x1080
+01:56:47.675: [Lua: obs-w03.lua] W03 action: slow
+01:56:48.725: [corridorkey:w03] instance=11 native=1920x1080 callbacks=10158 self_ms_p50<=0.01 self_ms_p95<=0.04 total_ms_p50<=0.01 total_ms_p95<=0.04 captures=1397 submitted=1361 completed=1360 dropped=790 repeated=7080 status=9 graphics_tasks=2373 graphics_ms_p50<=0.45 graphics_ms_p95<=0.94
+01:56:50.675: [Lua: obs-w03.lua] W03 action: status
+01:56:50.675: [Lua: obs-w03.lua] W03 status: Result exceeds the maximum frame age; passthrough.; native=1920x1080
+01:56:51.675: [Lua: obs-w03.lua] W03 action: remove
+01:56:53.675: [Lua: obs-w03.lua] W03 action: readd
+01:56:56.679: [Lua: obs-w03.lua] W03 action: fault1
+01:56:58.680: [Lua: obs-w03.lua] W03 action: status
+01:56:58.680: [Lua: obs-w03.lua] W03 status: Try a smaller profile or close another model instance.; native=1920x1080
+01:56:59.675: [Lua: obs-w03.lua] W03 action: fault2
+01:57:01.675: [Lua: obs-w03.lua] W03 action: status
+01:57:01.675: [Lua: obs-w03.lua] W03 status: Choose a backend that passes the capability test.; native=1920x1080
+01:57:02.675: [Lua: obs-w03.lua] W03 action: fault3
+01:57:03.676: [corridorkey:w03] instance=12 native=1920x1080 callbacks=1193 self_ms_p50<=0.02 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.06 captures=540 submitted=358 completed=357 dropped=238 repeated=591 status=5 graphics_tasks=601 graphics_ms_p50<=0.14 graphics_ms_p95<=0.68
+01:57:04.675: [Lua: obs-w03.lua] W03 action: status
+01:57:04.675: [Lua: obs-w03.lua] W03 status: Discard the output and reset model state.; native=1920x1080
+01:57:05.679: [Lua: obs-w03.lua] W03 action: normal
+01:57:08.679: [Lua: obs-w03.lua] W03 action: status
+01:57:08.679: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=1920x1080
+01:57:09.675: [Lua: obs-w03.lua] W03 action: reorder
+01:57:12.675: [Lua: obs-w03.lua] W03 action: status
+01:57:12.675: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=1920x1080
+01:57:13.675: [Lua: obs-w03.lua] W03 action: image0
+01:57:13.679: [corridorkey:w03] instance=12 native=1920x1080 callbacks=2379 self_ms_p50<=0.02 self_ms_p95<=0.05 total_ms_p50<=0.02 total_ms_p95<=0.07 captures=872 submitted=689 completed=689 dropped=505 repeated=1178 status=0 graphics_tasks=1201 graphics_ms_p50<=0.16 graphics_ms_p95<=0.73
+01:57:16.675: [Lua: obs-w03.lua] W03 action: status
+01:57:16.675: [Lua: obs-w03.lua] W03 status: No valid source frame; passthrough.; native=0x0
+01:57:17.680: [Lua: obs-w03.lua] W03 action: image1920
+01:57:20.676: [Lua: obs-w03.lua] W03 action: status
+01:57:20.676: [Lua: obs-w03.lua] W03 status: Fake key of filter input; no neural model loaded.; native=1920x1080
+01:57:27.744: [corridorkey:w03] instance=14 native=1920x1080 callbacks=1176 self_ms_p50<=0.02 self_ms_p95<=0.05 total_ms_p50<=0.02 total_ms_p95<=0.06 captures=384 submitted=384 completed=383 dropped=217 repeated=573 status=0 graphics_tasks=583 graphics_ms_p50<=0.57 graphics_ms_p95<=0.94
+01:57:37.761: [corridorkey:w03] instance=14 native=1920x1080 callbacks=2377 self_ms_p50<=0.02 self_ms_p95<=0.04 total_ms_p50<=0.02 total_ms_p95<=0.05 captures=762 submitted=762 completed=761 dropped=440 repeated=1173 status=0 graphics_tasks=1182 graphics_ms_p50<=0.63 graphics_ms_p95<=0.88
+01:57:41.854: Number of memory leaks: 0
