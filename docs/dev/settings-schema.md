@@ -100,8 +100,7 @@ Status uses the current `StatusSnapshot`, localized stable error IDs and actual
 optional timing values. Information text has an empty label and a separate tooltip
 so it cannot widen the form's label column. Missing timings show words instead of
 zeroes. W15 refreshes the three status labels on the Qt UI thread at most twice
-a second,
-using a weak source reference. It pauses during mouse interaction and popups, and
+per second using a weak source reference. It pauses during mouse interaction and popups, and
 for 750 ms after a property edit. It updates existing labels without rebuilding
 properties. Opening properties or editing a control also refreshes the snapshot.
 
