@@ -7,6 +7,7 @@
 #include "telemetry/host_policy.hpp"
 #ifdef CORRIDORKEY_MODEL_MANAGER
 #include "ui/model_manager.hpp"
+#include "packaging/runtime_dialog.hpp"
 #endif
 
 OBS_DECLARE_MODULE()
@@ -39,6 +40,7 @@ bool obs_module_load(void)
 	corridorkey::register_filter();
 #ifdef CORRIDORKEY_MODEL_MANAGER
 	corridorkey::ui::register_model_manager();
+	corridorkey::packaging::register_runtime_manager();
 #endif
 	blog(LOG_INFO, "[corridorkey] loaded (version %s; pass-through foundation)", CORRIDORKEY_VERSION);
 	return true;
@@ -48,6 +50,7 @@ void obs_module_unload(void)
 {
 #ifdef CORRIDORKEY_MODEL_MANAGER
 	corridorkey::ui::shutdown_model_manager();
+	corridorkey::packaging::shutdown_runtime_manager();
 #endif
 	blog(LOG_INFO, "[corridorkey] unloaded");
 }

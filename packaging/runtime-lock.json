@@ -1,0 +1,70 @@
+{
+  "_spdx": "SPDX-License-Identifier: GPL-3.0-or-later",
+  "schema": 1,
+  "artifacts": {
+    "ort-dml": {
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.ml.onnxruntime.directml/1.24.4/microsoft.ml.onnxruntime.directml.1.24.4.nupkg",
+      "bytes": 12458649,
+      "sha256": "57e9f11b73437bef7a309496135d4c1f96b1a8e9ddba60013fa27bfc1d788681",
+      "license": "MIT",
+      "files": {
+        "runtimes/win-x64/native/onnxruntime.dll": "onnxruntime.dll",
+        "runtimes/win-x64/native/onnxruntime_providers_shared.dll": "onnxruntime_providers_shared.dll",
+        "LICENSE": "licenses/ort/LICENSE",
+        "ThirdPartyNotices.txt": "licenses/ort/ThirdPartyNotices.txt"
+      }
+    },
+    "directml": {
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.ai.directml/1.15.4/microsoft.ai.directml.1.15.4.nupkg",
+      "bytes": 202292617,
+      "sha256": "4e7cb7ddce8cf837a7a75dc029209b520ca0101470fcdf275c1f49736a3615b9",
+      "license": "LicenseRef-Microsoft-DirectML",
+      "files": {
+        "bin/x64-win/DirectML.dll": "DirectML.dll",
+        "LICENSE.txt": "licenses/directml/LICENSE.txt",
+        "ThirdPartyNotices.txt": "licenses/directml/ThirdPartyNotices.txt"
+      }
+    },
+    "ort-linux": {
+      "url": "https://github.com/microsoft/onnxruntime/releases/download/v1.31.1/onnxruntime-linux-x64-1.31.1.tgz",
+      "bytes": 11413655,
+      "sha256": "c849e36a1ef3e22d4ff217b9d1ce4a3cf5b9467b975610913ae959ad5b16bdc9",
+      "license": "MIT",
+      "files": {
+        "onnxruntime-linux-x64-1.31.1/lib/libonnxruntime.so.1.31.1": "libonnxruntime.so.1.31.1",
+        "onnxruntime-linux-x64-1.31.1/LICENSE": "licenses/ort/LICENSE",
+        "onnxruntime-linux-x64-1.31.1/ThirdPartyNotices.txt": "licenses/ort/ThirdPartyNotices.txt"
+      }
+    }
+  },
+  "bundles": {
+    "windows-x64": {
+      "id": "directml-ort1.24.4-dml1.15.4",
+      "artifacts": ["ort-dml", "directml"],
+      "descriptor": {
+        "schema": 1,
+        "backend": "directml",
+        "registration": "classic",
+        "runtime": "onnxruntime.dll",
+        "runtime_build": "1.24.4",
+        "provider_name": "DmlExecutionProvider",
+        "provider_build": "1.24.4",
+        "preload": ["DirectML.dll"]
+      }
+    },
+    "linux-x86_64": {
+      "id": "cpu-ort1.31.1",
+      "artifacts": ["ort-linux"],
+      "descriptor": {
+        "schema": 1,
+        "backend": "cpu",
+        "registration": "cpu",
+        "runtime": "libonnxruntime.so.1.31.1",
+        "runtime_build": "1.31.1",
+        "provider_name": "CPUExecutionProvider",
+        "provider_build": "1.31.1",
+        "preload": []
+      }
+    }
+  }
+}
