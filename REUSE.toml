@@ -27,3 +27,9 @@ path = ["docs/images/install/*.jpg", "docs/images/install/metadata.json"]
 SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 # Vendor licence text visible in screenshots retains its original terms.
+
+[[annotations]]
+path = ["docs/images/first-run/*.jpg", "docs/images/first-run/metadata.json"]
+SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+# Publisher licence texts and Mixkit footage visible in captures retain their original terms.

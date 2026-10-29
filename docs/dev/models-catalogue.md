@@ -10,8 +10,8 @@ The bundled [catalogue](../../data/models/catalogue-v1.json) contains CK2 Faceca
 CK2 Balanced / Quality, and Edge Refiner v12. The CK2 packages use separate
 MoGe, RVM and mask-free Stage 1 graphs; Quality adds `stage2nomask`. All graphs
 pin revision `5d88114f169cb082cda238426af47feffb9724af`. The optional merged
-graphs are excluded. Refiner graphs can be installed for W13, but do not enable
-learned refinement in the current pipeline.
+graphs are excluded. With Edge refiner enabled, activation leases the refiner
+package alongside CK2 and selects the graph matching the tile budget.
 
 The catalogue is **unsigned and installer-only** pending coordinator key
 provisioning. CMake hashes its exact bytes into `CORRIDORKEY_BUNDLED_CATALOGUE_SHA256`.
@@ -328,4 +328,6 @@ The production entries pin graph/JSON hashes and sizes, expected bound-output
 hashes, ONNX IR 10, static interfaces and the existing validation report. Release
 tooling still needs catalogue signing and a public-key rotation policy. CK1 licence wording and an exact MODNet checkpoint remain open. Windows
 unit/HTTP tests and an OBS 30.2 SDK build do not establish Linux transport behavior,
-large ZIP64 interoperability, real HF/CDN transfers or model inference parity.
+large ZIP64 interoperability or model inference parity. W09b separately exercised
+the real anonymous HF/CDN transfer, native binding and normal-cache activation
+in portable OBS 33; see its [validation record](validation-w09b.md).
