@@ -15,7 +15,6 @@
 #include <tuple>
 #ifdef CORRIDORKEY_QT_STATUS
 #include <QApplication>
-#include <QLabel>
 #include <QPointer>
 #include <QThread>
 #include <QTimer>
@@ -37,12 +36,7 @@ struct Form {
 #ifdef CORRIDORKEY_QT_STATUS
 	QPointer<QTimer> timer;
 	obs_weak_source_t *owner = nullptr;
-	std::map<std::string, QPointer<QLabel>> labels;
 	std::uint64_t edited_at = 0;
-	std::string marker(const char *key) const
-	{
-		return "<!--ck:" + std::to_string(reinterpret_cast<std::uintptr_t>(this)) + ":" + key + "-->";
-	}
 #endif
 	~Form()
 	{
@@ -96,9 +90,6 @@ void info(obs_properties_t *p, const char *name, const std::string &text)
 				else
 					value += ch;
 			}
-#ifdef CORRIDORKEY_QT_STATUS
-			value = "<span>" + value + form->marker(name) + "</span>";
-#endif
 			obs_data_set_string(form->bound, name, value.c_str());
 		} else
 			obs_property_set_long_description(f, text.c_str());
@@ -107,24 +98,16 @@ void info(obs_properties_t *p, const char *name, const std::string &text)
 void status(obs_properties_t *p, Form &form, const Settings &s)
 {
 	auto state = form.control ? form.control->status_snapshot() : StatusSnapshot{};
-	std::string first = tr("Status.Missing"), second = tr("Status.Setup");
+	std::string first = tr("Status.Missing"), second;
 	if (state) {
 		if (state->failure.code == ErrorCode::model_missing) {
 			first = tr("Status.Missing");
-			second = tr("Status.Setup");
+			second.clear();
 		} else if (state->failure) {
-			first = tr("Status.Passthrough");
-			first += " · ";
-			first += error_id(state->failure.code);
-			second = state->diagnostic_detail.empty()
-					 ? tr("Error." + std::string(error_id(state->failure.code)))
-					 : state->diagnostic_detail;
+			first = tr("Error." + std::string(error_id(state->failure.code)));
+			second.clear();
 		} else if (state->lifecycle == Lifecycle::ready) {
-			first = tr("Status.Ready");
-			first += " · ";
-			first += s.quality.model == ModelFamily::ck2 ? "CK2" : "CK1";
-			first += " · ";
-			first += tr(std::string("Choice.") + std::get<std::string>(find("profile")->get(s)));
+			first = s.quality.model == ModelFamily::ck2 ? "CK2" : "CK1";
 			const char *backend = "auto";
 			switch (state->backend) {
 			case Backend::tensorrt_rtx:
@@ -155,12 +138,8 @@ void status(obs_properties_t *p, Form &form, const Settings &s)
 			first += tr(std::string("Choice.") + backend);
 			if (state->inference_median_ms && state->age_median_ms && state->keyed_fps) {
 				char metrics[256];
-				std::snprintf(metrics, sizeof(metrics), tr("Status.Metrics"),
-					      *state->inference_median_ms,
-					      state->input_transfer_median_ms.value_or(0) +
-						      state->output_transfer_median_ms.value_or(0),
-					      *state->age_median_ms, state->age_p95_ms.value_or(*state->age_median_ms),
-					      *state->keyed_fps);
+				std::snprintf(metrics, sizeof(metrics), tr("Status.Metrics"), *state->keyed_fps,
+					      *state->inference_median_ms, *state->age_median_ms);
 				second = metrics;
 			} else
 				second = tr("Status.Warming");
@@ -176,9 +155,11 @@ void status(obs_properties_t *p, Form &form, const Settings &s)
 			second = tr("Status.Wait");
 		}
 	}
-	info(p, "status", first + "\n" + second);
+	info(p, "status", first + (second.empty() ? "" : " · " + second));
 	std::string details = tr("Status.Help");
 	if (state) {
+		if (state->failure)
+			details += "\n" + std::string(error_id(state->failure.code)) + "\n" + state->diagnostic_detail;
 		if (state->age_p95_ms)
 			details += "\np95: " + std::to_string(*state->age_p95_ms) + " ms";
 		details += "\n" + std::string(tr("Status.Dropped")) + ": " + std::to_string(state->dropped);
@@ -335,7 +316,9 @@ void visibility(obs_properties_t *p, Form &form, obs_data_t *data)
 	}
 	visible(p, "group_performance", advanced);
 	visible(p, "group_expert", expert);
-	visible(p, "group_hint", !ck2 || expert);
+	visible(p, "group_hint", advanced && (!ck2 || expert));
+	for (const auto *group : {"group_edge", "group_color", "group_output", "group_sync"})
+		visible(p, group, advanced);
 	visible(p, "reset_memory", advanced);
 	visible(p, "reset_quality", advanced);
 	visible(p, "diagnostics", advanced);
@@ -532,13 +515,8 @@ obs_properties_t *create_filter_properties(FilterControl *control, PropertyCapab
 	auto *state = form.get();
 	auto *p = obs_properties_create_param(form.release(), [](void *v) { delete static_cast<Form *>(v); });
 	add_field(p, *find("profile"), state);
-	auto *advanced = obs_properties_add_bool(p, "advanced", tr("Advanced.Label"));
-	obs_property_set_long_description(advanced, tr("Advanced.Help"));
-	obs_property_set_modified_callback2(advanced, modified, state);
-	auto *expert = obs_properties_add_bool(p, "expert", tr("Expert.Label"));
-	obs_property_set_long_description(expert, tr("Expert.Help"));
-	obs_property_set_modified_callback2(expert, modified, state);
 	add_field(p, *find("model_id"), state);
+	add_field(p, *find("refiner_enabled"), state);
 	add_info(p, "status", "Status.Missing", "Status.Help");
 	auto *manager = obs_properties_add_button2(p, "manage_models", tr("Models.Manage"), button, state);
 	obs_property_set_long_description(manager, tr("Models.Help"));
@@ -546,7 +524,7 @@ obs_properties_t *create_filter_properties(FilterControl *control, PropertyCapab
 	visible(p, "action_notice", false);
 	add_info(p, "migration_info", "Status.Setup", "Migration.Help");
 	visible(p, "migration_info", false);
-	for (const auto *group : {"performance", "edge", "color", "crop", "hint", "output", "sync", "expert"}) {
+	for (const auto *group : {"crop", "performance", "edge", "color", "hint", "output", "sync", "expert"}) {
 		auto *children = obs_properties_create();
 		const std::string g = group;
 		if (g == "crop" || g == "output" || g == "sync") {
@@ -556,7 +534,7 @@ obs_properties_t *create_filter_properties(FilterControl *control, PropertyCapab
 			obs_property_set_modified_callback2(details, modified, state);
 		}
 		for (const auto &f : inventory())
-			if (f.level != Level::internal && g == f.group)
+			if (f.level != Level::internal && g == f.group && std::string_view(f.key) != "refiner_enabled")
 				add_field(children, f, state);
 		if (g == "crop") {
 			auto *preview = obs_properties_add_bool(children, "crop_preview", tr("CropPreview.Label"));
@@ -572,6 +550,14 @@ obs_properties_t *create_filter_properties(FilterControl *control, PropertyCapab
 		auto *heading = obs_properties_add_group(p, ("group_" + g).c_str(), tr("Group." + g), OBS_GROUP_NORMAL,
 							 children);
 		obs_property_set_long_description(heading, tr("Group." + g + ".Help"));
+		if (g == "crop") {
+			auto *advanced = obs_properties_add_bool(p, "advanced", tr("Advanced.Label"));
+			obs_property_set_long_description(advanced, tr("Advanced.Help"));
+			obs_property_set_modified_callback2(advanced, modified, state);
+			auto *expert = obs_properties_add_bool(p, "expert", tr("Expert.Label"));
+			obs_property_set_long_description(expert, tr("Expert.Help"));
+			obs_property_set_modified_callback2(expert, modified, state);
+		}
 	}
 	for (const auto &[key, label, help] : {std::tuple{"reset_memory", "ResetMemory.Label", "ResetMemory.Help"},
 					       std::tuple{"reset_quality", "ResetQuality.Label", "ResetQuality.Help"},
@@ -604,34 +590,22 @@ obs_properties_t *create_filter_properties(FilterControl *control, PropertyCapab
 	if (qApp && QThread::currentThread() == qApp->thread() && control && control->property_source()) {
 		state->owner = obs_source_get_weak_source(control->property_source());
 		state->timer = new QTimer(qApp);
-		state->timer->setInterval(500);
+		state->timer->setInterval(2000);
 		QObject::connect(state->timer, &QTimer::timeout, state->timer, [state, p] {
 			if (!state->bound || os_gettime_ns() - state->edited_at < 750000000 ||
 			    QApplication::mouseButtons() != Qt::NoButton || QApplication::activePopupWidget())
+				return;
+			const auto *focus = QApplication::focusWidget();
+			if (focus && (focus->inherits("QAbstractSpinBox") || focus->inherits("QAbstractSlider") ||
+				      focus->inherits("QLineEdit") || focus->inherits("QComboBox")))
 				return;
 			auto *source = obs_weak_source_get_source(state->owner);
 			if (!source)
 				return;
 			try {
 				status(p, *state, decode(read_record(state->bound)));
-				for (const auto *key : {"status", "filter_delay", "applied_delay"}) {
-					auto &label = state->labels[key];
-					if (!label) {
-						const auto marker = QString::fromStdString(state->marker(key));
-						for (auto *widget : QApplication::allWidgets())
-							if (auto *candidate = qobject_cast<QLabel *>(widget);
-							    candidate && candidate->text().contains(marker)) {
-								label = candidate;
-								break;
-							}
-					}
-					if (label) {
-						label->setText(
-							QString::fromUtf8(obs_data_get_string(state->bound, key)));
-						label->setToolTip(QString::fromUtf8(
-							obs_property_long_description(property(p, key))));
-					}
-				}
+				// OBS owns the property widgets; refresh through its supported public signal.
+				obs_source_update_properties(source);
 			} catch (...) {
 			}
 			obs_source_release(source);
