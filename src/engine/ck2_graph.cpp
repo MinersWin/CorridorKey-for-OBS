@@ -167,7 +167,7 @@ Tensor resize(const Tensor &input, Extent size, bool area)
 	return result;
 }
 } // namespace
-Tensor resize_area(const Tensor &input, Extent size)
+Tensor resize_area(const Tensor &input, Extent size, std::shared_ptr<nvidia::Buffer> reuse)
 {
 	if (input.device) {
 		if (input.shape.size() != 4 || input.shape[0] != 1 || !size.width || !size.height)
@@ -177,8 +177,11 @@ Tensor resize_area(const Tensor &input, Extent size)
 		unsigned h = static_cast<unsigned>(input.shape[2]), w = static_cast<unsigned>(input.shape[3]);
 		result.shape = {1, channels, size.height, size.width};
 		const auto context = input.device->context();
-		result.device = context->allocate(static_cast<std::size_t>(size.width) * size.height * channels *
-						  sizeof(float));
+		const auto bytes = static_cast<std::size_t>(size.width) * size.height * channels * sizeof(float);
+		if (reuse && (reuse->bytes() != bytes || reuse->context()->ordinal() != context->ordinal() ||
+			      reuse == input.device))
+			throw std::invalid_argument("Resize buffer mismatch");
+		result.device = reuse ? std::move(reuse) : context->allocate(bytes);
 		auto src = input.device->pointer(), dst = result.device->pointer();
 		void *args[]{&src, &dst, &w, &h, &size.width, &size.height, &channels};
 		context->launch("resize_area", size.width * size.height * channels, args);
@@ -230,12 +233,17 @@ void zero_tensor(Tensor &tensor)
 	else
 		std::fill(tensor.values.begin(), tensor.values.end(), 0.f);
 }
-Tensor device_rgb(const std::shared_ptr<nvidia::Buffer> &rgba, Extent size, unsigned format)
+Tensor device_rgb(const std::shared_ptr<nvidia::Buffer> &rgba, Extent size, unsigned format,
+		  std::shared_ptr<nvidia::Buffer> reuse)
 {
 	Tensor result;
 	result.shape = {1, 3, size.height, size.width};
 	unsigned pixels = size.width * size.height;
-	result.device = rgba->context()->allocate(static_cast<std::size_t>(pixels) * 3 * sizeof(float));
+	const auto bytes = static_cast<std::size_t>(pixels) * 3 * sizeof(float);
+	if (reuse &&
+	    (reuse->bytes() != bytes || reuse->context()->ordinal() != rgba->context()->ordinal() || reuse == rgba))
+		throw std::invalid_argument("RGB conversion buffer mismatch");
+	result.device = reuse ? std::move(reuse) : rgba->context()->allocate(bytes);
 	auto src = rgba->pointer(), dst = result.device->pointer();
 	void *args[]{&src, &dst, &pixels, &format};
 	rgba->context()->launch("rgba_to_planar", pixels * 3, args);

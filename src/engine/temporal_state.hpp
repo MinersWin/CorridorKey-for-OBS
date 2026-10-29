@@ -21,6 +21,7 @@ private:
 	Graphs graphs_;
 	Tensors stage1_inputs_;
 	Tensor recurrent_, moge_, thumbnail_;
+	Tensor motion_rgb_, moge_rgb_, rvm_rgb_;
 	std::optional<TemporalStateKey> key_;
 	std::optional<FrameTransform> captured_transform_;
 	std::uint64_t processed_ = 0, since_moge_ = 0;

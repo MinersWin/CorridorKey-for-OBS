@@ -10,6 +10,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <future>
+#include <chrono>
+#include <string_view>
 
 using namespace corridorkey;
 using Microsoft::WRL::ComPtr;
@@ -22,9 +24,11 @@ void check(HRESULT hr)
 {
 	require(SUCCEEDED(hr), "D3D11 operation failed");
 }
-int main()
+int main(int argc, char **argv)
 {
 	try {
+		const bool benchmark = argc == 2 && std::string_view(argv[1]) == "--benchmark";
+		require(argc == 1 || benchmark, "Usage: corridorkey_interop_test [--benchmark]");
 		ComPtr<ID3D11Device> device;
 		ComPtr<ID3D11DeviceContext> graphics;
 		check(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0, D3D11_SDK_VERSION,
@@ -106,7 +110,12 @@ int main()
 				check(device->CreateTexture2D(&desc, nullptr, &stage));
 				graphics->Flush();
 				nvidia::D3D11Texture source(cuda, input.Get()), destination(cuda, output.Get());
-				auto rgb = ck2::device_rgb(source.read(), size, source.format());
+				auto scratch = source.conversion_buffer(pixels * 3 * sizeof(float));
+				auto rgb = ck2::device_rgb(source.read(), size, source.format(), scratch);
+				require(source.conversion_buffer(scratch->bytes()) == rgb.device,
+					"RGB conversion storage was not retained");
+				scratch->zero();
+				rgb = ck2::device_rgb(source.read(), size, source.format(), scratch);
 				auto host = ck2::download_tensor(rgb);
 				float maximum = 0;
 				for (std::size_t p = 0; p < pixels; ++p)
@@ -144,13 +153,42 @@ int main()
 				}
 				graphics->Unmap(stage.Get(), 0);
 				require(valid, "Texture write/alpha round trip failed");
-				const auto reduced = ck2::download_tensor(ck2::resize_area(rgb, {31, 17}));
+				auto reduced_device = ck2::resize_area(rgb, {31, 17});
+				const auto address = reduced_device.device->pointer();
+				reduced_device.device->zero();
+				reduced_device = ck2::resize_area(rgb, {31, 17}, reduced_device.device);
+				require(reduced_device.device->pointer() == address, "Resize storage was not retained");
+				const auto reduced = ck2::download_tensor(reduced_device);
 				const auto oracle = ck2::resize_area(host, {31, 17});
 				for (std::size_t i = 0; i < reduced.values.size(); ++i)
 					require(std::abs(reduced.values[i] - oracle.values[i]) < 0.000001f,
 						"Area resize differs from CPU reference");
 				std::cout << "roundtrip " << size.width << 'x' << size.height << " format=" << format
 					  << " max=" << maximum << '\n';
+				if (benchmark && format == DXGI_FORMAT_R8G8B8A8_UNORM && size.width >= 512) {
+					constexpr unsigned iterations = 100;
+					auto pixel_format = source.format();
+					auto input_address = source.read()->pointer();
+					void *convert[]{&input_address, &f, &count, &pixel_format};
+					cuda->start_timer();
+					const auto started = std::chrono::steady_clock::now();
+					for (unsigned i = 0; i < iterations; ++i) {
+						source.read();
+						cuda->launch("rgba_to_planar", count * 3, convert);
+						cuda->launch("planar_to_rgba", count * 4, args);
+						cuda->synchronize();
+						destination.write(*packed);
+					}
+					const auto host_ms = std::chrono::duration<double, std::milli>(
+								     std::chrono::steady_clock::now() - started)
+								     .count() /
+							     iterations;
+					const auto interval_ms = cuda->stop_timer() / iterations;
+					std::cout << "bridge " << size.width << 'x' << size.height
+						  << " iterations=" << iterations << " host_ms=" << host_ms
+						  << " cuda_interval_ms=" << interval_ms
+						  << " input=RGBA8 output=RGBA32F host_transfer_bytes=0\n";
+				}
 			}
 		}
 		for (unsigned budget : {256U, 384U, 512U, 768U}) {

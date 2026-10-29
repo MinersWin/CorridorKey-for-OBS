@@ -64,7 +64,7 @@ struct D3D11Texture::Impl {
 	std::shared_ptr<Context> context;
 	std::shared_ptr<InteropDevice> device;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> original, alias;
-	std::shared_ptr<Buffer> linear;
+	std::shared_ptr<Buffer> linear, conversion;
 	void *resource = nullptr;
 	unsigned width = 0, height = 0, format = 0, pixel_bytes = 0;
 	bool mapped = false;
@@ -196,6 +196,14 @@ D3D11Texture::D3D11Texture(std::shared_ptr<Context> context, ID3D11Texture2D *te
 	Context::check(reg(&s.resource, s.alias.Get(), 0), "Register shared D3D11 texture");
 }
 D3D11Texture::~D3D11Texture() = default;
+std::shared_ptr<Buffer> D3D11Texture::conversion_buffer(std::size_t bytes)
+{
+	if (!impl_->conversion)
+		impl_->conversion = impl_->context->allocate(bytes);
+	if (impl_->conversion->bytes() != bytes)
+		throw std::invalid_argument("Texture conversion buffer size changed");
+	return impl_->conversion;
+}
 std::shared_ptr<Buffer> D3D11Texture::read()
 {
 	if (!impl_->linear)
@@ -222,6 +230,10 @@ unsigned D3D11Texture::format() const
 }
 #else
 struct D3D11Texture::Impl {};
+std::shared_ptr<Buffer> D3D11Texture::conversion_buffer(std::size_t)
+{
+	throw std::runtime_error("D3D11 requires Windows");
+}
 D3D11Texture::D3D11Texture(std::shared_ptr<Context>, ID3D11Texture2D *)
 {
 	throw std::runtime_error("D3D11 requires Windows");

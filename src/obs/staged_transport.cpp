@@ -309,7 +309,9 @@ Image StagedTransport::analysis(const InputFrame &input, nvidia::TextureTransfer
 			if (slot.interop_capture && slot.captured.can_wait() && !slot.captured.wait_ready())
 				throw std::runtime_error("Shared capture completion timed out");
 			auto &texture = transfers->get(context, slot.grid_handle);
-			auto tensor = ck2::device_rgb(texture.read(), grid_, texture.format());
+			auto tensor = ck2::device_rgb(texture.read(), grid_, texture.format(),
+						      texture.conversion_buffer(static_cast<std::size_t>(grid_.width) *
+										grid_.height * 3 * sizeof(float)));
 			context->synchronize();
 			interop_ = true;
 			return ck2::packed_image(tensor, PixelFormat::rgb_f32);
@@ -354,12 +356,13 @@ bool StagedTransport::upload_device(FrameResult &result, nvidia::TextureTransfer
 	try {
 		auto context = alpha->tensor.device->context();
 		unsigned pixels = result.alpha.size.width * result.alpha.size.height;
-		auto rgba = context->allocate(static_cast<std::size_t>(pixels) * 4 * sizeof(float));
+		auto &texture = transfers.get(context, handle);
+		auto rgba = texture.conversion_buffer(static_cast<std::size_t>(pixels) * 4 * sizeof(float));
 		auto a = alpha->tensor.device->pointer(), f = rgb->tensor.device->pointer(), dst = rgba->pointer();
 		void *args[]{&f, &a, &dst, &pixels};
 		context->launch("planar_to_rgba", pixels * 4, args);
 		context->synchronize();
-		transfers.get(context, handle).write(*rgba);
+		texture.write(*rgba);
 		result.alpha.storage = result.foreground.storage = result.alpha.size == grid_ ? slot.model_view
 											      : slot.model_half_view;
 		return true;

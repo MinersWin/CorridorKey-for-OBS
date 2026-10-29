@@ -13,6 +13,8 @@ public:
 	D3D11Texture(const D3D11Texture &) = delete;
 	D3D11Texture &operator=(const D3D11Texture &) = delete;
 	std::shared_ptr<Buffer> read();
+	// Fixed conversion storage owned by the worker registration, pinned with its slot.
+	std::shared_ptr<Buffer> conversion_buffer(std::size_t bytes);
 	void write(const Buffer &);
 	unsigned width() const;
 	unsigned height() const;
