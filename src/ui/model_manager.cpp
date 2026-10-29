@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "model_manager.hpp"
 #include "backend_test.hpp"
+#include "visuals.hpp"
 #include "license_dialog.hpp"
 #include "models/installation.hpp"
 #include "telemetry/diagnostics_obs.hpp"
@@ -9,6 +10,7 @@
 #include <obs-frontend-api.h>
 #include <util/bmem.h>
 #include <QApplication>
+#include <QEvent>
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QDialogButtonBox>
@@ -71,7 +73,16 @@ void heading(QLabel *l, bool large = false)
 			f.setPixelSize(static_cast<int>(f.pixelSize() * 1.3));
 	}
 	l->setFont(f);
+	if (large)
+		l->setStyleSheet(QString("font-size: %1px; font-weight: 600;").arg(l->fontMetrics().height() + 4));
 }
+void caption(QLabel *l)
+{
+	const int pixels = l->fontInfo().pixelSize();
+	if (pixels > 0)
+		l->setStyleSheet(QString("font-size: %1px;").arg(std::max(11, pixels - 1)));
+}
+
 std::shared_ptr<ManagerController> make_controller()
 {
 	auto licences = models::LicenceRegistry::parse(models::read_small_file(module_path("models/licenses-v1.json")));
@@ -99,7 +110,7 @@ ModelManager::ModelManager(QWidget *parent, std::shared_ptr<ManagerController> s
 	setObjectName("corridorKeyModels");
 	setModal(false);
 	setMinimumSize(640, 460);
-	resize(800, 728);
+	resize(800, 720);
 	auto *outer = new QVBoxLayout(this);
 	outer->setContentsMargins(16, 16, 16, 16);
 	outer->setSpacing(16);
@@ -121,10 +132,17 @@ ModelManager::ModelManager(QWidget *parent, std::shared_ptr<ManagerController> s
 	first->addWidget(intro_, 1);
 	setup_ = new QPushButton(tr("Set up CorridorKey"), this);
 	setup_->setObjectName("setupCorridorKey");
-	setup_->setDefault(true);
+	setup_->setAutoDefault(false);
+	setup_->setStyleSheet(
+		"QPushButton { background: palette(highlight); color: palette(highlighted-text); "
+		"border: 2px solid palette(highlight); border-radius: 4px; padding: 8px 16px; }"
+		"QPushButton:focus { border-color: palette(text); }"
+		"QPushButton:hover { border-color: palette(highlighted-text); }"
+		"QPushButton:pressed { background: palette(button); color: palette(button-text); }"
+		"QPushButton:disabled { background: palette(button); color: palette(mid); border-color: palette(mid); }");
 	first->addWidget(setup_);
 	layout->addLayout(first);
-	layout->addSpacing(8);
+	layout->addSpacing(0);
 	table_ = new QTableWidget(0, 4, this);
 	table_->setObjectName("modelList");
 	table_->setAccessibleName(tr("Models and installation status"));
@@ -136,20 +154,24 @@ ModelManager::ModelManager(QWidget *parent, std::shared_ptr<ManagerController> s
 	table_->setSelectionMode(QAbstractItemView::SingleSelection);
 	table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	table_->setWordWrap(false);
-	table_->setStyleSheet("QTableView::item { padding-left: 8px; padding-right: 8px; }");
+	table_->setStyleSheet(
+		"QTableView::item { padding: 8px; } QHeaderView::section { "
+		"background: palette(window); color: palette(text); border: none; padding: 8px; font-weight: normal; }");
+	table_->setFrameShape(QFrame::NoFrame);
+	table_->setIconSize(QSize(16, 16));
 	table_->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 	for (int i = 2; i < 4; ++i)
 		table_->horizontalHeaderItem(i)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	table_->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 	for (int i = 1; i < 4; ++i)
 		table_->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
-	table_->setMinimumHeight(168);
-	layout->addWidget(table_, 1);
+	layout->addWidget(table_);
 	name_ = label(this);
 	heading(name_);
 	publisher_ = label(this);
+	caption(publisher_);
 	description_ = label(this);
-	layout->addSpacing(8);
+	layout->addSpacing(0);
 	layout->addWidget(name_);
 	layout->addWidget(publisher_);
 	layout->addWidget(description_);
@@ -179,26 +201,57 @@ ModelManager::ModelManager(QWidget *parent, std::shared_ptr<ManagerController> s
 	cancel_->setObjectName("cancelModelTask");
 	progress_row->addWidget(cancel_);
 	layout->addLayout(progress_row);
+	layout->addSpacing(0);
+	auto *storage = label(this, tr("Storage"));
+	heading(storage);
+	layout->addWidget(storage);
+	space_ = label(this);
+	layout->addWidget(space_);
 	auto cache_path = QDir::fromNativeSeparators(path_text(controller_->cache_path()));
 	if (cache_path.startsWith(QDir::homePath(), Qt::CaseInsensitive))
 		cache_path.replace(0, QDir::homePath().size(), "~");
-	cache_ = label(this, tr("Cache: %1").arg(cache_path));
+	cache_ = new ElidedPath(cache_path, this);
+	cache_->setMaximumWidth(400);
+	caption(cache_);
 	auto *cache_row = new QHBoxLayout;
 	cache_row->addWidget(cache_, 1);
 	auto *open = new QPushButton(tr("Open folder"), this);
-	open->setIcon(style()->standardIcon(QStyle::SP_DirOpenIcon));
+	open->setProperty("ckMonoIcon", "folder");
+	open->setIcon(mono_icon("folder", palette()));
+	cache_row->addStretch();
 	cache_row->addWidget(open);
-	layout->addSpacing(8);
 	layout->addLayout(cache_row);
-	space_ = label(this);
-	layout->addWidget(space_);
 	notice_ = label(this);
+	caption(notice_);
 	layout->addWidget(notice_);
 	auto *footer = new QDialogButtonBox(QDialogButtonBox::Close, this);
 	auto *test = footer->addButton(tr("Test backend"), QDialogButtonBox::ActionRole);
 	auto *copy = footer->addButton(tr("Copy diagnostics…"), QDialogButtonBox::ActionRole);
 	auto *report = footer->addButton(tr("Report a problem"), QDialogButtonBox::ActionRole);
-	outer->addWidget(footer);
+	test->setProperty("ckMonoIcon", "test");
+	test->setIcon(mono_icon("test", palette()));
+	copy->setProperty("ckMonoIcon", "copy");
+	copy->setIcon(mono_icon("copy", palette()));
+	report->setProperty("ckMonoIcon", "report");
+	report->setIcon(mono_icon("report", palette()));
+	for (auto *button : {test, copy, report}) {
+		button->setFlat(true);
+		button->setStyleSheet(
+			"QPushButton { background: transparent; border: 1px solid transparent; padding: 8px; }"
+			"QPushButton:hover { background: palette(button); } QPushButton:focus { border-color: palette(highlight); }");
+		button->setAutoDefault(false);
+	}
+	footer->button(QDialogButtonBox::Close)->setDefault(true);
+	layout->addStretch();
+	auto *footer_row = new QHBoxLayout;
+	footer_row->setSpacing(8);
+	for (auto *button : {test, copy, report}) {
+		footer->removeButton(button);
+		footer_row->addWidget(button);
+	}
+	footer_row->addStretch();
+	footer_row->addWidget(footer);
+	outer->addLayout(footer_row);
 	connect(footer, &QDialogButtonBox::rejected, this, &QDialog::hide);
 	connect(table_, &QTableWidget::itemSelectionChanged, this, &ModelManager::details);
 	connect(install_, &QPushButton::clicked, this, [this] { review(false); });
@@ -227,7 +280,7 @@ ModelManager::ModelManager(QWidget *parent, std::shared_ptr<ManagerController> s
 		box->setContentsMargins(16, 16, 16, 16);
 		box->setSpacing(8);
 		box->addWidget(
-			label(confirmation, tr("Remove %1? Active reader leases protect models in use.\n"
+			label(confirmation, tr("Remove %1? Models currently in use cannot be removed.\n"
 					       "Shared source downloads are kept for other models and future installs.")
 						    .arg(q(row->name))));
 		auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, confirmation);
@@ -259,8 +312,23 @@ ModelManager::ModelManager(QWidget *parent, std::shared_ptr<ManagerController> s
 	timer_.start(500);
 	snapshot_ = controller_->snapshot();
 	render();
-	table_->selectRow(0);
+	const auto recommended =
+		std::find_if(snapshot_.rows.begin(), snapshot_.rows.end(), [](const auto &r) { return r.recommended; });
+	table_->selectRow(recommended == snapshot_.rows.end() ? 0
+							      : static_cast<int>(recommended - snapshot_.rows.begin()));
 }
+void ModelManager::changeEvent(QEvent *event)
+{
+	QDialog::changeEvent(event);
+	if (event->type() != QEvent::PaletteChange && event->type() != QEvent::ApplicationPaletteChange)
+		return;
+	for (auto *button : findChildren<QPushButton *>()) {
+		const auto name = button->property("ckMonoIcon").toByteArray();
+		if (!name.isEmpty())
+			button->setIcon(mono_icon(name.constData(), palette()));
+	}
+}
+
 const ModelRow *ModelManager::selected() const
 {
 	const auto i = table_->currentRow();
@@ -291,8 +359,20 @@ void ModelManager::render()
 			if (col >= 2)
 				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		}
-		table_->setRowHeight(static_cast<int>(row), 32);
+		const char *icon = r.status.state == ModelState::ready              ? "ready"
+				   : r.status.state == ModelState::failed           ? "error"
+				   : r.status.state == ModelState::update_available ? "update"
+				   : r.status.state == ModelState::missing          ? "missing"
+										    : "waiting";
+		table_->item(static_cast<int>(row), 1)
+			->setIcon(mono_icon(icon, palette(),
+					    working(r.status.state) || r.status.state == ModelState::ready
+						    ? QPalette::Link
+						    : QPalette::Text));
+		table_->setRowHeight(static_cast<int>(row), std::max(32, fontMetrics().height() + 8));
 	}
+	table_->setFixedHeight(table_->horizontalHeader()->sizeHint().height() +
+			       std::min(table_->rowCount(), 6) * std::max(32, fontMetrics().height() + 8) + 4);
 	const auto recommended =
 		std::find_if(snapshot_.rows.begin(), snapshot_.rows.end(), [](const auto &r) { return r.recommended; });
 	const bool first_run = ViewModel(snapshot_.rows).first_run();
@@ -302,7 +382,7 @@ void ModelManager::render()
 	setup_->setEnabled(recommended != snapshot_.rows.end() && ui::actions(*recommended).install);
 	setup_->setToolTip(recommended == snapshot_.rows.end() ? tr("No recommended package in this catalogue")
 							       : q(recommended->availability));
-	intro_->setText(offer_setup ? tr("Start with Balanced: CorridorKey 2.0\n%1")
+	intro_->setText(offer_setup ? tr("Start with CorridorKey 2.0\nBalanced / Quality keying · %1")
 					      .arg(recommended == snapshot_.rows.end()
 							   ? tr("Package size pending")
 							   : q(byte_size(recommended->download_bytes)) +
@@ -310,10 +390,11 @@ void ModelManager::render()
 									      ? tr(" total download")
 									      : tr(" sources; graph size pending")))
 				    : tr("Installed models are shared by all CorridorKey filters."));
-	space_->setText(tr("Sources %1 · Packages %2 · Builds %3\nTotal cache %4 · Available %5")
-				.arg(q(byte_size(snapshot_.source_bytes)), q(byte_size(snapshot_.bound_bytes)),
-				     q(byte_size(snapshot_.build_bytes)), q(byte_size(snapshot_.total_bytes)),
-				     q(byte_size(snapshot_.available_bytes))));
+	space_->setText(tr("%1 used · %2 available")
+				.arg(q(byte_size(snapshot_.total_bytes)), q(byte_size(snapshot_.available_bytes))));
+	space_->setToolTip(tr("Sources %1 · Prepared models %2 · Backend builds %3")
+				   .arg(q(byte_size(snapshot_.source_bytes)), q(byte_size(snapshot_.bound_bytes)),
+					q(byte_size(snapshot_.build_bytes))));
 	if (!snapshot_.disk_measured)
 		space_->setText(tr("Calculating cache usage…"));
 	notice_->setText(q(snapshot_.notice));
@@ -325,10 +406,20 @@ void ModelManager::details()
 	const auto *r = selected();
 	if (!r)
 		return;
-	name_->setText(q(r->name) +
-		       (r->key.revision.empty() ? "" : tr(" · revision %1").arg(q(r->key.revision.substr(0, 8)))));
-	publisher_->setText(tr("By %1").arg(q(r->publisher)));
-	description_->setText(q(r->availability.empty() ? r->description : r->availability));
+	name_->setText(q(r->name));
+	name_->setToolTip(tr("Revision %1").arg(q(r->key.revision)));
+	publisher_->setText(r->key.id.starts_with("ck2-") ? tr("By Corridor Digital / Niko Pueringer")
+							  : tr("By %1").arg(q(r->publisher)));
+	publisher_->setToolTip(q(r->publisher));
+	QString description = q(r->availability.empty() ? r->description : r->availability);
+	if (r->availability.empty() && r->key.id == "ck2-balanced")
+		description = tr("The default keying model. Balanced keeps delay low; Quality adds a detail pass. "
+				 "Edge Refiner v12 is installed separately.");
+	else if (r->availability.empty() && r->key.id == "ck2-facecam")
+		description = tr(
+			"A smaller working grid for faster keying. Shares source downloads with Balanced / Quality.");
+	description_->setText(description);
+	description_->setToolTip(q(r->description));
 	auto a = ui::actions(*r);
 	install_->setText(q(a.primary));
 	install_->setEnabled(a.install);
@@ -338,6 +429,8 @@ void ModelManager::details()
 	import_->setEnabled(a.import);
 	licence_->setEnabled(r->manifest.has_value());
 	const bool active = working(r->status.state);
+	publisher_->setVisible(!active);
+	description_->setVisible(!active);
 	progress_->setVisible(active);
 	cancel_->setVisible(active);
 	cancel_->setEnabled(a.cancel);
@@ -362,6 +455,7 @@ void ModelManager::details()
 	if (r->cancelling)
 		task += tr(" · Cancelling at a safe boundary…");
 	task_->setText(task);
+	task_->setVisible(active || bool(r->status.failure));
 	const auto &p = r->status.progress;
 	if (p.total_bytes && *p.total_bytes) {
 		progress_->setRange(0, 1000);
