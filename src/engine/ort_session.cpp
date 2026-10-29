@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "ort_session.hpp"
+#include "util/utf8_path.hpp"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iomanip>
@@ -411,7 +412,7 @@ std::map<std::string, std::size_t> Session::finish_profile()
 	rt.check(api.SessionEndProfiling(impl_->session, allocator, &path));
 	OrtOwned<char> guard(path, [&](char *p) { allocator->Free(allocator, p); });
 	impl_->profiling = false;
-	std::ifstream in(fs::u8path(path));
+	std::ifstream in(corridorkey::utf8_path(path));
 	const auto events = nlohmann::json::parse(in);
 	for (const auto &event : events) {
 		if (event.value("cat", "") != "Node" || !event.contains("args"))

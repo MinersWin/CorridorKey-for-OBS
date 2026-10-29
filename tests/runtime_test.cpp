@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #define DOCTEST_CONFIG_IMPLEMENT
+#include "util/utf8_path.hpp"
 #include <doctest/doctest.h>
 #include "engine/providers/process.hpp"
 #include <nlohmann/json.hpp>
@@ -272,7 +273,7 @@ int main(int argc, char **argv)
 #endif
 	executable = fs::absolute(argv[0]);
 	if (argc == 5 && std::string_view(argv[1]) == "--request") {
-		std::ifstream in(fs::u8path(argv[2]));
+		std::ifstream in(corridorkey::utf8_path(argv[2]));
 		auto request = json::parse(in);
 		const auto mode = request.value("test", "ok");
 		if (mode == "sleep")
@@ -284,7 +285,7 @@ int main(int argc, char **argv)
 			raise(SIGSEGV);
 #endif
 		}
-		write(fs::u8path(argv[4]), {{"bad_protocol", true}});
+		write(corridorkey::utf8_path(argv[4]), {{"bad_protocol", true}});
 		return 0;
 	}
 	doctest::Context context(argc, argv);

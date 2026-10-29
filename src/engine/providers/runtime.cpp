@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "runtime.hpp"
+#include "util/utf8_path.hpp"
 #include <nlohmann/json.hpp>
 #include <array>
 #include <algorithm>
@@ -83,7 +84,7 @@ private:
 };
 fs::path private_path(const fs::path &root, const std::string &relative)
 {
-	fs::path path = fs::u8path(relative);
+	fs::path path = corridorkey::utf8_path(relative);
 	if (path.empty() || path.is_absolute() || path.has_root_name())
 		throw std::runtime_error("Bundle path must be relative");
 	for (const auto &part : path)

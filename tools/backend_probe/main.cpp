@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+#include "util/utf8_path.hpp"
 #include "engine/ort_session.hpp"
 #include "engine/providers/process.hpp"
 #include <nlohmann/json.hpp>
@@ -45,8 +46,8 @@ json execute(const json &job)
 	if (job.at("schema") != 1)
 		throw std::runtime_error("Unsupported probe protocol");
 	SessionConfig config;
-	config.bundle = read_bundle(fs::u8path(job.at("bundle").get<std::string>()));
-	config.graph = fs::u8path(job.at("graph").get<std::string>());
+	config.bundle = read_bundle(corridorkey::utf8_path(job.at("bundle").get<std::string>()));
+	config.graph = corridorkey::utf8_path(job.at("graph").get<std::string>());
 	config.obs_adapter.stable_id = job.value("adapter", "");
 	config.require_adapter_match = job.value("require_adapter_match", true);
 	config.prebuilt_context = job.value("prebuilt_context", false);
@@ -54,8 +55,8 @@ json execute(const json &job)
 	if (config.precision != Precision::fp32 && config.precision != Precision::fp16 &&
 	    config.precision != Precision::bf16)
 		throw std::runtime_error("Unsupported probe precision");
-	config.cache_root = fs::u8path(job.value("cache", ""));
-	config.profile_prefix = fs::u8path(job.value("profile", ""));
+	config.cache_root = corridorkey::utf8_path(job.value("cache", ""));
+	config.profile_prefix = corridorkey::utf8_path(job.value("profile", ""));
 	config.options = job.value("options", decltype(config.options){});
 	config.session_options = job.value("session_options", decltype(config.session_options){});
 	config.cache.graph_hash = job.value("graph_hash", "");
@@ -178,7 +179,7 @@ int run(const fs::path &request, const fs::path &response)
 			throw std::runtime_error("Probe request too large");
 		std::ifstream file(request);
 		auto job = json::parse(file);
-		backend = backend_name(read_bundle(fs::u8path(job.at("bundle").get<std::string>())).backend);
+		backend = backend_name(read_bundle(corridorkey::utf8_path(job.at("bundle").get<std::string>())).backend);
 		result = execute(job);
 	} catch (const std::exception &e) {
 		result = {{"schema", 1}, {"ok", false}, {"backend", backend}, {"detail", redact(e.what())}};
