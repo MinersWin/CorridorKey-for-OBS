@@ -116,7 +116,9 @@ void status(obs_properties_t *p, Form &form, const Settings &s)
 			first = tr("Status.Passthrough");
 			first += " · ";
 			first += error_id(state->failure.code);
-			second = tr("Error." + std::string(error_id(state->failure.code)));
+			second = state->diagnostic_detail.empty()
+					 ? tr("Error." + std::string(error_id(state->failure.code)))
+					 : state->diagnostic_detail;
 		} else if (state->lifecycle == Lifecycle::ready) {
 			first = tr("Status.Ready");
 			first += " · ";

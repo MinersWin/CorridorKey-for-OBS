@@ -182,16 +182,15 @@ Error StagedTransport::try_capture(InputFrame &input) noexcept
 bool StagedTransport::capture_ready(const InputFrame &input) noexcept
 {
 	const auto &slot = *slots_[input.lease.id().index];
-	return input.identity.video_tick != obs_get_video_frame_time() && slot.captured.ready();
+	return slot.captured.ready();
 }
-std::optional<InputFrame> StagedTransport::take_ready(std::uint64_t tick)
+std::optional<InputFrame> StagedTransport::take_ready()
 {
+	Slot *selected = nullptr;
 	for (auto &entry : slots_) {
 		if (!entry || !entry->pending)
 			continue;
 		auto &slot = *entry;
-		if (slot.pending->identity.video_tick == tick)
-			continue;
 		if (!slot.captured.ready()) {
 			if (slot.captured.failed()) {
 				failure_ = error(ErrorCode::device_lost);
@@ -204,34 +203,46 @@ std::optional<InputFrame> StagedTransport::take_ready(std::uint64_t tick)
 			slot.pending.reset();
 			continue;
 		}
-		std::uint8_t *data = nullptr;
-		std::uint32_t pitch = 0;
-		if (!gs_stagesurface_map(slot.stage, &data, &pitch)) {
-			failure_ = error(ErrorCode::device_lost);
-			available_ = false;
+		if (!selected || slot.pending->identity.sequence > selected->pending->identity.sequence) {
+			if (selected) {
+				selected->pending.reset();
+				++discarded_;
+			}
+			selected = &slot;
+		} else {
 			slot.pending.reset();
-			continue;
+			++discarded_;
 		}
-		const auto row = static_cast<std::size_t>(grid_.width) * 4;
-		const bool valid = data && pitch >= row;
-		if (valid)
-			for (std::uint32_t y = 0; y < grid_.height; ++y)
-				std::memcpy(slot.bytes.data() + y * row, data + static_cast<std::size_t>(y) * pitch,
-					    row);
-		gs_stagesurface_unmap(slot.stage);
-		if (!valid) {
-			failure_ = error(ErrorCode::invalid_input);
-			available_ = false;
-			slot.pending.reset();
-			continue;
-		}
-		auto input = std::move(slot.pending);
-		slot.pending.reset();
-		input->lease.transition(FrameState::ready);
-		return input;
 	}
-	return std::nullopt;
+	if (!selected)
+		return std::nullopt;
+	auto &slot = *selected;
+	std::uint8_t *data = nullptr;
+	std::uint32_t pitch = 0;
+	if (!gs_stagesurface_map(slot.stage, &data, &pitch)) {
+		failure_ = error(ErrorCode::device_lost);
+		available_ = false;
+		slot.pending.reset();
+		return std::nullopt;
+	}
+	const auto row = static_cast<std::size_t>(grid_.width) * 4;
+	const bool valid = data && pitch >= row;
+	if (valid)
+		for (std::uint32_t y = 0; y < grid_.height; ++y)
+			std::memcpy(slot.bytes.data() + y * row, data + static_cast<std::size_t>(y) * pitch, row);
+	gs_stagesurface_unmap(slot.stage);
+	if (!valid) {
+		failure_ = error(ErrorCode::invalid_input);
+		available_ = false;
+		slot.pending.reset();
+		return std::nullopt;
+	}
+	auto input = std::move(slot.pending);
+	slot.pending.reset();
+	input->lease.transition(FrameState::ready);
+	return input;
 }
+
 void StagedTransport::discard_stale()
 {
 	for (auto &slot : slots_)
@@ -260,11 +271,19 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 	auto &slot = *slots_[result.input.lease.id().index];
 	gs_texture_set_image(slot.model, reinterpret_cast<const std::uint8_t *>(rgba.data()),
 			     grid_.width * 4 * sizeof(float), false);
-	return result.input.settings &&
-	       reconstruction_->prepare(gs_texrender_get_texture(slot.native), gs_texrender_get_texture(slot.grid),
-					slot.model, *result.input.settings, result.transform.sampled_roi) &&
-	       reconstruction_->finish(slot.output, gs_texrender_get_texture(slot.native), *result.input.settings,
-				       result.transform.sampled_roi, debug_view);
+	const bool finished = result.input.settings &&
+			      reconstruction_->prepare(gs_texrender_get_texture(slot.native),
+						       gs_texrender_get_texture(slot.grid), slot.model,
+						       *result.input.settings, result.transform.sampled_roi) &&
+			      reconstruction_->finish(slot.output, gs_texrender_get_texture(slot.native),
+						      *result.input.settings, result.transform.sampled_roi, debug_view);
+	// Even a partially submitted post pass retains its native input until the
+	// GPU is done; presentation will extend this fence to include the draw.
+	if (!slot.drawn.signal()) {
+		available_ = false;
+		failure_ = error(ErrorCode::device_lost);
+	}
+	return finished && available_;
 }
 Error StagedTransport::try_present(const FrameResult &result, std::shared_ptr<const Completion> &read_complete) noexcept
 {

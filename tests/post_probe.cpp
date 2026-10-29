@@ -7,12 +7,53 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <atomic>
+#include <deque>
+#include <functional>
+#include <future>
+#include <mutex>
 
 int run_post_tests(const char *directory);
 
 namespace {
+std::thread::id ui_thread;
+std::mutex ui_mutex;
+std::deque<std::function<void()>> ui_tasks;
+void handle_ui(obs_task_t task, void *parameter, bool wait)
+{
+	if (std::this_thread::get_id() == ui_thread) {
+		task(parameter);
+		return;
+	}
+	auto completion = std::make_shared<std::promise<void>>();
+	auto ready = completion->get_future();
+	{
+		std::lock_guard lock(ui_mutex);
+		ui_tasks.emplace_back([=] {
+			task(parameter);
+			completion->set_value();
+		});
+	}
+	if (wait)
+		ready.wait();
+}
+void pump_ui()
+{
+	for (;;) {
+		std::deque<std::function<void()>> tasks;
+		{
+			std::lock_guard lock(ui_mutex);
+			tasks.swap(ui_tasks);
+		}
+		if (tasks.empty())
+			return;
+		for (auto &task : tasks)
+			task();
+	}
+}
 struct Source {
-	unsigned width, height;
+	std::atomic<unsigned> width, height;
+	bool hdr = false;
 };
 const char *name(void *)
 {
@@ -21,7 +62,13 @@ const char *name(void *)
 void *create(obs_data_t *data, obs_source_t *)
 {
 	return new Source{static_cast<unsigned>(obs_data_get_int(data, "width")),
-			  static_cast<unsigned>(obs_data_get_int(data, "height"))};
+			  static_cast<unsigned>(obs_data_get_int(data, "height")), obs_data_get_bool(data, "hdr")};
+}
+void update(void *value, obs_data_t *data)
+{
+	auto &source = *static_cast<Source *>(value);
+	source.width = static_cast<unsigned>(obs_data_get_int(data, "width"));
+	source.height = static_cast<unsigned>(obs_data_get_int(data, "height"));
 }
 void destroy(void *data)
 {
@@ -34,6 +81,10 @@ uint32_t width(void *data)
 uint32_t height(void *data)
 {
 	return static_cast<Source *>(data)->height;
+}
+gs_color_space color_space(void *data, size_t, const gs_color_space *)
+{
+	return static_cast<Source *>(data)->hdr ? GS_CS_709_EXTENDED : GS_CS_SRGB;
 }
 void render(void *data, gs_effect_t *)
 {
@@ -48,11 +99,13 @@ void render(void *data, gs_effect_t *)
 int main(int argc, char **argv)
 {
 	if (argc < 5) {
-		std::fprintf(stderr, "post_probe module data-directory width seconds\n");
+		std::fprintf(stderr, "post_probe module data-directory width seconds [fake-delay-ms] [stress|hdr]\n");
 		return 2;
 	}
 	if (!obs_startup("en-US", nullptr, nullptr))
 		return 3;
+	ui_thread = std::this_thread::get_id();
+	obs_set_ui_task_handler(handle_ui);
 	obs_audio_info audio{};
 	audio.samples_per_sec = 48000;
 	audio.speakers = SPEAKERS_STEREO;
@@ -94,29 +147,70 @@ int main(int argc, char **argv)
 	info.get_name = name;
 	info.create = create;
 	info.destroy = destroy;
+	info.update = update;
 	info.get_width = width;
 	info.get_height = height;
 	info.video_render = render;
+	info.video_get_color_space = color_space;
 	obs_register_source(&info);
 	auto *data = obs_data_create();
 	obs_data_set_int(data, "width", w);
 	obs_data_set_int(data, "height", w * 9 / 16);
+	const bool hdr = argc > 6 && std::strcmp(argv[6], "hdr") == 0;
+	obs_data_set_bool(data, "hdr", hdr);
 	auto *source = obs_source_create(info.id, "Probe", data, nullptr);
 	obs_data_release(data);
 	data = obs_data_create();
 	obs_data_set_bool(data, "w03_fake_enabled", true);
-	obs_data_set_int(data, "w03_fake_delay", 0);
+	obs_data_set_int(data, "w03_fake_delay", argc > 5 ? std::atoi(argv[5]) : 0);
 	auto *filter = obs_source_create("corridorkey", "Probe key", data, nullptr);
 	obs_data_release(data);
 	obs_source_filter_add(source, filter);
 	obs_set_output_source(0, source);
-	std::this_thread::sleep_for(std::chrono::seconds(std::atoi(argv[4])));
+	const bool stress = argc > 6 && std::strcmp(argv[6], "stress") == 0;
+	for (int half = 0; half < std::atoi(argv[4]) * 2; ++half) {
+		for (int poll = 0; poll < 50; ++poll) {
+			pump_ui();
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+		if (!stress)
+			continue;
+		auto *change = obs_source_get_settings(source);
+		obs_data_set_int(change, "width", half % 3 == 0 ? 719 : w);
+		obs_data_set_int(change, "height", half % 3 == 0 ? 1281 : w * 9 / 16);
+		obs_source_update(source, change);
+		obs_data_release(change);
+		change = obs_source_get_settings(filter);
+		obs_data_set_double(change, "cut_left", half % 4 == 0 ? 17 : 0);
+		obs_data_set_int(change, "w03_fake_delay", half % 3 == 0 ? 90 : 0);
+		obs_data_set_bool(change, "w03_fake_reorder", half % 5 == 0);
+		obs_data_set_int(change, "w03_fake_fault", half % 7 == 0 ? 3 : 0);
+		obs_source_update(filter, change);
+		obs_source_set_enabled(filter, half % 6 != 0);
+		obs_data_release(change);
+	}
+	if (stress)
+		std::puts("STRESS resize/crop/enable/failure transitions completed");
+	bool verified = true;
+	if (hdr) {
+		const gs_color_space spaces[] = {GS_CS_SRGB, GS_CS_SRGB_16F, GS_CS_709_EXTENDED, GS_CS_709_SCRGB};
+		verified = obs_source_get_color_space(filter, 4, spaces) == GS_CS_709_EXTENDED;
+		auto *properties = obs_source_properties(filter);
+		auto *values = obs_source_get_settings(filter);
+		obs_properties_apply_settings(properties, values);
+		const auto *status = obs_data_get_string(values, "status");
+		std::printf("HDR status: %s\n", status);
+		verified = verified && std::strstr(status, "HDR") != nullptr;
+		obs_data_release(values);
+		obs_properties_destroy(properties);
+	}
 	obs_set_output_source(0, nullptr);
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	obs_source_filter_remove(source, filter);
 	obs_source_release(filter);
 	obs_source_release(source);
 	obs_wait_for_destroy_queue();
+	pump_ui();
 	obs_shutdown();
-	return 0;
+	return verified ? 0 : 7;
 }

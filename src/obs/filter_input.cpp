@@ -15,6 +15,7 @@
 #include <thread>
 #include <limits>
 #include <exception>
+#include <condition_variable>
 
 namespace corridorkey {
 namespace {
@@ -68,6 +69,7 @@ struct FilterInput::Impl {
 	obs_source_t *source;
 	const InstanceId instance = next_instance.fetch_add(1);
 	mutable std::mutex mutex;
+	std::mutex mailbox_mutex;
 	FramePool pool{FramePool::maximum_capacity};
 	FakePipeline pipeline{{}, FakeExecution::manual};
 	Scheduler scheduler{admission}; // Worker only; render deduplication is separate.
@@ -75,6 +77,17 @@ struct FilterInput::Impl {
 	FakeOptions options;
 	std::unique_ptr<StagedTransport> transport;
 	std::optional<FrameResult> presented;
+	std::optional<InputFrame> staged_input;
+	std::optional<FrameResult> completed_result;
+	std::vector<float> completed_pixels;
+	TimePoint publication_started{};
+	std::atomic<bool> transfer_queued{false}, input_available{false};
+	SettingsSnapshot worker_settings;
+	FakeOptions worker_options;
+	bool worker_active = false;
+	std::uint64_t transfer_tick = 0;
+	bool has_transfer_tick = false;
+	std::atomic<bool> discard_presentation{false};
 	std::array<std::optional<FrameResult>, FramePool::maximum_capacity> retired;
 	Extent size;
 	gs_color_space color_space = GS_CS_SRGB;
@@ -89,7 +102,10 @@ struct FilterInput::Impl {
 	std::atomic<ErrorCode> failure{ErrorCode::model_missing};
 	std::atomic<bool> stopping{false}, reset_requested{false};
 	std::thread worker;
-	CallbackTimes timings, graphics_timings;
+	std::mutex wake_mutex;
+	std::condition_variable wake;
+	CallbackTimes timings, graphics_timings, post_timings, tick_transfer_timings, inference_cpu_timings,
+		worker_timings;
 	FrameTiming frame_timing;
 	std::array<Duration, FramePool::maximum_capacity> input_transfers{};
 	TimePoint last_render{}, last_log = obs_now();
@@ -105,6 +121,7 @@ struct FilterInput::Impl {
 	~Impl()
 	{
 		stopping = true;
+		wake.notify_one();
 		worker.join();
 		if (target)
 			obs_weak_source_release(target);
@@ -187,23 +204,155 @@ struct FilterInput::Impl {
 		     static_cast<unsigned long long>(graphics_timings.count.load()),
 		     CallbackTimes::quantile(graphics_timings.total, graphics_timings.count.load(), .5),
 		     CallbackTimes::quantile(graphics_timings.total, graphics_timings.count.load(), .95));
+		const auto age = frame_timing.snapshot(now);
+		blog(LOG_INFO,
+		     "[corridorkey:w08] age_median_ms=%.3f age_p95_ms=%.3f input_ms=%.3f output_ms=%.3f inference_ms=%.3f queue_ms=%.3f keyed_fps=%.3f",
+		     age.age_median_ms.value_or(-1), age.age_p95_ms.value_or(-1),
+		     age.input_transfer_median_ms.value_or(-1), age.output_transfer_median_ms.value_or(-1),
+		     age.inference_median_ms.value_or(-1), age.queue_median_ms.value_or(-1),
+		     age.keyed_fps.value_or(-1));
+		blog(LOG_INFO, "[corridorkey:w08] post_cpu_ms_p50<=%.2f post_cpu_ms_p95<=%.2f",
+		     CallbackTimes::quantile(post_timings.total, post_timings.count.load(), .5),
+		     CallbackTimes::quantile(post_timings.total, post_timings.count.load(), .95));
+		blog(LOG_INFO, "[corridorkey:w08] tick_transfer_cpu_ms_p50<=%.2f tick_transfer_cpu_ms_p95<=%.2f",
+		     CallbackTimes::quantile(tick_transfer_timings.total, tick_transfer_timings.count.load(), .5),
+		     CallbackTimes::quantile(tick_transfer_timings.total, tick_transfer_timings.count.load(), .95));
+		blog(LOG_INFO,
+		     "[corridorkey:w08] fake_cpu_ms_p50<=%.2f fake_cpu_ms_p95<=%.2f worker_cpu_ms_p50<=%.2f worker_cpu_ms_p95<=%.2f",
+		     CallbackTimes::quantile(inference_cpu_timings.total, inference_cpu_timings.count.load(), .5),
+		     CallbackTimes::quantile(inference_cpu_timings.total, inference_cpu_timings.count.load(), .95),
+		     CallbackTimes::quantile(worker_timings.total, worker_timings.count.load(), .5),
+		     CallbackTimes::quantile(worker_timings.total, worker_timings.count.load(), .95));
 		logged_count = count;
 		last_log = now;
 	}
+	bool active() const
+	{
+		return !stopping && enabled && host_enabled && settings && !settings->context.bypass && size.width &&
+		       size.height;
+	}
+	// At most one queued graphics callback; the worker continues polling inference.
+	void queue_transfer()
+	{
+		const auto current_tick = tick.load();
+		if ((has_transfer_tick && transfer_tick == current_tick) || transfer_queued.exchange(true))
+			return;
+		has_transfer_tick = true;
+		transfer_tick = current_tick;
+		obs_queue_task(
+			OBS_TASK_GRAPHICS,
+			[](void *parameter) {
+				auto &s = *static_cast<Impl *>(parameter);
+				const auto start = obs_now();
+				try {
+					GraphicsScope graphics;
+					std::lock_guard lock(s.mutex);
+					s.transfer();
+				} catch (const std::bad_alloc &) {
+					s.failure = ErrorCode::out_of_memory;
+				} catch (...) {
+					s.failure = ErrorCode::internal;
+				}
+				s.graphics_timings.record(obs_now() - start, {});
+				s.transfer_queued = false;
+			},
+			this, false);
+	}
+	void transfer()
+	{
+		if (presented &&
+		    (!presented->input.lease.current() || !active() || discard_presentation.exchange(false)))
+			retire_presented();
+		{
+			std::unique_lock mailbox(mailbox_mutex, std::try_to_lock);
+			if (mailbox.owns_lock()) {
+				if (staged_input && (!staged_input->lease.current() || !active()))
+					staged_input.reset();
+				if (completed_result && (!completed_result->input.lease.current() || !active())) {
+					completed_result.reset();
+					completed_pixels.clear();
+				}
+			}
+		}
+		collect();
+		if (active() && pool.in_use() == 0 && resource_attempt != pool.generation()) {
+			resource_attempt = pool.generation();
+			const auto grid = settings->quality.grid;
+			if (size.width > 8192 || size.height > 8192 || !grid.width || !grid.height ||
+			    static_cast<std::uint64_t>(grid.width) * grid.height > 1024 * 1024) {
+				failure = ErrorCode::unsupported;
+			} else if (!transport || !transport->available() || transport->native_size() != size ||
+				   transport->grid_size() != grid) {
+				transport.reset();
+				transport = std::make_unique<StagedTransport>(source, size, grid);
+				if (!transport->available())
+					failure = ErrorCode::unsupported;
+			}
+		}
+		poll_input();
+	}
+	void poll_input()
+	{
+		std::unique_lock mailbox(mailbox_mutex, std::try_to_lock);
+		if (!mailbox.owns_lock())
+			return;
+		if (active() && transport && transport->available() && !staged_input) {
+			const auto previous = transport->discarded();
+			staged_input = transport->take_ready();
+			dropped += transport->discarded() - previous;
+			input_available = staged_input.has_value();
+			if (input_available)
+				wake.notify_one();
+		}
+		if (transport && transport->failure())
+			failure = transport->failure().code;
+	}
+
+	// The video tick precedes drawing. Submit ready post passes here so this
+	// canvas frame can display the result without another graphics-task round trip.
+	void publish()
+	{
+		std::unique_lock mailbox(mailbox_mutex, std::try_to_lock);
+		if (!mailbox.owns_lock())
+			return;
+		if (!completed_result)
+			return;
+		auto result = std::move(completed_result);
+		completed_result.reset();
+		if (!active() || !transport ||
+		    !presentable(*result, instance, pool.generation(), last_presented, obs_now(),
+				 std::chrono::milliseconds(settings->context.stale_timeout_ms)))
+			return;
+		const auto start = obs_now();
+		GraphicsScope graphics;
+		const bool uploaded = transport->upload(*result, completed_pixels, debug_view);
+		result->timings.output_transfer += obs_now() - publication_started;
+		post_timings.record(obs_now() - start, {});
+		if (!uploaded) {
+			failure = ErrorCode::device_lost;
+			const auto index = result->input.lease.id().index;
+			retired[index] = std::move(result);
+			return;
+		}
+		retire_presented();
+		result->input.lease.transition(FrameState::presenting);
+		last_presented = result->identity.sequence;
+		presented = std::move(result);
+		failure = ErrorCode::none;
+	}
 	void work(Generation &prepared)
 	{
-		SettingsSnapshot snapshot;
-		FakeOptions config;
-		Generation generation;
-		bool active;
-		{
+		const auto work_start = obs_now();
+		const auto generation = pool.generation();
+		if (prepared != generation) {
 			std::lock_guard lock(mutex);
-			generation = pool.generation();
-			snapshot = settings;
-			config = options;
-			active = enabled && host_enabled && snapshot && !snapshot->context.bypass && size.width &&
-				 size.height;
+			worker_settings = settings;
+			worker_options = options;
+			worker_active = active();
 		}
+		const auto &snapshot = worker_settings;
+		const auto &config = worker_options;
+		const bool active = worker_active;
 		if (prepared != generation) {
 			pipeline.cancel();
 			scheduler.reset();
@@ -218,14 +367,15 @@ struct FilterInput::Impl {
 			if (problem)
 				failure = problem.code;
 		}
-		if (!active && !transport) {
-			log_timings();
-			return;
-		}
+
+		const auto inference_start = obs_now();
 		pipeline.advance(obs_now());
 		auto result = pipeline.poll_result();
+		const bool produced = result.has_value();
+		if (produced)
+			inference_cpu_timings.record(obs_now() - inference_start, {});
 		std::vector<float> rgba;
-		bool result_failed = false;
+
 		if (result) {
 			scheduler.completed();
 			++completed;
@@ -233,7 +383,7 @@ struct FilterInput::Impl {
 				result.reset();
 			} else if (result->failure) {
 				failure = result->failure.code;
-				result_failed = true;
+				discard_presentation = true;
 				result.reset();
 			} else if (presentable(*result, instance, generation, 0, obs_now(),
 					       std::chrono::milliseconds(snapshot->context.stale_timeout_ms))) {
@@ -247,40 +397,18 @@ struct FilterInput::Impl {
 			}
 		}
 		std::optional<InputFrame> input;
-		const auto upload_start = obs_now();
-		graphics_task([&] {
-			std::lock_guard lock(mutex);
-			if (presented && (!presented->input.lease.current() || !active || result_failed))
-				retire_presented();
-			if (result && result->input.lease.current() && transport &&
-			    transport->upload(*result, rgba, debug_view)) {
-				result->timings.output_transfer += obs_now() - upload_start;
-				retire_presented();
-				result->input.lease.transition(FrameState::presenting);
-				last_presented = result->identity.sequence;
-				presented = std::move(result);
-				failure = ErrorCode::none;
+		if (result || input_available) {
+			std::lock_guard lock(mailbox_mutex);
+			if (result && result->input.lease.current() && active) {
+				completed_result.swap(result);
+				completed_pixels.swap(rgba);
+				publication_started = obs_now();
 			}
-			collect();
-			if (active && settings && pool.in_use() == 0 && resource_attempt != pool.generation()) {
-				resource_attempt = pool.generation();
-				const auto grid = settings->quality.grid;
-				if (size.width > 8192 || size.height > 8192 || !grid.width || !grid.height ||
-				    static_cast<std::uint64_t>(grid.width) * grid.height > 1024 * 1024) {
-					failure = ErrorCode::unsupported;
-				} else if (!transport || !transport->available() || transport->native_size() != size ||
-					   transport->grid_size() != grid) {
-					transport.reset();
-					transport = std::make_unique<StagedTransport>(source, size, grid);
-					if (!transport->available())
-						failure = ErrorCode::unsupported;
-				}
-			}
-			if (active && transport && transport->available())
-				input = transport->take_ready(tick.load());
-			if (transport && transport->failure())
-				failure = transport->failure().code;
-		});
+			input = std::move(staged_input);
+			staged_input.reset();
+			input_available = false;
+		}
+		queue_transfer();
 		if (input && input->lease.current()) {
 			input->analysis = transport->analysis(*input);
 			input_transfers[input->lease.id().index] = obs_now() - input->identity.captured_at;
@@ -295,6 +423,8 @@ struct FilterInput::Impl {
 			else if (problem.code != ErrorCode::busy)
 				failure = problem.code;
 		}
+		if (input || produced)
+			worker_timings.record(obs_now() - work_start, {});
 		log_timings();
 	}
 	void run() noexcept
@@ -308,13 +438,22 @@ struct FilterInput::Impl {
 			} catch (...) {
 				failure = ErrorCode::internal;
 			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::unique_lock wait_lock(wake_mutex);
+			wake.wait_for(wait_lock, std::chrono::milliseconds(1));
 		}
 		pipeline.cancel();
 		scheduler.reset();
 		pipeline.shutdown();
 		pool.advance_generation();
-		graphics_task([] { gs_flush(); });
+		graphics_task([&] {
+			// FIFO barrier: the last asynchronous callback has returned before
+			// its mailbox and graphics resources can be released.
+			std::scoped_lock lock(mutex, mailbox_mutex);
+			staged_input.reset();
+			completed_result.reset();
+			completed_pixels.clear();
+			gs_flush();
+		});
 		// Poll once per graphics task while the detached worker owns retirement.
 		bool drained = false;
 		while (!drained) {
@@ -360,8 +499,8 @@ void FilterInput::tick() noexcept
 	const Extent size{target ? obs_source_get_base_width(target) : 0,
 			  target ? obs_source_get_base_height(target) : 0};
 	const bool enabled = obs_source_enabled(s.source);
-	const gs_color_space preferred[] = {GS_CS_SRGB, GS_CS_SRGB_16F};
-	const auto color_space = target ? obs_source_get_color_space(target, 2, preferred) : GS_CS_SRGB;
+	const gs_color_space preferred[] = {GS_CS_SRGB, GS_CS_SRGB_16F, GS_CS_709_EXTENDED, GS_CS_709_SCRGB};
+	const auto color_space = target ? obs_source_get_color_space(target, 4, preferred) : GS_CS_SRGB;
 	const bool changed = target ? !s.target || !obs_weak_source_references_source(s.target, target)
 				    : s.target != nullptr;
 	if (changed) {
@@ -377,6 +516,15 @@ void FilterInput::tick() noexcept
 		s.invalidate();
 		if (!size.width || !size.height)
 			s.failure = ErrorCode::invalid_input;
+	}
+	try {
+		s.publish();
+		const auto start = obs_now();
+		GraphicsScope graphics;
+		s.poll_input();
+		s.tick_transfer_timings.record(obs_now() - start, {});
+	} catch (...) {
+		s.failure = ErrorCode::internal;
 	}
 }
 bool FilterInput::render() noexcept
@@ -412,8 +560,8 @@ bool FilterInput::render() noexcept
 			s.failure = ErrorCode::busy;
 			return false;
 		}
-		const gs_color_space spaces[] = {GS_CS_SRGB, GS_CS_SRGB_16F};
-		const auto color_space = obs_source_get_color_space(target, 2, spaces);
+		const gs_color_space spaces[] = {GS_CS_SRGB, GS_CS_SRGB_16F, GS_CS_709_EXTENDED, GS_CS_709_SCRGB};
+		const auto color_space = obs_source_get_color_space(target, 4, spaces);
 		s.unsupported_hdr = color_space != GS_CS_SRGB && color_space != GS_CS_SRGB_16F;
 		if (s.unsupported_hdr) {
 			s.failure = ErrorCode::unsupported;
