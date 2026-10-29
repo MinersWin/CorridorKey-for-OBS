@@ -67,6 +67,14 @@ The installed OBS and other packages' portable copies were not modified or close
   smoke script. The interactive uninstaller was cancelled before confirming any
   removal. The script's syntax, read-only stage/path checks and refusal while
   OBS is active passed; its actual install/uninstall sequence has not run.
+- Follow-up, 29 October 2026: the script ran in an OBS-free window against the
+  portable OBS 33 copy. All eight steps passed: preflight, fixture compilation,
+  removal of an existing fixture, clean install of the previous fixture,
+  upgrade with alternate-layout removal, silent uninstall, rollback and the
+  final uninstall. Cache and config were preserved throughout. The prior-version
+  fixture used the current payload, so this covers installer mechanics, not a
+  historical settings migration. The interactive cache-deletion prompt and
+  module loading after reinstall are separate checks.
 
 Evidence stays in `.cache/install-previous.log`, `.cache/upgrade.log`,
 `.cache/blocked-final.log`, the portable OBS log directory, and the images in
