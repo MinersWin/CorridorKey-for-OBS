@@ -75,6 +75,51 @@
         "url": "https://storage.googleapis.com/representations4d/checkpoints/pretrain_rvm_small16_256_204031069.npz"
       },
       "format": "npz"
+    },
+    {
+      "id": "ck1green",
+      "path": "sources/ck1green/CorridorKey_v1.0.safetensors",
+      "format": "safetensors",
+      "bytes": 398849256,
+      "sha256": "74d614f7d92fc559a118c30a7deadedc3cacd8ef83dcb85a030d0bed7af8b20b",
+      "licenses": [
+        "LicenseRef-Corridor-Key-1.0"
+      ],
+      "origin": {
+        "repo": "nikopueringer/CorridorKey_v1.0",
+        "revision": "f6386ddf042d8e92aeb5fd16cb9b101cff508195",
+        "file": "CorridorKey_v1.0.safetensors"
+      }
+    },
+    {
+      "id": "ck1blue",
+      "path": "sources/ck1blue/CorridorKeyBlue_1.0.safetensors",
+      "format": "safetensors",
+      "bytes": 398849256,
+      "sha256": "43bc5f6a08a9e5effe5d633d0d84bb0aff91037b35ab85d16cd812b38c5cac23",
+      "licenses": [
+        "LicenseRef-Corridor-Key-1.0"
+      ],
+      "origin": {
+        "repo": "nikopueringer/CorridorKeyBlue_1.0",
+        "revision": "51e6ccaa4b703f54be20a72ac2c37784fb9ba1cd",
+        "file": "CorridorKeyBlue_1.0.safetensors"
+      }
+    },
+    {
+      "id": "modnet",
+      "path": "sources/modnet/model.safetensors",
+      "format": "safetensors",
+      "bytes": 35210636,
+      "sha256": "ff7b42f33371d1ba7be124487ce3586e230708b3bef289742f13fac491d07102",
+      "licenses": [
+        "LicenseRef-MODNet-Apache-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/MODNet-Webcam-safetensors",
+        "revision": "2b4102c4a84a919ed189b685f8d1089194eaa454",
+        "file": "model.safetensors"
+      }
     }
   ],
   "schema_version": 1

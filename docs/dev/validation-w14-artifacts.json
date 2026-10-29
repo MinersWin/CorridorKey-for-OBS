@@ -1,0 +1,165 @@
+{
+  "graph_revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+  "artifacts": [
+    {
+      "file": "graphs/ck1green_256.json",
+      "bytes": 102555,
+      "sha256": "e0dd468d543a56df52561e23f890823207a70c284e1e95897aab2e8b5c8c0fae",
+      "hf_git_blob_sha1": "ccca467c1d1c2d70f85357e054d366bf9273ce93"
+    },
+    {
+      "file": "graphs/ck1green_256.onnx",
+      "bytes": 2140626,
+      "sha256": "cdf1d2d709a4596ea1b2df3e6e3cb95aec9067be6eeda8ea1a33c69077966937",
+      "hf_git_blob_sha1": "b13ea1e1e7816696f299e574a54020c959e8fcf3"
+    },
+    {
+      "file": "graphs/ck1green_384.json",
+      "bytes": 102555,
+      "sha256": "fea69da499ea928886c64e219cbaa882462c044bb058e82767cf2b71ad83e005",
+      "hf_git_blob_sha1": "9374c19907c01e14736b2c40ca13df19fdcd4c0c"
+    },
+    {
+      "file": "graphs/ck1green_384.onnx",
+      "bytes": 2140934,
+      "sha256": "c2bb77f25f8c5776956547647103c59cf43cb2f2709ca96d5a337b31f2f5332b",
+      "hf_git_blob_sha1": "5190319aceca760f3d9926565b23c4fdc26aad0e"
+    },
+    {
+      "file": "graphs/ck1green_512.json",
+      "bytes": 102555,
+      "sha256": "57171224279bd1e9c7a4660ad5056f276ace60d10909640d957a21adbf5b14dc",
+      "hf_git_blob_sha1": "263bfc9e5718649f1f85dd9ff9491dd0fc16e8cd"
+    },
+    {
+      "file": "graphs/ck1green_512.onnx",
+      "bytes": 2141103,
+      "sha256": "88c1a13b0802f70514206e8642e9b6cb71f9dc3a3c0cb08113a9a599fdecc36d",
+      "hf_git_blob_sha1": "ed6ba71a30049d18572334a5bd5b916b95307454"
+    },
+    {
+      "file": "graphs/ck1blue_256.json",
+      "bytes": 102194,
+      "sha256": "3cb513de3ccf5921d80f89e58519cc0402aa2611981ce93706565cbc589005bf",
+      "hf_git_blob_sha1": "a0ea31ec0984629ab269eebb65f5324e1f8052f0"
+    },
+    {
+      "file": "graphs/ck1blue_256.onnx",
+      "bytes": 2140261,
+      "sha256": "b8333245cc0734b96a7dd1707f9437c280a5d10beef537436d70caedd42116c1",
+      "hf_git_blob_sha1": "9878f8c6d0cbd402917ab819ea0b11506a3cf9b9"
+    },
+    {
+      "file": "graphs/ck1blue_384.json",
+      "bytes": 102194,
+      "sha256": "67fb064c99dc5684542c21bf16bb724590dea93202f9ee411218d94a576e225f",
+      "hf_git_blob_sha1": "8dbef45ddcfa255cb45b1319c055f4afcbb38979"
+    },
+    {
+      "file": "graphs/ck1blue_384.onnx",
+      "bytes": 2140569,
+      "sha256": "c5ce4c4feb32af13600356e0eb0c7528d2dcf679e149b2f9ca8ccb1edeec0157",
+      "hf_git_blob_sha1": "27017c255726b4f5489200273eb25994766dffa1"
+    },
+    {
+      "file": "graphs/ck1blue_512.json",
+      "bytes": 102194,
+      "sha256": "17c13eaf8941c6a7052e42b821966a9f12c836be09a61ca3b2a5f72a9ca89f69",
+      "hf_git_blob_sha1": "bdcdadbc1ac8c1a6f4f43b90eb7a19b505984f42"
+    },
+    {
+      "file": "graphs/ck1blue_512.onnx",
+      "bytes": 2140738,
+      "sha256": "3791d21411f5870e1d1ca12293997857e70908cd0ca19294ed9a1b94af5c44a2",
+      "hf_git_blob_sha1": "99473a6e8ff3d3539748ea7de8f9c49778289e64"
+    },
+    {
+      "file": "graphs/modnet_256.json",
+      "bytes": 111845,
+      "sha256": "72ac8946f701ce82f7f5ad0545380c2f54cd36c2498b186a9063d0bc49b0c7cc",
+      "hf_git_blob_sha1": "c84d29351da7ee70b168cf0c8185fd680c338f2c"
+    },
+    {
+      "file": "graphs/modnet_256.onnx",
+      "bytes": 702969,
+      "sha256": "d2104572be128a636f8f4f7c661a51f73ea10512fe1da41cdd8ea3182f23c178",
+      "hf_git_blob_sha1": "efaa2212da8ed0f395252d1e013fd2bbb1087cd0"
+    },
+    {
+      "file": "graphs/modnet_384.json",
+      "bytes": 111845,
+      "sha256": "2733f96374d530a1718b9d5c83eb142774f1040c3b69ba860820299098408904",
+      "hf_git_blob_sha1": "aeb398b122972162d16049b01408177cd7cbd6a9"
+    },
+    {
+      "file": "graphs/modnet_384.onnx",
+      "bytes": 702971,
+      "sha256": "78ed304ace7ebef715596d373aea34dc60b962bb2f65d20ea0e42f78f1b1c3fc",
+      "hf_git_blob_sha1": "ba0a6955c0d0483db38a68bfc1b851d13e0ac5ef"
+    },
+    {
+      "file": "graphs/modnet_512.json",
+      "bytes": 111845,
+      "sha256": "678a65120f2d55e3d4ce4e60cc41f53b60adf46498ef09565546783d492658ae",
+      "hf_git_blob_sha1": "8e84094f2ceceb454eeb68f897abdf90f0932a60"
+    },
+    {
+      "file": "graphs/modnet_512.onnx",
+      "bytes": 703119,
+      "sha256": "a33caeaff8a8624b6bbdd88f300a9a8a608f56049b2bc69d3df48921d6153125",
+      "hf_git_blob_sha1": "e493a7dcbba1b12208896e37c281597cb2604df6"
+    },
+    {
+      "id": "ck1green",
+      "path": "sources/ck1green/CorridorKey_v1.0.safetensors",
+      "format": "safetensors",
+      "bytes": 398849256,
+      "sha256": "74d614f7d92fc559a118c30a7deadedc3cacd8ef83dcb85a030d0bed7af8b20b",
+      "licenses": [
+        "LicenseRef-Corridor-Key-1.0"
+      ],
+      "origin": {
+        "repo": "nikopueringer/CorridorKey_v1.0",
+        "revision": "f6386ddf042d8e92aeb5fd16cb9b101cff508195",
+        "file": "CorridorKey_v1.0.safetensors"
+      }
+    },
+    {
+      "id": "ck1blue",
+      "path": "sources/ck1blue/CorridorKeyBlue_1.0.safetensors",
+      "format": "safetensors",
+      "bytes": 398849256,
+      "sha256": "43bc5f6a08a9e5effe5d633d0d84bb0aff91037b35ab85d16cd812b38c5cac23",
+      "licenses": [
+        "LicenseRef-Corridor-Key-1.0"
+      ],
+      "origin": {
+        "repo": "nikopueringer/CorridorKeyBlue_1.0",
+        "revision": "51e6ccaa4b703f54be20a72ac2c37784fb9ba1cd",
+        "file": "CorridorKeyBlue_1.0.safetensors"
+      }
+    },
+    {
+      "id": "modnet",
+      "path": "sources/modnet/model.safetensors",
+      "format": "safetensors",
+      "bytes": 35210636,
+      "sha256": "ff7b42f33371d1ba7be124487ce3586e230708b3bef289742f13fac491d07102",
+      "licenses": [
+        "LicenseRef-MODNet-Apache-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/MODNet-Webcam-safetensors",
+        "revision": "2b4102c4a84a919ed189b685f8d1089194eaa454",
+        "file": "model.safetensors"
+      }
+    }
+  ],
+  "licence_verification": {
+    "ck1_url": "https://raw.githubusercontent.com/nikopueringer/CorridorKey/c8328d0d364e354c93920744f06e02f20a96cc8d/LICENSE",
+    "ck1_sha256": "b58d925c4ff71558dcdc522a7a37160c8872d5185bdd16d38a00b0eff4ae1751",
+    "modnet_revision": "2b4102c4a84a919ed189b685f8d1089194eaa454",
+    "modnet_license_sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6",
+    "modnet_notice_sha256": "78240bc11bba679729400a2b9c99dd85b28150ca5c56752b7f841c12d640af2a"
+  }
+}

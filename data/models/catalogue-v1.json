@@ -1,7 +1,7 @@
 {
   "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. UNSIGNED installer-only catalogue; release signing is required before remote distribution.",
   "schema_version": 1,
-  "sequence": 1,
+  "sequence": 2,
   "packages": [
     {
       "id": "ck2-facecam",
@@ -58,6 +58,63 @@
         "origin": {
           "url": "https://github.com/MinersWin/CorridorKey-for-OBS/releases/download/model-catalogue-v1/8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e.json",
           "revision": "8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e"
+        }
+      }
+    },
+    {
+      "id": "ck1-green",
+      "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+      "manifest": {
+        "id": "ck1-green-manifest",
+        "path": "manifests/0aa19052839e2e1a40102777757f8b173a34438a311dffecfeca44f541a9f1f8.json",
+        "format": "manifest-json",
+        "bytes": 11440,
+        "sha256": "0aa19052839e2e1a40102777757f8b173a34438a311dffecfeca44f541a9f1f8",
+        "licenses": [
+          "LicenseRef-Corridor-Key-1.0",
+          "LicenseRef-Corridor-Key-2.0"
+        ],
+        "origin": {
+          "url": "https://github.com/MinersWin/CorridorKey-for-OBS/releases/download/model-catalogue-v1/0aa19052839e2e1a40102777757f8b173a34438a311dffecfeca44f541a9f1f8.json",
+          "revision": "0aa19052839e2e1a40102777757f8b173a34438a311dffecfeca44f541a9f1f8"
+        }
+      }
+    },
+    {
+      "id": "ck1-blue",
+      "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+      "manifest": {
+        "id": "ck1-blue-manifest",
+        "path": "manifests/bd72990e5465120a6537fb9c7dc0b94e48bb79665de597e180ac34c8f4df8312.json",
+        "format": "manifest-json",
+        "bytes": 11409,
+        "sha256": "bd72990e5465120a6537fb9c7dc0b94e48bb79665de597e180ac34c8f4df8312",
+        "licenses": [
+          "LicenseRef-Corridor-Key-1.0",
+          "LicenseRef-Corridor-Key-2.0"
+        ],
+        "origin": {
+          "url": "https://github.com/MinersWin/CorridorKey-for-OBS/releases/download/model-catalogue-v1/bd72990e5465120a6537fb9c7dc0b94e48bb79665de597e180ac34c8f4df8312.json",
+          "revision": "bd72990e5465120a6537fb9c7dc0b94e48bb79665de597e180ac34c8f4df8312"
+        }
+      }
+    },
+    {
+      "id": "modnet",
+      "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+      "manifest": {
+        "id": "modnet-manifest",
+        "path": "manifests/e5618de7af40dab7d49e1976bb6b1917e50f28f6a64f5e9d555e7b28e94e29ff.json",
+        "format": "manifest-json",
+        "bytes": 10132,
+        "sha256": "e5618de7af40dab7d49e1976bb6b1917e50f28f6a64f5e9d555e7b28e94e29ff",
+        "licenses": [
+          "LicenseRef-Corridor-Key-2.0",
+          "LicenseRef-MODNet-Apache-2.0"
+        ],
+        "origin": {
+          "url": "https://github.com/MinersWin/CorridorKey-for-OBS/releases/download/model-catalogue-v1/e5618de7af40dab7d49e1976bb6b1917e50f28f6a64f5e9d555e7b28e94e29ff.json",
+          "revision": "e5618de7af40dab7d49e1976bb6b1917e50f28f6a64f5e9d555e7b28e94e29ff"
         }
       }
     }

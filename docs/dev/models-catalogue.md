@@ -7,9 +7,12 @@ those downloads and runs the [native weight binder](binder.md); the inference lo
 probe the resulting graphs before using them for video.
 
 The bundled [catalogue](../../data/models/catalogue-v1.json) contains CK2 Facecam,
-CK2 Balanced / Quality, and Edge Refiner v12. The CK2 packages use separate
-MoGe, RVM and mask-free Stage 1 graphs; Quality adds `stage2nomask`. All graphs
-pin revision `5d88114f169cb082cda238426af47feffb9724af`. The optional merged
+CK2 Balanced / Quality, Edge Refiner v12, experimental CK1 green/blue, and the MODNet hint. The CK2 packages use separate
+MoGe, RVM and mask-free Stage 1 graphs; Quality adds `stage2nomask`. CK2 and refiner graphs
+pin revision `5d88114f169cb082cda238426af47feffb9724af`. CK1/MODNet pin
+revision `082f53c75d275c10b1ddf3be2cb72c5ca559f30b`; each package includes
+256, 384 and 512 square grids, with 384 as the CK1 default. CK1 leases its
+selected hint package separately, with its own licence acceptance. The optional merged
 graphs are excluded. With Edge refiner enabled, activation leases the refiner
 package alongside CK2 and selects the graph matching the tile budget.
 

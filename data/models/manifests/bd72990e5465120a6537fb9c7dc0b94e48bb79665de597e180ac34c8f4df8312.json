@@ -1,0 +1,408 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. Metadata only; model payloads retain their publisher licences.",
+  "schema_version": 1,
+  "id": "ck1-blue",
+  "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+  "display_name": "CorridorKey 1.0: Blue (Experimental)",
+  "publisher": "Corridor Digital / Niko Pueringer; graph exports: Moritz Mantel",
+  "description": "Experimental square-grid keyer (384 default). Edge quality is below CK2. For a weak GPU, try CK2 Facecam with Edge refiner off first. Install MODNet separately for the default hint.",
+  "pipeline": "ck1",
+  "export_contract": 1,
+  "provenance": {
+    "source_url": "https://huggingface.co/mantelmoritz/CorridorKey-ONNX-Graphs/tree/082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+    "export_revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b"
+  },
+  "licenses": [
+    {
+      "id": "LicenseRef-Corridor-Key-1.0",
+      "text_sha256": "b58d925c4ff71558dcdc522a7a37160c8872d5185bdd16d38a00b0eff4ae1751"
+    },
+    {
+      "id": "LicenseRef-Corridor-Key-2.0",
+      "text_sha256": "c92ce56f64162b231c7ce08ce3ed7d8cae15f01a560ca05a8e8db67878eb0065"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "ck1blue",
+      "path": "sources/ck1blue/CorridorKeyBlue_1.0.safetensors",
+      "format": "safetensors",
+      "bytes": 398849256,
+      "sha256": "43bc5f6a08a9e5effe5d633d0d84bb0aff91037b35ab85d16cd812b38c5cac23",
+      "licenses": [
+        "LicenseRef-Corridor-Key-1.0"
+      ],
+      "origin": {
+        "repo": "nikopueringer/CorridorKeyBlue_1.0",
+        "revision": "51e6ccaa4b703f54be20a72ac2c37784fb9ba1cd",
+        "file": "CorridorKeyBlue_1.0.safetensors"
+      }
+    },
+    {
+      "id": "ck1blue_384-onnx",
+      "path": "graphs/ck1blue_384.onnx",
+      "format": "onnx",
+      "bytes": 2140569,
+      "sha256": "c5ce4c4feb32af13600356e0eb0c7528d2dcf679e149b2f9ca8ccb1edeec0157",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/ck1blue_384.onnx"
+      }
+    },
+    {
+      "id": "ck1blue_384-json",
+      "path": "graphs/ck1blue_384.json",
+      "format": "export-json",
+      "bytes": 102194,
+      "sha256": "67fb064c99dc5684542c21bf16bb724590dea93202f9ee411218d94a576e225f",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/ck1blue_384.json"
+      }
+    },
+    {
+      "id": "ck1blue_256-onnx",
+      "path": "graphs/ck1blue_256.onnx",
+      "format": "onnx",
+      "bytes": 2140261,
+      "sha256": "b8333245cc0734b96a7dd1707f9437c280a5d10beef537436d70caedd42116c1",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/ck1blue_256.onnx"
+      }
+    },
+    {
+      "id": "ck1blue_256-json",
+      "path": "graphs/ck1blue_256.json",
+      "format": "export-json",
+      "bytes": 102194,
+      "sha256": "3cb513de3ccf5921d80f89e58519cc0402aa2611981ce93706565cbc589005bf",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/ck1blue_256.json"
+      }
+    },
+    {
+      "id": "ck1blue_512-onnx",
+      "path": "graphs/ck1blue_512.onnx",
+      "format": "onnx",
+      "bytes": 2140738,
+      "sha256": "3791d21411f5870e1d1ca12293997857e70908cd0ca19294ed9a1b94af5c44a2",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/ck1blue_512.onnx"
+      }
+    },
+    {
+      "id": "ck1blue_512-json",
+      "path": "graphs/ck1blue_512.json",
+      "format": "export-json",
+      "bytes": 102194,
+      "sha256": "17c13eaf8941c6a7052e42b821966a9f12c836be09a61ca3b2a5f72a9ca89f69",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/ck1blue_512.json"
+      }
+    }
+  ],
+  "graphs": [
+    {
+      "id": "ck1blue_384",
+      "role": "stage1",
+      "graph": "ck1blue_384-onnx",
+      "metadata": "ck1blue_384-json",
+      "external_data": "graphs/ck1blue_384.weights",
+      "weights_bytes": 398811008,
+      "weights_sha256": "3528fe75f10258489d5207c81ae79de89dbd60b1a27d9e778cbd0966983f974d",
+      "sources": [
+        "ck1blue"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "rgb",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              384,
+              384
+            ]
+          },
+          {
+            "name": "hint",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              384,
+              384
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "alpha",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              384,
+              384
+            ]
+          },
+          {
+            "name": "fg",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              384,
+              384
+            ]
+          }
+        ]
+      },
+      "color_contract": "sRGB RGB [0,1]; graph normalization; linear alpha/hint; straight sRGB foreground. Square frame squash.",
+      "parity": {
+        "report_url": "https://github.com/MinersWin/CorridorKey-for-OBS/blob/main/docs/dev/validation-w14-artifacts.json",
+        "report_sha256": "1fec80a74a568d90cf1dc90585a1814ba973a073c601a6ef822549ec852bb02c",
+        "status": "unverified"
+      }
+    },
+    {
+      "id": "ck1blue_256",
+      "role": "stage1",
+      "graph": "ck1blue_256-onnx",
+      "metadata": "ck1blue_256-json",
+      "external_data": "graphs/ck1blue_256.weights",
+      "weights_bytes": 398811008,
+      "weights_sha256": "3528fe75f10258489d5207c81ae79de89dbd60b1a27d9e778cbd0966983f974d",
+      "sources": [
+        "ck1blue"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "rgb",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              256,
+              256
+            ]
+          },
+          {
+            "name": "hint",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              256,
+              256
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "alpha",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              256,
+              256
+            ]
+          },
+          {
+            "name": "fg",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              256,
+              256
+            ]
+          }
+        ]
+      },
+      "color_contract": "sRGB RGB [0,1]; graph normalization; linear alpha/hint; straight sRGB foreground. Square frame squash.",
+      "parity": {
+        "report_url": "https://github.com/MinersWin/CorridorKey-for-OBS/blob/main/docs/dev/validation-w14-artifacts.json",
+        "report_sha256": "1fec80a74a568d90cf1dc90585a1814ba973a073c601a6ef822549ec852bb02c",
+        "status": "unverified"
+      }
+    },
+    {
+      "id": "ck1blue_512",
+      "role": "stage1",
+      "graph": "ck1blue_512-onnx",
+      "metadata": "ck1blue_512-json",
+      "external_data": "graphs/ck1blue_512.weights",
+      "weights_bytes": 398811008,
+      "weights_sha256": "3528fe75f10258489d5207c81ae79de89dbd60b1a27d9e778cbd0966983f974d",
+      "sources": [
+        "ck1blue"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "rgb",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              512,
+              512
+            ]
+          },
+          {
+            "name": "hint",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              512,
+              512
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "alpha",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              512,
+              512
+            ]
+          },
+          {
+            "name": "fg",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              512,
+              512
+            ]
+          }
+        ]
+      },
+      "color_contract": "sRGB RGB [0,1]; graph normalization; linear alpha/hint; straight sRGB foreground. Square frame squash.",
+      "parity": {
+        "report_url": "https://github.com/MinersWin/CorridorKey-for-OBS/blob/main/docs/dev/validation-w14-artifacts.json",
+        "report_sha256": "1fec80a74a568d90cf1dc90585a1814ba973a073c601a6ef822549ec852bb02c",
+        "status": "unverified"
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "default",
+      "graphs": [
+        "ck1blue_384"
+      ],
+      "grid_hw": [
+        384,
+        384
+      ],
+      "roi": false,
+      "refiner_tiles": 0,
+      "settings_schema": 1
+    },
+    {
+      "id": "grid-256",
+      "graphs": [
+        "ck1blue_256"
+      ],
+      "grid_hw": [
+        256,
+        256
+      ],
+      "roi": false,
+      "refiner_tiles": 0,
+      "settings_schema": 1
+    },
+    {
+      "id": "grid-512",
+      "graphs": [
+        "ck1blue_512"
+      ],
+      "grid_hw": [
+        512,
+        512
+      ],
+      "roi": false,
+      "refiner_tiles": 0,
+      "settings_schema": 1
+    }
+  ],
+  "budgets": {
+    "bound_bytes": 1196433024,
+    "workspace_bytes": 1073741824,
+    "engine_bytes": 1073741824,
+    "margin_bytes": 1073741824
+  },
+  "compatibility": [
+    {
+      "backend": "tensorrt",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "See docs/dev/ck1-pipeline.md for measured coverage. GPU probes and exact graph validation run before activation."
+    },
+    {
+      "backend": "directml",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "See docs/dev/ck1-pipeline.md for measured coverage. GPU probes and exact graph validation run before activation."
+    },
+    {
+      "backend": "cuda",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "See docs/dev/ck1-pipeline.md for measured coverage. GPU probes and exact graph validation run before activation."
+    },
+    {
+      "backend": "migraphx",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "See docs/dev/ck1-pipeline.md for measured coverage. GPU probes and exact graph validation run before activation."
+    }
+  ]
+}
