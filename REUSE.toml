@@ -5,3 +5,9 @@ version = 1
 path = ["buildspec.json", "CMakePresets.json"]
 SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["docs/images/model-manager/*.png", "docs/images/model-manager/*metadata.json"]
+SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+# Licence texts visible in the captures retain their original terms.
