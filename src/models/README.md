@@ -1,2 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-Own model manifests, licence notices and explicit acceptance, resumable Hugging Face downloads, SHA-256 checks and the cache in the OBS plugin configuration directory. Weights and derived graphs must never enter this repository. No downloader is implemented yet.
+The model service validates signed catalogues and pinned manifests, records exact
+licence acceptance, downloads or imports authenticated blobs, and protects cached
+revisions with process locks and reader leases. See
+[the author and integration guide](../../docs/dev/models-catalogue.md).
+
+`catalog.hpp` implements the shared `ModelCatalog` contract. W05 supplies its
+`BindWeights` callback. W07 supplies the licence/installation UI. The OBS adapter
+in `cache_obs.cpp` resolves the configuration directory without adding OBS to the
+portable core. Graphs and checkpoints remain outside this repository.
