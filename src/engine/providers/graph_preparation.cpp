@@ -102,6 +102,14 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 			    const CompilerConfig &compiler, std::stop_token stop)
 {
 	PreparedGraph result;
+	struct Finish {
+		const CompilerConfig &compiler;
+		~Finish()
+		{
+			if (compiler.finished)
+				compiler.finished();
+		}
+	} finish{compiler};
 	for (const auto &config : alternatives) {
 		if (stop.stop_requested())
 			break;
