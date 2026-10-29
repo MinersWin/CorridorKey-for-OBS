@@ -245,8 +245,13 @@ Selection select_provider(ProviderProbe &probe, Platform platform, ProbeRequest 
 			break;
 		request.backend = b;
 		auto result = probe.probe(request, stop);
+		if (result.provider.backend != b) {
+			result.failure = error(ErrorCode::backend_unavailable);
+			result.diagnostic_detail =
+				"Probe returned a different provider; trying the next permitted backend";
+		}
 		const auto &p = result.provider;
-		const bool accepted = !result.failure && p.available && p.tested &&
+		const bool accepted = !result.failure && p.backend == b && p.available && p.tested &&
 				      (diagnostic || (p.permits_live_inference && p.matches_obs_adapter));
 		if (accepted)
 			out.selected = p;

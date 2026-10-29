@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "backend_test.hpp"
 #include "manager_model.hpp"
+#include "telemetry/diagnostics.hpp"
 #include <obs-frontend-api.h>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -95,6 +96,7 @@ void BackendTest::poll()
 	if (!future_.valid() || future_.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
 		return;
 	const auto result = future_.get();
+	diagnostics::record_probe(result);
 	QString text = tr("Provider: %1\nPrecision: %2\n")
 			       .arg(QString::fromStdString(ort::backend_name(result.provider.backend)),
 				    precision_->currentText());

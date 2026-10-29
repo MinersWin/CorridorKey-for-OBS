@@ -278,6 +278,10 @@ struct Capture : QObject {
 } // namespace
 void start_manager_fixture()
 {
+	if (!qEnvironmentVariableIsEmpty("CK_DIAGNOSTICS_CAPTURE")) {
+		start_diagnostics_capture();
+		return;
+	}
 	if (qEnvironmentVariableIsEmpty("CK_MANAGER_CAPTURE") || obs_frontend_streaming_active() ||
 	    obs_frontend_recording_active())
 		return;

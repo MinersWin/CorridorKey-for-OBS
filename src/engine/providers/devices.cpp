@@ -17,6 +17,7 @@
 
 namespace corridorkey::ort {
 namespace {
+#ifdef _WIN32
 std::string luid_string(const void *data)
 {
 	// Numeric high:low LUID, independent of byte order in external text.
@@ -26,6 +27,7 @@ std::string luid_string(const void *data)
 	out << "luid:" << std::hex << std::setfill('0') << std::setw(8) << words[1] << ':' << std::setw(8) << words[0];
 	return out.str();
 }
+#endif
 } // namespace
 std::vector<Device> enumerate_devices(Backend backend)
 {

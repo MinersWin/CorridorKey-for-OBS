@@ -4,6 +4,7 @@
 #include <obs-module.h>
 
 #include "filter.hpp"
+#include "telemetry/host_policy.hpp"
 #ifdef CORRIDORKEY_MODEL_MANAGER
 #include "ui/model_manager.hpp"
 #endif
@@ -20,11 +21,15 @@ MODULE_EXPORT const char *obs_module_description(void)
 bool obs_module_load(void)
 {
 	const auto host_version = obs_get_version();
-	const auto host_major = (host_version >> 24) & 0xff;
-	const auto host_minor = (host_version >> 16) & 0xff;
+	const auto policy = corridorkey::diagnostics::assess_host(host_version, obs_get_version_string(),
+								  corridorkey::diagnostics::obs_symbol);
+	if (!policy.load) {
+		blog(LOG_ERROR, "[corridorkey] %s", policy.message.c_str());
+		return false;
+	}
 	blog(LOG_INFO, "[corridorkey] OBS host %s; compiled against API %u.%u", obs_get_version_string(),
 	     static_cast<unsigned>(LIBOBS_API_MAJOR_VER), static_cast<unsigned>(LIBOBS_API_MINOR_VER));
-	if (host_major < 30 || (host_major == 30 && host_minor < 2) || host_major > 33) {
+	if (policy.unreviewed) {
 		blog(LOG_WARNING,
 		     "[corridorkey] unreviewed OBS version; continuing with pass-through. "
 		     "Report compatibility issues at https://github.com/MinersWin/CorridorKey-for-OBS/issues");

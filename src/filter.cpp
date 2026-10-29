@@ -5,6 +5,7 @@
 #include "obs/properties.hpp"
 #include "obs/audio_sync_obs.hpp"
 #include "settings/obs_settings.hpp"
+#include "telemetry/diagnostics.hpp"
 #ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
 #include "obs/filter_input.hpp"
 #endif
@@ -37,11 +38,14 @@ struct Filter final : FilterControl {
 	StatusSnapshot pipeline_status() const
 	{
 #ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
-		return input.status();
+		auto status = input.status();
+		diagnostics::record_error(status->failure.code);
+		return status;
 #else
 		auto status = std::make_shared<Status>();
 		status->lifecycle = Lifecycle::bypassed;
 		status->failure = error(ErrorCode::model_missing);
+		diagnostics::record_error(status->failure.code);
 		return status;
 #endif
 	}
@@ -98,6 +102,13 @@ void *create_filter(obs_data_t *settings, obs_source_t *source)
 	try {
 		auto filter = std::make_unique<Filter>(source);
 		update_filter(filter.get(), settings);
+		diagnostics::register_instance(filter.get(), [value = filter.get()] {
+			auto *target = obs_filter_get_target(value->source);
+			return diagnostics::Instance{value->settings_snapshot(),
+						     value->status_snapshot(),
+						     {target ? obs_source_get_base_width(target) : 0,
+						      target ? obs_source_get_base_height(target) : 0}};
+		});
 		signal_handler_connect(obs_source_get_signal_handler(source), "enable", enable_filter, filter.get());
 		return filter.release();
 	} catch (...) {
@@ -108,6 +119,7 @@ void *create_filter(obs_data_t *settings, obs_source_t *source)
 void destroy_filter(void *data)
 {
 	auto *filter = static_cast<Filter *>(data);
+	diagnostics::unregister_instance(filter);
 	filter->sync->stop();
 	signal_handler_disconnect(obs_source_get_signal_handler(filter->source), "enable", enable_filter, filter);
 	// OBS_TASK_DESTROY is present at the 30.2 floor. It also handles callers
