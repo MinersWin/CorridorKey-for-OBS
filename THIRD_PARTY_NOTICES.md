@@ -11,7 +11,9 @@ relinking obligations.
 | OBS Studio / libobs / frontend API | GPL-2.0-or-later | Host and plugin API; [OBS Project](https://github.com/obsproject/obs-studio) |
 | OBS plugin template | GPL-2.0-or-later, used under GPL-3.0-or-later | CMake and formatting scaffolding; [upstream](https://github.com/obsproject/obs-plugintemplate/tree/3e7d7ac3b5342cd7d9b88890b9c70b472d1520fc) |
 | Qt 6 Core and Widgets | LGPL-3.0 / GPL, or commercial licence | Dynamically linked UI framework supplied by OBS or the distribution; [Qt licensing](https://www.qt.io/licensing/open-source-lgpl-obligations) |
-| ONNX Runtime | MIT | Optional inference runtime, currently disabled; [Microsoft](https://github.com/microsoft/onnxruntime/blob/v1.31.1/LICENSE) |
+| ONNX Runtime | MIT | Optional, dynamically loaded inference runtime; [Microsoft](https://github.com/microsoft/onnxruntime/blob/v1.31.1/LICENSE) |
+| nlohmann/json 3.11.3 | MIT | Runtime descriptors and helper protocol; copyright Niels Lohmann; [licence](https://github.com/nlohmann/json/blob/v3.11.3/LICENSE.MIT) |
+| OpenSSL 3 | Apache-2.0 | Linux SHA-256 through the distribution's libcrypto; [licence](https://github.com/openssl/openssl/blob/openssl-3.0/LICENSE.txt). Windows uses system BCrypt. |
 | doctest 2.4.11 | MIT | Test-only framework, fetched by SHA-256; copyright Viktor Kirilov; [licence](https://github.com/doctest/doctest/blob/v2.4.11/LICENSE.txt). Not linked into the plugin. |
 | ONNX 1.17.0 | Apache-2.0 | Development/CI graph fixture generator and checker; [licence](https://github.com/onnx/onnx/blob/v1.17.0/LICENSE). Not shipped with the plugin. Its Python dependencies retain their package notices. |
 | FFmpeg | LGPL-2.1-or-later by default; builds with GPL components have additional GPL requirements | Linux SDK dependency: distribution libraries for OBS 30.2, minimal 8.0 build for the optional OBS 33 check; not bundled in plugin packages; [FFmpeg licensing](https://ffmpeg.org/legal.html) |
@@ -25,6 +27,11 @@ runtime packages must carry ONNX Runtime's LICENSE and ThirdPartyNotices.txt,
 including notices for bundled dependencies. DirectML and vendor GPU libraries
 have separate terms; the additional permission does not grant redistribution
 rights to those libraries.
+
+The development runtime inventory, native library sizes and vendor terms are in
+[runtime bundles](docs/dev/runtime-bundles.md). The TensorRT-RTX EP is Apache-2.0;
+its bundled NVIDIA runtime DLLs are separately licensed. DirectML.dll also has
+separate Microsoft terms. No vendor binaries are checked into this repository.
 
 ## Separately downloaded models
 
