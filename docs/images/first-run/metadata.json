@@ -1,0 +1,80 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later",
+  "date": "2026-10-29",
+  "host": "OBS Studio 33.0.0 portable, Windows x64",
+  "qt_scale_factor": 0.75,
+  "capture": "Native window capture; pointer outside captured dialog or popup; original JPEG bytes with no image edits",
+  "ui": "Actual production catalogue and runtime states; manager fixtures disabled",
+  "initial_transfer": "Anonymous real publisher URLs, 3296058594 bytes, no initial preseed",
+  "repeat": "Verified source blobs reused for later binding and activation runs",
+  "gpu": "Shared RTX 5070 Ti; readouts are not benchmark results",
+  "footage": {
+    "title": "Female reporter reporting with microphone in hand on a chroma",
+    "source": "https://mixkit.co/free-stock-video/female-reporter-reporting-with-microphone-in-hand-on-a-chroma-28293/",
+    "terms": "https://mixkit.co/license/"
+  },
+  "third_party_terms": "Visible publisher licence text and Mixkit footage retain their original terms",
+  "captures": [
+    {
+      "file": "01-add-filter.jpg",
+      "width": 180,
+      "height": 299,
+      "sha256": "aadebff8e35b3f2df00404f223b67aa41b1b30d4eb81b94e371158f6d7180be2"
+    },
+    {
+      "file": "02-model-missing.jpg",
+      "width": 639,
+      "height": 559,
+      "sha256": "aefddabd14d9bfaec8b8a7926c0cadb34a709b3d2de5adfc0894090d1c202469"
+    },
+    {
+      "file": "03-model-manager.jpg",
+      "width": 592,
+      "height": 561,
+      "sha256": "965c8290d4a6fb1fca66763c5d1ff9942072c168dff9aac4c81b5a6a17659aad"
+    },
+    {
+      "file": "04-licences-before-acceptance.jpg",
+      "width": 502,
+      "height": 465,
+      "sha256": "863ccfe074e89c63bba5b60c39a4398acbccf729e62dbe4e60dc8f604f6080d4"
+    },
+    {
+      "file": "05-licences-accepted.jpg",
+      "width": 502,
+      "height": 465,
+      "sha256": "67a43d0f401cf4157f7b76ab7292b023dffbfe286c0a23ad2db6341beda6f3f7"
+    },
+    {
+      "file": "06-downloading.jpg",
+      "width": 592,
+      "height": 561,
+      "sha256": "21dd850178509e4ff6c6e18f9f14925d34c1527e28abc17e381ffaa110630ca7"
+    },
+    {
+      "file": "07-preparing-weights.jpg",
+      "width": 592,
+      "height": 561,
+      "sha256": "f71b7e7072924a4d98f9962530b7d1c1b3260e43aa6af80fcb4d70ac73af4d71"
+    },
+    {
+      "file": "08-ready.jpg",
+      "width": 592,
+      "height": 561,
+      "sha256": "8faa04f66bc783c1ca505aa97ea84751c4f874dddf146d9c94245c10b23d3111"
+    },
+    {
+      "file": "09-balanced-live-key.jpg",
+      "width": 639,
+      "height": 559,
+      "sha256": "74c6bd86e42b81338c4d3710ddbe764f599f000de1a932da073a082badca23a9"
+    },
+    {
+      "file": "10-facecam-package-missing.jpg",
+      "width": 639,
+      "height": 559,
+      "sha256": "ba48900d7f2fdea929c6556dfd6e0b49e585b896dd2376818cf045396d172422"
+    }
+  ],
+  "capture_limit": "Firewall overlay prevented clean backend-preparation and TensorRT-build captures on later launches"
+}

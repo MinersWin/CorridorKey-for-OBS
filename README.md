@@ -1,23 +1,23 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # CorridorKey for OBS
 
-**Pre-alpha / work in progress. This build passes video through unchanged.**
-Neural inference, model downloads and the model manager are not implemented yet.
-The visible controls describe the planned interface and currently have no effect
-on the image. Do not use this version for production keying.
+**Pre-alpha / work in progress.** The native CK2 pipeline and model manager are
+available on Windows. Missing models or unavailable backends leave video in
+passthrough. CK1 is still being implemented.
 
 A native OBS Studio video filter for neural background keying on Windows x64
 and Linux x86_64. No model weights or derived graphs are included.
 
 See [design specifications](docs/design/) for the planned architecture, models, interface and implementation backlog.
 
-## Planned features
+## Features and remaining work
 
-- CorridorKey 2.0 and CorridorKey 1.0, with Facecam 60, Balanced and Quality profiles.
-- Optional learned edge refinement, despill and advanced controls in filter properties.
+- CorridorKey 2.0 with Facecam, Balanced and Quality profiles. CK1 is planned.
+- Native matte reconstruction, despill and advanced controls in filter properties.
+- Optional learned Edge Refiner v12 with a tile budget selected in filter properties.
 - In-OBS model management with licence acceptance, resumable downloads and SHA-256 verification.
-- GPU inference through ONNX Runtime: NVIDIA TensorRT-RTX / TensorRT / CUDA,
-  AMD MIGraphX where available, and DirectML as the Windows fallback.
+- CK2 GPU inference through ONNX Runtime: NVIDIA TensorRT / CUDA and DirectML.
+  Additional providers still need pipeline integration and hardware validation.
 - Live processing and input-to-output delay, with optional audio sync adjustment.
 
 CPU execution is intended for debugging. AMD providers still need hardware testing.
@@ -25,12 +25,11 @@ CPU execution is intended for debugging. AMD providers still need hardware testi
 ```mermaid
 flowchart LR
   input[OBS source] --> filter[CorridorKey filter]
-  filter --> passthrough[Current build: pass-through] --> output[OBS output]
-  filter -. planned .-> prep[GPU preprocessing]
-  prep -.-> model[CorridorKey 2.0 or 1.0]
-  model -.-> refiner[Optional edge refiner]
-  refiner -.-> composite[Despill and composite]
-  composite -.-> output
+  filter --> passthrough[Passthrough while unavailable] --> output[OBS output]
+  filter --> prep[Prepare accepted and verified model package]
+  prep --> model[CorridorKey 2.0]
+  model --> composite[Native reconstruction and despill]
+  composite --> output
 ```
 
 ## Requirements
@@ -38,11 +37,14 @@ flowchart LR
 - OBS Studio **30.2 or newer**, subject to the compatibility checks below.
 - Windows 10/11 x64, or Ubuntu 24.04 x86_64 with a compatible OBS installation.
 - The Qt 6 libraries provided by OBS on Windows, or the distribution on Linux.
-- Future inference builds will require a supported GPU and separately downloaded
-  models. No GPU runtime is required for this pass-through build.
+- A supported GPU, a compatible runtime and separately downloaded models.
+  Windows release packages include DirectML; optional NVIDIA bundles have their
+  own licence acceptance and installation step.
 
-Add **CorridorKey** to a source's video filters. The status line identifies this
-build as pass-through. **Manage models...** remains disabled until the dialog exists.
+Add **CorridorKey** to a source's video filters, open **Manage models...**, then
+choose **Set up CorridorKey**. Review the model licences before downloading.
+Follow the illustrated [first-run guide](docs/user/first-run.md) for setup,
+local weight preparation and activation.
 
 ## Build
 
@@ -60,7 +62,7 @@ Windows SDK, and CMake 3.28 or later. The template downloads dependencies and bu
 the OBS development libraries automatically. Use a normal PowerShell prompt:
 
 ```powershell
-cmake --preset windows-x64
+cmake --preset windows-x64 -DCORRIDORKEY_FETCH_ONNXRUNTIME=ON
 cmake --build --preset windows-x64 --parallel
 cmake --install build_x64 --config RelWithDebInfo --prefix "$PWD/stage"
 ```
@@ -75,7 +77,8 @@ The installer detects OBS in its default location and lets you choose the host
 range for a custom installation. It installs one layout, removes obsolete module
 copies from both ProgramData layouts and the default Program Files location,
 and includes an uninstaller. Remove any custom-location older copies manually.
-Neither package contains Qt, OBS, GPU runtimes or models.
+Neither package contains Qt, OBS or model weights. Packaged Windows releases
+include the DirectML baseline runtime; a raw CMake install needs runtime assembly.
 
 Do not install both zip layouts together. When upgrading manually, remove the
 old `corridorkey.dll` before copying the new layout. In portable OBS 33+, use
@@ -109,7 +112,7 @@ sudo apt-get install -y build-essential cmake ninja-build pkg-config python3 \
   libegl1-mesa-dev libgl1-mesa-dev libglib2.0-dev uuid-dev zlib1g-dev \
   libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev
 python3 tools/bootstrap-linux-sdk.py --sdk baseline
-cmake --preset ubuntu-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk-baseline"
+cmake --preset ubuntu-x86_64 -DCMAKE_PREFIX_PATH="$PWD/.deps/linux-sdk-baseline" -DCORRIDORKEY_FETCH_ONNXRUNTIME=ON
 cmake --build --preset ubuntu-x86_64 --parallel
 DESTDIR="$PWD/stage" cmake --install build_x86_64 --prefix /usr
 ```
@@ -147,7 +150,7 @@ tested host versions and how to collect a redacted support report.
 | Windows x64, OBS 33.x | 33.0.0 hardware-tested | Baseline MSVC DLL loaded from the modern ProgramData layout exactly once; the current-SDK build also passed |
 | Ubuntu 24.04 x86_64, OBS 30.2â€“32 | Expected to work | Baseline build job configured; first hosted run and runtime validation pending |
 | Newer/unknown OBS releases | Load with a warning when the ABI remains compatible | Simulated version 99 loaded and retained pass-through; real newer hosts remain untested |
-| GPU providers, models, other distros | Planned; no inference in this build | Not tested |
+| CK2 GPU inference on Windows | Available through installed model packages and runtimes | See [pipeline validation](docs/dev/ck2-pipeline.md) and [first-run evidence](docs/dev/validation-w09b.json); shared GPU, no clean performance claim |
 
 The filter uses longstanding OBS APIs. It logs the host version; an unreviewed
 version alone never causes rejection. Future optional APIs must be resolved at
@@ -155,7 +158,7 @@ runtime, and missing inference/provider capabilities must leave pass-through
 available. A genuine host ABI break may still prevent loading before plugin
 initialization. No exact Qt, ORT or GPU-driver version whitelist is imposed.
 Build download pins are separate from runtime compatibility. Qt must have the
-host-compatible ABI; future inference will negotiate ORT's versioned C API and
+host-compatible ABI; inference negotiates ORT's versioned C API and
 check actual provider/device capabilities before use.
 
 Please [open an issue](https://github.com/MinersWin/CorridorKey-for-OBS/issues/new/choose)
@@ -174,7 +177,7 @@ specified proprietary GPU runtimes and drivers where the relevant copyright
 holders grant it. It does not grant redistribution rights to vendor libraries.
 
 **CorridorKey models are not included and are not covered by the plugin's GPL.**
-Users must accept the applicable **Corridor Key Licence** before future downloads.
+Users must accept the applicable **Corridor Key Licence** before downloading.
 Credit: **Corridor Digital LLC / Niko Pueringer**. MoGe-2 is MIT; RVM is CC BY 4.0.
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for sources and attribution.
 This is an independent integration, not an official Corridor Digital product.

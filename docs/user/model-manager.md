@@ -5,18 +5,15 @@ Open **Manage models...** in a CorridorKey filter, or choose **Tools → Corrido
 Both open the same window. You can keep using OBS while it is open. Closing the
 manager leaves an installation running; **Cancel task** requests cancellation.
 
-The current release catalogue has no enabled packages. The manager shows the
-planned model families and explains what each one is waiting for. **Set up
-CorridorKey** becomes available when a signed Balanced package is included in
-the catalogue. The displayed source size excludes the unreleased graphs.
+The catalogue offers CK2 Facecam, CK2 Balanced / Quality, and Edge Refiner v12.
+Choose Set up CorridorKey for Balanced. CK1 and hint packages remain unavailable.
+The [first-run guide](first-run.md) follows a real download from an empty cache.
 
-![First run in OBS, Yami](../images/model-manager/yami-first-run.png)
-
-![First run in OBS, Yami Light](../images/model-manager/yami-light-first-run.png)
+![Production catalogue in OBS](../images/first-run/03-model-manager.jpg)
 
 ## Installing a package
 
-When a package is available, choose **Set up CorridorKey** for the recommended
+Choose **Set up CorridorKey** for the recommended
 Balanced CK2 set, or select another model and choose **Review and install**.
 The review window lists the required files, download size, peak additional disk
 space, cache destination, attribution and complete licence texts.
@@ -44,15 +41,15 @@ Downloads show bytes received, total size when known, and a sampled transfer
 rate. Verification checks file hashes. Preparing weights creates local model
 files. Steps without a measured total use an activity indicator.
 
-**Ready** means the package files passed verification. A backend test and live
-pipeline preparation are separate steps. This build keeps video in passthrough
-until the live pipeline is integrated.
+**Ready** means the package files passed verification. An active filter then
+prepares its backend and loads the package through a reader lease. Video stays
+in passthrough until that pipeline is ready. TensorRT preparation shows an
+activity indicator and elapsed time; it does not block the manager.
 
 Cancel preserves verified downloads and resumable partial files. Retry can reuse
 them. An error explains the next action and gives a stable `CK-E` code. A failed
-update leaves existing revisions in place. Activating a new revision or rolling
-back waits for the live pipeline integration; installing alone never changes
-the active revision.
+update leaves existing revisions in place. Installing alone never changes the
+active revision. The filter selects a revision after successful preparation.
 
 The following captures use a tiny local UI fixture. The state previews are
 labelled in the window. Building, testing and update previews illustrate the
@@ -85,9 +82,10 @@ receipts. Shared sources are counted once in the cache total.
 
 ![A verified local test bundle with measured cache sizes](../images/model-manager/yami-import-ready.png)
 
-**Remove...** asks you to confirm. A model selected as current, being installed,
-or held by a reader lease cannot be removed. Stop its filters or select another
-revision through the live pipeline when that feature is available, then retry.
+**Remove...** asks you to confirm. A model being installed or held by a reader
+lease cannot be removed. Remove the filters using that package, then retry.
+Removing an unused selected revision also clears its current-selection receipt. A refused removal
+keeps that selection intact.
 Removal keeps shared source downloads, so the cache total may fall by less than
 the total download size. Keep cache files intact while OBS is using them.
 

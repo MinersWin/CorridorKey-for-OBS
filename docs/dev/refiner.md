@@ -239,8 +239,9 @@ effect compiles through Windows OpenGL, but the Windows transport deliberately
 requires a D3D11 fence, so the OpenGL atlas run is unavailable there.
 
 Clang-format 19 and gersemi 0.22.2 checks pass. Documentation received a humanizer
-pass. Before release, merge and verify the production catalogue/activation path,
-rerun performance on an idle GPU, exercise Linux fences and dynamic ROI, and
+pass. The [production activation path](ck2-pipeline.md) also loads the refiner
+package. Before release, rerun performance on an idle GPU, exercise Linux fences
+and dynamic ROI, and
 evaluate full Balanced/Quality sequences. The current 30-frame parity sample
 uses the Facecam model grid and budget 384. It does not certify temporal quality
 over complete clips or remove the 384-tile coverage limit visible above.
