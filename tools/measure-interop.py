@@ -87,6 +87,11 @@ def main(args):
             else:
                 raise RuntimeError(f"No keyed output for {name} within preparation deadline")
             time.sleep(args.settle)
+            transports = re.findall(r"\[corridorkey:w10\] transport=(\S+)", read())
+            selected_transport = transports[-1] if transports else "unknown"
+            expected_transport = "d3d11-cuda" if transport == "auto" else "staged"
+            if selected_transport != expected_transport:
+                raise RuntimeError(f"{name}: expected {expected_transport}, got {selected_transport}")
             print(f"Measuring {name}", flush=True)
             started = datetime.now(timezone.utc).isoformat()
             start = len(read())
@@ -101,7 +106,16 @@ def main(args):
             refiner = metrics(raw, "[corridorkey:w13] tiles=")
             if not age or not stages or (refine and not refiner):
                 raise RuntimeError(f"Incomplete measurement for {name}")
+            if refine:
+                expected_tiles = settings["refiner_max_tiles"]
+                if any(row["tiles"] != expected_tiles for row in refiner):
+                    raise RuntimeError(f"Unexpected tile budget for {name}")
+                for row in refiner:
+                    transferred = row["readback_bytes"] + row["upload_bytes"]
+                    if (transport == "auto" and transferred != 0) or (transport == "staged" and transferred == 0):
+                        raise RuntimeError(f"Unexpected atlas transport for {name}")
             report = dict(case=case, settings=settings, seconds=args.seconds, log=log.name,
+                          selected_transport=selected_transport,
                           gpu_condition=args.gpu_condition, notes=args.notes,
                           started_utc=started, ended_utc=datetime.now(timezone.utc).isoformat(),
                           video=request("GetVideoSettings"), age=age, stages=stages, refiner=refiner,
@@ -110,7 +124,8 @@ def main(args):
                           obs_before=before, obs_after=request("GetStats"))
             destination.write_text(json.dumps(report, indent=2))
             destination.with_suffix(".log").write_text(raw)
-            print(f"Saved {name}: {statistics.mean(x['keyed_fps'] for x in stages):.1f} keys/s, "
+            print(f"Saved {name}: {statistics.mean(x['keyed_fps'] for x in stages):.1f} published/s, "
+                  f"{statistics.median(x['keyed_fps'] for x in age):.1f} displayed keys/s, "
                   f"{statistics.median(x['age_median_ms'] for x in age):.1f} ms age", flush=True)
     finally:
         connection.close()
