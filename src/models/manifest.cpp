@@ -538,11 +538,8 @@ Manifest parse_manifest(std::string_view bytes, std::string_view expected)
 	(void)m.peak_additional_bytes();
 	return m;
 }
-Catalogue parse_catalogue(std::string_view bytes, std::string_view signature, std::string_view public_key,
-			  std::uint64_t minimum)
+static Catalogue catalogue_contents(std::string_view bytes, std::uint64_t minimum)
 {
-	require(bytes.size() <= 1024 * 1024 && verify_signature(bytes, public_key, signature),
-		"Invalid catalogue signature", ErrorCode::hash_mismatch);
 	auto j = strict_json(bytes, 1024 * 1024);
 	fields(j, {"schema_version", "sequence", "packages"}, {"$comment"});
 	require(uint64(j.at("schema_version")) == 1, "Unsupported catalogue version");
@@ -564,6 +561,19 @@ Catalogue parse_catalogue(std::string_view bytes, std::string_view signature, st
 		c.entries.push_back(e);
 	}
 	return c;
+}
+Catalogue parse_catalogue(std::string_view bytes, std::string_view signature, std::string_view public_key,
+			  std::uint64_t minimum)
+{
+	require(bytes.size() <= 1024 * 1024 && verify_signature(bytes, public_key, signature),
+		"Invalid catalogue signature", ErrorCode::hash_mismatch);
+	return catalogue_contents(bytes, minimum);
+}
+Catalogue parse_installer_catalogue(std::string_view bytes, std::string_view digest, std::uint64_t minimum)
+{
+	require(bytes.size() <= 1024 * 1024 && hex_string(digest, 64) && sha256(bytes) == digest,
+		"Installer catalogue digest mismatch", ErrorCode::hash_mismatch);
+	return catalogue_contents(bytes, minimum);
 }
 Manifest parse_manifest(std::string_view bytes, const CatalogueEntry &pin)
 {

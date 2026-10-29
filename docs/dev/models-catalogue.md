@@ -6,11 +6,49 @@ all publisher checkpoints needed to bind them locally. The installer verifies
 those downloads and runs the [native weight binder](binder.md); the inference loader must still
 probe the resulting graphs before using them for video.
 
-The shipped [catalogue](../../data/models/catalogue-v1.json) has no packages.
-Graph repositories, graph revisions, bound-output hashes and a release signing
-key are still needed. [Source metadata](../../data/models/sources-v1.json) is an
-inventory for package authors, not a list of enabled downloads. Placeholder
-revisions and synthetic hashes belong only in `tests/models/fixtures/`.
+The bundled [catalogue](../../data/models/catalogue-v1.json) contains CK2 Facecam,
+CK2 Balanced / Quality, and Edge Refiner v12. The CK2 packages use separate
+MoGe, RVM and mask-free Stage 1 graphs; Quality adds `stage2nomask`. All graphs
+pin revision `5d88114f169cb082cda238426af47feffb9724af`. The optional merged
+graphs are excluded. Refiner graphs can be installed for W13, but do not enable
+learned refinement in the current pipeline.
+
+The catalogue is **unsigned and installer-only** pending coordinator key
+provisioning. CMake hashes its exact bytes into `CORRIDORKEY_BUNDLED_CATALOGUE_SHA256`.
+`installed_catalogue` reads only OBS's installed module data path and calls
+`admit_installer_catalogue` with that compiled pin. A changed file fails admission,
+including a replacement beside an unchanged plugin DLL. Package manifests are
+then checked against the catalogue's sizes, SHA-256 digests and identities.
+This trust starts with the installed plugin binary and its payload. Windows
+builds currently have no Authenticode signature; users must obtain the installer
+from the project's release channel. The digest does not authenticate a plugin
+binary replaced by an attacker.
+
+A release must provision the public key and sign the exact catalogue bytes in
+the protected `release` environment. Set `CORRIDORKEY_CATALOGUE_PUBLIC_KEY` at
+build time and install `catalogue-signature.json`. When a public key is compiled
+in, a missing or invalid signature fails closed: there is no unsigned fallback.
+Key generation and private-key handling belong to the coordinator. The release
+workflow blocks its draft job until the signing placeholder is replaced; local
+and CI development builds may use the pinned installer catalogue. Before enabling remote refresh, publish the
+manifest assets at the catalogue's `model-catalogue-v1` release URLs; those
+locators reserve the release destination and are not fetched by bundled setup.
+
+Installer and signed admission share the persisted sequence floor and reject
+conflicting bytes at the same sequence. Remote callers must continue using
+`admit_catalogue`, which always requires a valid P-256 signature. Import bundles
+supply blobs only. Neither network data, cache files nor an imported catalogue
+can choose the compiled installer pin. Every downloaded artifact, offline source
+and locally bound output still requires its declared SHA-256; installer trust
+never skips content verification or licence acceptance.
+
+[Production inventory](catalogue-v1-inventory.md) lists every size and digest,
+including bound outputs. Graph pairs were downloaded anonymously once and
+verified against the coordinator's revision-3 hash list and the HF API sizes.
+Source metadata was checked against the HF API and CK2/RVM local hashes. The
+pinned HF licence files match the bundled registry. Parity references retain
+`unverified`: the existing measurements do not establish every packaged profile,
+and the chained Quality reference has a known baton mismatch.
 
 ## Trust and file formats
 
@@ -34,8 +72,7 @@ key cannot grant itself trust.
 It rejects rollback and different bytes at the same sequence. The host fetches
 small catalogue/manifest metadata with bounded HTTPS requests, authenticates the
 catalogue, then calls `parse_manifest` with the catalogue's digest. No remote
-catalogue refresh is scheduled by this service. The unsigned empty file shipped
-in this revision is a disabled index; it cannot pass remote admission.
+catalogue refresh is scheduled by this service. The bundled unsigned catalogue cannot pass remote admission.
 
 A manifest contains:
 
@@ -287,10 +324,8 @@ bad hashes and redirect failures. It also checks process deduplication, crash lo
 release, cross-process leases, folder/ZIP import and malicious archive paths. It
 uses a test-only loopback transport policy; manifests always require HTTPS.
 
-Before a real package can be released, export must provide graph/JSON hashes and
-sizes, immutable graph repository revisions, expected bound-output hashes, ONNX
-IR versions, complete interface/color/state semantics and pinned parity reports.
-Release tooling must supply a production signing key and public-key trust/rotation
-policy. CK1 licence wording and an exact MODNet checkpoint remain open. Windows
+The production entries pin graph/JSON hashes and sizes, expected bound-output
+hashes, ONNX IR 10, static interfaces and the existing validation report. Release
+tooling still needs catalogue signing and a public-key rotation policy. CK1 licence wording and an exact MODNet checkpoint remain open. Windows
 unit/HTTP tests and an OBS 30.2 SDK build do not establish Linux transport behavior,
 large ZIP64 interoperability, real HF/CDN transfers or model inference parity.

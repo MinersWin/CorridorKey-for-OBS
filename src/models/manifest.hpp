@@ -69,4 +69,7 @@ struct Catalogue {
 // P-256/SHA-256, raw 64-byte r||s; trusted public keys are supplied by the host.
 Catalogue parse_catalogue(std::string_view bytes, std::string_view signature_hex,
 			  std::string_view trusted_public_xy_hex, std::uint64_t minimum_sequence);
+// Only the host's compiled digest of its installer payload may supply this pin.
+Catalogue parse_installer_catalogue(std::string_view bytes, std::string_view compiled_sha256,
+				    std::uint64_t minimum_sequence);
 } // namespace corridorkey::models
