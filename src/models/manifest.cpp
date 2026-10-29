@@ -590,7 +590,9 @@ static std::uint64_t tensor(const Json &t)
 void validate_export_metadata(std::string_view bytes, const Graph &g, const Manifest &m)
 {
 	auto j = strict_json(bytes, 32 * 1024 * 1024);
-	fields(j, {"graph", "opset", "inputs", "outputs", "weights", "sources"}, {"H", "W"});
+	fields(j, {"graph", "opset", "inputs", "outputs", "weights", "sources"}, {"H", "W", "weights_sha256"});
+	if (j.contains("weights_sha256"))
+		require(string(j.at("weights_sha256")) == g.weights_sha256, "Exporter output hash mismatch");
 	require(j.contains("H") == j.contains("W"), "Incomplete exporter grid");
 	if (j.contains("H"))
 		for (auto key : {"H", "W"})

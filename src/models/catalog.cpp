@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
 #include "catalog.hpp"
+#include "binder.hpp"
 namespace corridorkey::models {
 Catalogue admit_catalogue(Cache &cache, std::string_view bytes, std::string_view signature, std::string_view public_key)
 {
@@ -171,7 +172,7 @@ void CatalogueService::run(std::stop_token shutdown)
 								32 * 1024 * 1024),
 						g, m);
 				state(m.key, ModelState::binding);
-				if (binder_) {
+				{
 					auto conversion =
 						checked_add(m.staged_graph_bytes,
 							    checked_add(m.bound_bytes, checked_add(m.workspace_bytes,
@@ -180,7 +181,12 @@ void CatalogueService::run(std::stop_token shutdown)
 						std::max({m.margin_bytes, std::uint64_t(1) << 30, conversion / 10});
 					cache_.check_space(checked_add(conversion, margin));
 					cache_.prepare(m);
-					binder_(m, cache_, stop);
+					if (binder_)
+						binder_(m, cache_, stop);
+					else
+						bind_package(m, cache_, stop, [&](Progress p) {
+							state(m.key, ModelState::binding, {}, p);
+						});
 					cache_.publish(m, stop);
 				}
 			}

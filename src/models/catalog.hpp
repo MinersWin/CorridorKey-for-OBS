@@ -37,6 +37,7 @@ class CatalogueService final : public ModelCatalog {
 
 public:
 	// Manifests must already be parsed against authenticated catalogue pins.
+	// An empty callback selects the native binder and reports progress via snapshot().
 	CatalogueService(Cache &, LicenceRegistry, std::vector<Manifest>, BindWeights = {},
 			 std::shared_ptr<HttpClient> = system_http_client(), DownloadOptions = {});
 	~CatalogueService() override;
