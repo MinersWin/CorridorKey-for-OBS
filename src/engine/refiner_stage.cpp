@@ -136,7 +136,7 @@ Stage::Stage(std::unique_ptr<ck2::Graph> graph, unsigned n, std::shared_ptr<cons
 	input_atlas(n);
 	if (!graph_)
 		throw std::invalid_argument("Missing refiner graph");
-	device_ = static_cast<bool>(graph_->device_context());
+	device_ = static_cast<bool>(graph_->device_context()) || static_cast<bool>(graph_->dml_context());
 	worker_ = std::jthread([this](std::stop_token stop) { work(stop); });
 }
 Stage::~Stage()
@@ -206,7 +206,17 @@ void Stage::work(std::stop_token stop)
 			}
 			const auto unpack_start = Clock::now();
 			ck2::Tensor x;
-			if (device_job) {
+			if (device_job && graph_->dml_context()) {
+				auto context = graph_->dml_context();
+				auto &texture = dml_transfers_.get(context, device_job->atlas);
+				auto rgba = texture.read();
+				x.shape = {budget_, channels, patch, patch};
+				x.directml = texture.conversion_buffer(static_cast<std::size_t>(budget_) * channels *
+								       patch * patch * 4);
+				const unsigned params[]{budget_, 0, 0, 0, 0, texture.pitch(), 0};
+				context->compute("unpack_atlas", budget_ * channels * patch * patch, *rgba, nullptr,
+						 *x.directml, params);
+			} else if (device_job) {
 				auto context = graph_->device_context();
 				if (!input_texture_ || registered_.atlas != device_job->atlas ||
 				    registered_.centres != device_job->centres) {
@@ -240,16 +250,31 @@ void Stage::work(std::stop_token stop)
 				const auto &a = tensors.at("alpha"), &f = tensors.at("fg");
 				ck2::check_tensor(a, ck2::Tensor({budget_, 1, patch, patch}, 0, false), true);
 				ck2::check_tensor(f, ck2::Tensor({budget_, 3, patch, patch}, 0, false), true);
-				auto context = a.device->context();
-				if (!device_centres_)
-					device_centres_ = context->allocate(static_cast<std::size_t>(budget_) * tile *
-									    tile * 4 * sizeof(float));
-				auto rgba = device_centres_;
-				auto rgb = f.device->pointer(), alpha = a.device->pointer(), dst = rgba->pointer();
-				void *args[]{&rgb, &alpha, &dst, &budget_};
-				context->launch("pack_centres", budget_ * tile * tile * 4, args);
-				context->synchronize();
-				output_texture_->write(*rgba);
+				if (a.directml && f.directml) {
+					auto context = a.directml->context();
+					auto &texture = dml_transfers_.get(context, device_job->centres);
+					auto rgba = texture.conversion_buffer(static_cast<std::size_t>(budget_) * tile *
+									      tile * 16);
+					const unsigned params[]{budget_, 0, 0, 0, 0, 0, 0};
+					context->compute("pack_centres", budget_ * tile * tile * 4, *f.directml,
+							 a.directml.get(), *rgba, params);
+					texture.write(*rgba);
+				} else {
+					if (!a.device || !f.device)
+						throw std::runtime_error(
+							"Refiner device output unavailable; retry staged atlas");
+					auto context = a.device->context();
+					if (!device_centres_)
+						device_centres_ = context->allocate(static_cast<std::size_t>(budget_) *
+										    tile * tile * 4 * sizeof(float));
+					auto rgba = device_centres_;
+					auto rgb = f.device->pointer(), alpha = a.device->pointer(),
+					     dst = rgba->pointer();
+					void *args[]{&rgb, &alpha, &dst, &budget_};
+					context->launch("pack_centres", budget_ * tile * tile * 4, args);
+					context->synchronize();
+					output_texture_->write(*rgba);
+				}
 				output.device = true;
 			} else {
 				for (auto &[name, tensor] : tensors) {

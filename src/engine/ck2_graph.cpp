@@ -88,9 +88,14 @@ void check_tensor(const Tensor &actual, const Tensor &expected, bool unit_range)
 			throw std::runtime_error("Invalid tensor shape");
 		count *= static_cast<std::size_t>(d);
 	}
-	if (actual.shape != expected.shape ||
-	    (actual.device ? actual.device->bytes() / sizeof(float) : actual.values.size()) != count)
+	if (actual.shape != expected.shape || (actual.directml ? actual.directml->bytes() / sizeof(float)
+					       : actual.device ? actual.device->bytes() / sizeof(float)
+							       : actual.values.size()) != count)
 		throw std::runtime_error("CK2 tensor shape mismatch");
+	if (actual.directml) {
+		actual.directml->context()->validate(*actual.directml, unit_range);
+		return;
+	}
 	if (actual.device) {
 		actual.device->context()->validate(*actual.device, unit_range);
 		return;
@@ -167,8 +172,29 @@ Tensor resize(const Tensor &input, Extent size, bool area)
 	return result;
 }
 } // namespace
-Tensor resize_area(const Tensor &input, Extent size, std::shared_ptr<nvidia::Buffer> reuse)
+Tensor resize_area(const Tensor &input, Extent size, std::shared_ptr<nvidia::Buffer> reuse,
+		   std::shared_ptr<dml::Buffer> dml_reuse)
 {
+	if (input.directml) {
+		if (input.shape.size() != 4 || input.shape[0] != 1 || !size.width || !size.height)
+			throw std::invalid_argument("Invalid DML resize shape");
+		Tensor result({1, input.shape[1], size.height, size.width}, 0, false);
+		auto context = input.directml->context();
+		const auto bytes = static_cast<std::size_t>(input.shape[1]) * size.width * size.height * sizeof(float);
+		result.directml = dml_reuse ? std::move(dml_reuse) : context->allocate(bytes);
+		if (result.directml->bytes() != bytes || result.directml == input.directml)
+			throw std::invalid_argument("DML resize buffer mismatch");
+		const unsigned params[]{static_cast<unsigned>(input.shape[3]),
+					static_cast<unsigned>(input.shape[2]),
+					size.width,
+					size.height,
+					static_cast<unsigned>(input.shape[1]),
+					0,
+					0};
+		context->compute("resize_area", static_cast<unsigned>(bytes / 4), *input.directml, nullptr,
+				 *result.directml, params);
+		return result;
+	}
 	if (input.device) {
 		if (input.shape.size() != 4 || input.shape[0] != 1 || !size.width || !size.height)
 			throw std::invalid_argument("Resize requires a single NCHW image");
@@ -191,7 +217,7 @@ Tensor resize_area(const Tensor &input, Extent size, std::shared_ptr<nvidia::Buf
 }
 Tensor resize_bilinear(const Tensor &input, Extent size)
 {
-	return resize(input.device ? download_tensor(input) : input, size, false);
+	return resize((input.device || input.directml) ? download_tensor(input) : input, size, false);
 }
 Image packed_image(const Tensor &input, PixelFormat format)
 {
@@ -200,7 +226,7 @@ Image packed_image(const Tensor &input, PixelFormat format)
 		throw std::invalid_argument("Invalid decoded image shape");
 	const Extent size{static_cast<unsigned>(input.shape[3]), static_cast<unsigned>(input.shape[2])};
 	const auto pixels = static_cast<std::size_t>(size.width) * size.height;
-	if (input.device)
+	if (input.device || input.directml)
 		return {size,
 			format,
 			channels == 3 ? ColorSpace::srgb : ColorSpace::linear_srgb,
@@ -220,6 +246,11 @@ Image packed_image(const Tensor &input, PixelFormat format)
 }
 Tensor download_tensor(const Tensor &tensor)
 {
+	if (tensor.directml) {
+		Tensor result(tensor.shape);
+		tensor.directml->download(result.values.data(), result.values.size() * sizeof(float));
+		return result;
+	}
 	if (!tensor.device)
 		return tensor;
 	Tensor result(tensor.shape);
@@ -228,7 +259,9 @@ Tensor download_tensor(const Tensor &tensor)
 }
 void zero_tensor(Tensor &tensor)
 {
-	if (tensor.device)
+	if (tensor.directml)
+		tensor.directml->zero();
+	else if (tensor.device)
 		tensor.device->zero();
 	else
 		std::fill(tensor.values.begin(), tensor.values.end(), 0.f);

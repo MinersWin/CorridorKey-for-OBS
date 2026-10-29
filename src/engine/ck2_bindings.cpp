@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "ck2_bindings.hpp"
+#include "providers/directml_ort.hpp"
 #include <algorithm>
 #include <stdexcept>
 namespace corridorkey::ck2 {
@@ -9,6 +10,8 @@ struct PersistentBindings::Impl {
 		std::vector<std::int64_t> shape;
 		std::vector<float> host;
 		std::shared_ptr<nvidia::Buffer> device;
+		std::shared_ptr<dml::Buffer> directml;
+		std::unique_ptr<dml::TensorAllocation> dml_value;
 		OrtValue *value = nullptr;
 	};
 	ort::Session &session;
@@ -20,7 +23,7 @@ struct PersistentBindings::Impl {
 	{
 		for (auto *buffers : {&inputs, &outputs})
 			for (auto &buffer : *buffers)
-				if (buffer.value)
+				if (buffer.value && !buffer.dml_value)
 					session.runtime().api().ReleaseValue(buffer.value);
 	}
 };
@@ -51,6 +54,14 @@ PersistentBindings::PersistentBindings(ort::Session &session, bool device) : imp
 			buffer.name = spec.name;
 			buffer.shape = spec.shape;
 			buffer.host = std::move(tensor.values);
+			if (session.dml_context()) {
+				buffer.directml = session.dml_context()->allocate(buffer.host.size() * sizeof(float));
+				buffer.dml_value =
+					std::make_unique<dml::TensorAllocation>(rt, buffer.directml, spec.shape);
+				buffer.value = buffer.dml_value->value();
+				bindings.emplace_back(spec.name, buffer.value);
+				continue;
+			}
 			if (device)
 				buffer.device = s.cuda->allocate(buffer.host.size() * sizeof(float));
 			void *address =
@@ -72,7 +83,9 @@ void PersistentBindings::set(std::string_view name, std::span<const float> data)
 		if (buffer.name == name) {
 			if (data.size() != buffer.host.size())
 				throw std::invalid_argument("Persistent input size mismatch");
-			if (buffer.device)
+			if (buffer.directml)
+				buffer.directml->upload(data.data(), data.size_bytes());
+			else if (buffer.device)
 				buffer.device->upload(data.data(), data.size_bytes());
 			else
 				std::copy(data.begin(), data.end(), buffer.host.begin());
@@ -82,6 +95,21 @@ void PersistentBindings::set(std::string_view name, std::span<const float> data)
 }
 void PersistentBindings::set(std::string_view name, const Tensor &tensor)
 {
+	if (tensor.directml) {
+		for (auto &buffer : impl_->inputs)
+			if (buffer.name == name) {
+				if (buffer.shape != tensor.shape)
+					throw std::invalid_argument("DML tensor shape mismatch");
+				if (buffer.directml)
+					buffer.directml->copy(*tensor.directml);
+				else {
+					auto host = download_tensor(tensor);
+					set(name, host.values);
+				}
+				return;
+			}
+		throw std::invalid_argument("Unknown DML input");
+	}
 	if (!tensor.device) {
 		set(name, tensor.values);
 		return;
@@ -92,8 +120,11 @@ void PersistentBindings::set(std::string_view name, const Tensor &tensor)
 				throw std::invalid_argument("Persistent tensor shape mismatch");
 			if (buffer.device)
 				buffer.device->copy(*tensor.device);
-			else
+			else {
 				tensor.device->download(buffer.host.data(), buffer.host.size() * sizeof(float));
+				if (buffer.directml)
+					buffer.directml->upload(buffer.host.data(), buffer.host.size() * sizeof(float));
+			}
 			return;
 		}
 	throw std::invalid_argument("Unknown persistent input");
@@ -106,7 +137,17 @@ void PersistentBindings::run(std::stop_token stop)
 		impl_->cuda->synchronize();
 	if (impl_->cuda)
 		impl_->cuda->start_timer();
-	impl_->session.run_bound(impl_->bound_inputs, impl_->bound_outputs, stop);
+	if (auto dml = impl_->session.dml_context()) {
+		std::lock_guard lock(dml->mutex());
+		try {
+			impl_->session.run_bound(impl_->bound_inputs, impl_->bound_outputs, stop);
+		} catch (...) {
+			dml->synchronize();
+			throw;
+		}
+		dml->synchronize();
+	} else
+		impl_->session.run_bound(impl_->bound_inputs, impl_->bound_outputs, stop);
 	gpu_ms_ = impl_->cuda ? impl_->cuda->stop_timer() : -1;
 }
 void PersistentBindings::read(std::string_view name, std::span<float> data)
@@ -115,7 +156,9 @@ void PersistentBindings::read(std::string_view name, std::span<float> data)
 		if (buffer.name == name) {
 			if (data.size() != buffer.host.size())
 				throw std::invalid_argument("Persistent output size mismatch");
-			if (buffer.device)
+			if (buffer.directml)
+				buffer.directml->download(data.data(), data.size_bytes());
+			else if (buffer.device)
 				buffer.device->download(data.data(), data.size_bytes());
 			else
 				std::copy(buffer.host.begin(), buffer.host.end(), data.begin());
@@ -126,13 +169,18 @@ void PersistentBindings::read(std::string_view name, std::span<float> data)
 Tensor PersistentBindings::device_output(std::string_view name)
 {
 	for (const auto &buffer : impl_->outputs)
-		if (buffer.name == name && buffer.device) {
+		if (buffer.name == name && (buffer.device || buffer.directml)) {
 			Tensor result;
 			result.shape = buffer.shape;
 			result.device = buffer.device;
+			result.directml = buffer.directml;
 			return result;
 		}
 	throw std::invalid_argument("Unknown persistent device output");
+}
+std::shared_ptr<dml::Context> PersistentBindings::dml_context() const
+{
+	return impl_->session.dml_context();
 }
 std::shared_ptr<nvidia::Context> PersistentBindings::context() const
 {

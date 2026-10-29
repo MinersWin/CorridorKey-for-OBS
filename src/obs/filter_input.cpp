@@ -107,6 +107,7 @@ struct FilterInput::Impl {
 	FakeOptions options;
 	std::unique_ptr<StagedTransport> transport;
 	nvidia::TextureTransfers device_transfers;
+	dml::TextureTransfers dml_transfers;
 	std::atomic<TransportKind> chosen_transport{TransportKind::staged_grid};
 	std::optional<FrameResult> presented;
 	std::optional<InputFrame> staged_input;
@@ -439,6 +440,7 @@ struct FilterInput::Impl {
 			// Registrations retain native textures. Release them on their worker
 			// before graphics replaces the drained generation's transport.
 			device_transfers.clear();
+			dml_transfers.clear();
 		}
 		if (prepared != generation) {
 			std::lock_guard lock(mutex);
@@ -706,7 +708,7 @@ struct FilterInput::Impl {
 					       std::chrono::milliseconds(snapshot->context.stale_timeout_ms))) {
 				const auto pack_start = obs_now();
 				result->timings.input_transfer = input_transfers[result->input.lease.id().index];
-				if (!transport->upload_device(*result, device_transfers)) {
+				if (!transport->upload_device(*result, device_transfers, &dml_transfers)) {
 					for (auto *image : {&result->alpha, &result->foreground})
 						if (auto device = std::dynamic_pointer_cast<const ck2::DeviceImage>(
 							    image->storage))
@@ -758,15 +760,21 @@ struct FilterInput::Impl {
 		}
 		if (input && input->lease.current()) {
 			std::shared_ptr<nvidia::Context> context;
+			std::shared_ptr<dml::Context> dml_context;
 #ifdef CORRIDORKEY_CK2_RUNTIME
 			if (real && pipeline == real.get())
 				context = real->device_context();
+			if (real && pipeline == real.get())
+				dml_context = real->dml_context();
 #endif
-			input->analysis = transport->analysis(*input, &device_transfers, std::move(context));
+			input->analysis = transport->analysis(*input, &device_transfers, std::move(context),
+							      &dml_transfers, dml_context);
 			const auto selected_transport = transport->transport_kind();
 			if (chosen_transport.exchange(selected_transport) != selected_transport)
 				blog(LOG_INFO, "[corridorkey:w10] transport=%s",
-				     selected_transport == TransportKind::interop ? "d3d11-cuda" : "staged");
+				     selected_transport == TransportKind::interop
+					     ? (dml_context ? "d3d11-d3d12-dml" : "d3d11-cuda")
+					     : "staged");
 			input_transfers[input->lease.id().index] = obs_now() - input->identity.captured_at;
 			scheduler.offer(std::move(*input));
 		}
@@ -800,6 +808,7 @@ struct FilterInput::Impl {
 		pipeline->shutdown();
 		scheduler.completed();
 		device_transfers.clear();
+		dml_transfers.clear();
 		pool.advance_generation();
 		graphics_task([&] {
 			// Source callbacks have detached before the teardown worker runs.
@@ -1079,7 +1088,9 @@ StatusSnapshot FilterInput::status() const
 	status->submitted = s.submitted.load();
 	if (!s.model_detail.empty())
 		status->diagnostic_detail += status->transport == TransportKind::interop
-						     ? " D3D11/CUDA device transport."
+						     ? (s.model_backend == Backend::directml
+								? " D3D11/D3D12 DirectML device transport."
+								: " D3D11/CUDA device transport.")
 						     : " Staged CPU transport.";
 	status->completed = s.completed.load();
 	status->dropped = s.dropped.load();

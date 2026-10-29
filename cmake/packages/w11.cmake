@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+target_sources(corridorkey_core PRIVATE src/engine/providers/directml.cpp src/gpu/d3d12_dml.cpp)
+if(WIN32)
+  target_link_libraries(corridorkey_core PUBLIC d3d11 dxgi)
+endif()
+if(TARGET corridorkey_ort)
+  target_sources(corridorkey_ort PRIVATE src/engine/providers/directml_ort.cpp)
+endif()
+if(WIN32 AND BUILD_TESTING)
+  add_executable(corridorkey_dml_interop_test tests/directml_interop.cpp)
+  target_link_libraries(corridorkey_dml_interop_test PRIVATE corridorkey_core)
+endif()

@@ -113,7 +113,7 @@ LowResolutionResult SequenceState::process(const InputFrame &input, std::stop_to
 	captured_transform_ = input.transform;
 	try {
 		auto rgb = planar_rgb(input.analysis);
-		motion_rgb_ = resize_area(rgb, {32, 32}, motion_rgb_.device);
+		motion_rgb_ = resize_area(rgb, {32, 32}, motion_rgb_.device, motion_rgb_.directml);
 		auto thumb = download_tensor(motion_rgb_);
 		float motion = 0;
 		if (moge_valid_)
@@ -126,7 +126,8 @@ LowResolutionResult SequenceState::process(const InputFrame &input, std::stop_to
 		const bool refresh = !moge_valid_ || since_moge_ >= interval ||
 				     (q.moge_motion_threshold > 0 && motion > q.moge_motion_threshold);
 		if (refresh) {
-			moge_rgb_ = resize_area(rgb, {grid_.width * 7 / 32, grid_.height * 7 / 32}, moge_rgb_.device);
+			moge_rgb_ = resize_area(rgb, {grid_.width * 7 / 32, grid_.height * 7 / 32}, moge_rgb_.device,
+						moge_rgb_.directml);
 			auto output = run(Stage::moge, {{"rgb_moge", &moge_rgb_}}, stop, result.timings.moge_ms);
 			moge_ = std::move(output.at("moge_feat"));
 			thumbnail_ = std::move(thumb);
@@ -136,7 +137,7 @@ LowResolutionResult SequenceState::process(const InputFrame &input, std::stop_to
 		result.timings.moge_refreshed = refresh;
 		if (!q.use_rvm_temporal)
 			zero_tensor(recurrent_);
-		rvm_rgb_ = resize_area(rgb, {grid_.width / 4, grid_.height / 4}, rvm_rgb_.device);
+		rvm_rgb_ = resize_area(rgb, {grid_.width / 4, grid_.height / 4}, rvm_rgb_.device, rvm_rgb_.directml);
 		auto rvm =
 			run(Stage::rvm, {{"rgb_rvm", &rvm_rgb_}, {"state", &recurrent_}}, stop, result.timings.rvm_ms);
 		auto s1 = run(Stage::stage1,

@@ -3,6 +3,7 @@
 #include "providers/loader.hpp"
 #include "contracts/models.hpp"
 #include "providers/nvidia.hpp"
+#include "providers/directml.hpp"
 #include <functional>
 #include <mutex>
 
@@ -29,6 +30,8 @@ struct SessionConfig {
 	bool persistent_io = false;
 	bool rebuild_cache = false;
 	// W11 may supply its matched DML device/queue; both must be provided together.
+	std::shared_ptr<dml::Context> dml_context;
+	std::shared_ptr<std::shared_ptr<dml::Context>> dml_shared;
 	IDMLDevice *dml_device = nullptr;
 	ID3D12CommandQueue *dml_queue = nullptr;
 };
@@ -43,6 +46,7 @@ public:
 	const Device &device() const;
 	const Runtime &runtime() const;
 	std::shared_ptr<nvidia::Context> device_context() const;
+	std::shared_ptr<dml::Context> dml_context() const;
 	// Caller retains values, buffers and device allocations until run_bound returns.
 	// Calls serialize per session (required by DirectML). No render-thread calls.
 	void run_bound(std::span<const std::pair<std::string, const OrtValue *>> inputs,

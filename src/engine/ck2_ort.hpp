@@ -20,7 +20,11 @@ public:
 	{
 		return resident_ ? bindings_->context() : nullptr;
 	}
-	void device_resident(bool enabled) { resident_ = enabled && device_; }
+	std::shared_ptr<dml::Context> dml_context() const override
+	{
+		return resident_ ? bindings_->dml_context() : nullptr;
+	}
+	void device_resident(bool enabled) { resident_ = enabled && (device_ || bindings_->dml_context()); }
 	double gpu_ms() const override { return bindings_->gpu_ms(); }
 
 private:

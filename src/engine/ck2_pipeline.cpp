@@ -44,6 +44,7 @@ Error Ck2Pipeline::prepare(const PrepareRequest &request)
 	try {
 		auto prepared = factory_(request);
 		auto device_context = prepared.graphs.at(ck2::Stage::stage1)->device_context();
+		auto dml_context = prepared.graphs.at(ck2::Stage::stage1)->dml_context();
 		auto model = prepared.model ? prepared.model : request.model;
 		std::shared_ptr<refiner::Stage> refinement;
 		if (auto found = prepared.graphs.find(ck2::Stage::refiner); found != prepared.graphs.end()) {
@@ -64,6 +65,7 @@ Error Ck2Pipeline::prepare(const PrepareRequest &request)
 		clear();
 		sequence_ = std::move(sequence);
 		device_context_ = std::move(device_context);
+		dml_context_ = std::move(dml_context);
 		refiner_ = std::move(refinement);
 		model_ = std::move(model);
 		instance_ = request.instance;
@@ -266,6 +268,11 @@ std::shared_ptr<refiner::Stage> Ck2Pipeline::refiner_stage() const
 {
 	std::lock_guard lock(mutex_);
 	return refiner_;
+}
+std::shared_ptr<dml::Context> Ck2Pipeline::dml_context() const
+{
+	std::lock_guard lock(mutex_);
+	return dml_context_;
 }
 std::shared_ptr<nvidia::Context> Ck2Pipeline::device_context() const
 {
