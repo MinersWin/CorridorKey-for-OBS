@@ -67,7 +67,7 @@ void frame(const Json &item, const char *directory)
 		const auto &r = item.at("roi");
 		roi = {r.at(0), r.at(1), r.at(2), r.at(3)};
 	}
-	Reconstruction post(native.extent(), guide.extent(), (std::string(directory) + "/effects/post.effect").c_str());
+	Reconstruction post(native.extent(), model.extent(), (std::string(directory) + "/effects/post.effect").c_str());
 	if (!post.available() || !post.prepare(native.value, guide.value, model.value, settings, roi))
 		throw std::runtime_error("Reconstruction preparation failed");
 	const auto prefix = item.at("output").get<std::string>();

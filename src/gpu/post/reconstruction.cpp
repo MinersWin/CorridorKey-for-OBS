@@ -27,7 +27,9 @@ struct DrawState {
 	}
 };
 } // namespace
-Reconstruction::Reconstruction(Extent native, Extent grid, const char *path) : native_(native), grid_(grid)
+Reconstruction::Reconstruction(Extent native, Extent grid, const char *path, Reconstruction *share_native)
+	: native_(native),
+	  grid_(grid)
 {
 	owned_.reserve(64);
 	levels_.reserve(32);
@@ -59,7 +61,15 @@ Reconstruction::Reconstruction(Extent native, Extent grid, const char *path) : n
 	delta_ = allocate(grid);
 	band_raw_ = allocate(grid);
 	band_ = allocate(grid);
-	raw_ = allocate(native);
+	if (share_native) {
+		if (share_native->native_ != native)
+			return;
+		raw_ = share_native->raw_;
+	} else {
+		raw_ = {gs_texrender_create(GS_RGBA32F, GS_ZS_NONE), gs_texrender_destroy};
+		if (raw_ && gs_texrender_begin(raw_.get(), native.width, native.height))
+			gs_texrender_end(raw_.get());
+	}
 	reduction_ = allocate({32, 32});
 	background_ = allocate(grid);
 	for (;;) {
@@ -70,7 +80,8 @@ Reconstruction::Reconstruction(Extent native, Extent grid, const char *path) : n
 			break;
 		grid = {(grid.width + 1) / 2, (grid.height + 1) / 2};
 	}
-	valid_ = std::all_of(owned_.begin(), owned_.end(), [](auto *p) { return p && gs_texrender_get_texture(p); });
+	valid_ = raw_ && gs_texrender_get_texture(raw_.get()) &&
+		 std::all_of(owned_.begin(), owned_.end(), [](auto *p) { return p && gs_texrender_get_texture(p); });
 }
 Reconstruction::~Reconstruction()
 {
@@ -152,6 +163,10 @@ bool Reconstruction::prepare(gs_texture_t *native, gs_texture_t *guide, gs_textu
 	vec2_set(&model_dimensions, static_cast<float>(gs_texture_get_width(model)),
 		 static_cast<float>(gs_texture_get_height(model)));
 	set("model_size", model_dimensions);
+	vec2 guide_dimensions;
+	vec2_set(&guide_dimensions, static_cast<float>(gs_texture_get_width(guide)),
+		 static_cast<float>(gs_texture_get_height(guide)));
+	set("guide_size", guide_dimensions);
 	size(grid_);
 	if (!draw(reduction_, {32, 32}, "Reduce"))
 		return false;
@@ -194,7 +209,7 @@ bool Reconstruction::prepare(gs_texture_t *native, gs_texture_t *guide, gs_textu
 	crop("roi", roi);
 	set("equation_unmix", int(q.unmix_mode == UnmixMode::compositing_equation));
 	set("bilinear_alpha", int(q.guide_mode == GuideMode::bilinear));
-	return draw(raw_, native_, "Reconstruct");
+	return draw(raw_.get(), native_, "Reconstruct");
 }
 bool Reconstruction::finish(gs_texrender_t *output, gs_texture_t *native, const Settings &settings, const Crop &roi,
 			    int debug_view, gs_texture_t *refined)
@@ -253,7 +268,7 @@ void Reconstruction::present(gs_texture_t *output)
 }
 gs_texture_t *Reconstruction::raw() const
 {
-	return gs_texrender_get_texture(raw_);
+	return gs_texrender_get_texture(raw_.get());
 }
 gs_texture_t *Reconstruction::coefficients() const
 {

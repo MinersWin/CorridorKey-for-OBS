@@ -86,7 +86,7 @@ int run_post_tests(const char *directory)
 	gs_begin_scene();
 	gs_enable_depth_test(false);
 	gs_set_cull_mode(GS_NEITHER);
-	for (unsigned fixture = 0; fixture < 13; ++fixture) {
+	for (unsigned fixture = 0; fixture < 15; ++fixture) {
 		const unsigned w = fixture >= 9 && fixture <= 10   ? 512
 				   : fixture == 1 || fixture == 11 ? 1
 				   : fixture == 2                  ? 5
@@ -133,6 +133,32 @@ int run_post_tests(const char *directory)
 		}
 		if (fixture == 7)
 			settings.quality.unmix_mode = UnmixMode::compositing_equation;
+		Image analysis_guide = guide;
+		if (fixture == 13) {
+			analysis_guide = Image(w * 2, h * 2);
+			for (unsigned y = 0; y < h * 2; ++y)
+				for (unsigned x = 0; x < w * 2; ++x)
+					analysis_guide.at(x, y) = {double((x * 17 + y * 7) % 31) / 31,
+								   double((x * 3 + y * 11) % 23) / 23,
+								   double((x * 13 + y * 5) % 19) / 19, 1};
+			for (unsigned y = 0; y < h; ++y)
+				for (unsigned x = 0; x < w; ++x)
+					for (unsigned c = 0; c < 4; ++c)
+						guide.at(x, y)[c] = (analysis_guide.at(x * 2, y * 2)[c] +
+								     analysis_guide.at(x * 2 + 1, y * 2)[c] +
+								     analysis_guide.at(x * 2, y * 2 + 1)[c] +
+								     analysis_guide.at(x * 2 + 1, y * 2 + 1)[c]) /
+								    4;
+		}
+		if (fixture == 14) {
+			settings.quality.unmix_inner = 0;
+			settings.quality.despill_strength = 0;
+			for (auto &p : model.pixels)
+				p = {0.1, 0.9, 0.3, 1};
+			for (unsigned y = 0; y < nh; ++y)
+				for (unsigned x = 0; x < nw; ++x)
+					native.at(x, y) = {x % 2 ? 0.8 : 0.2, y % 2 ? 0.7 : 0.1, 0.4, 1};
+		}
 		Image network = model;
 		if (fixture == 12) {
 			network = Image(2, 2);
@@ -151,7 +177,8 @@ int run_post_tests(const char *directory)
 				}
 		}
 		const auto reference = post_reference::reconstruct(native, guide, model, settings, roi);
-		auto *native_texture = upload(native), *guide_texture = upload(guide), *model_texture = upload(network);
+		auto *native_texture = upload(native), *guide_texture = upload(analysis_guide),
+		     *model_texture = upload(network);
 		auto *output = gs_texrender_create(GS_RGBA32F, GS_ZS_NONE);
 		std::printf("FIXTURE %u grid=%ux%u native=%ux%u\n", fixture, w, h, nw, nh);
 		{

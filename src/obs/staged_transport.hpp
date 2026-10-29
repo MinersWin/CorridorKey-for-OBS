@@ -40,6 +40,7 @@ private:
 	gs_eparam_t *image_ = nullptr, *original_ = nullptr, *result_ = nullptr, *crop_ = nullptr;
 	std::array<std::unique_ptr<Slot>, FramePool::maximum_capacity> slots_;
 	std::unique_ptr<Reconstruction> reconstruction_;
+	std::unique_ptr<Reconstruction> reconstruction_half_;
 	bool available_ = false;
 	Error failure_;
 	Duration host_draw_time_{};

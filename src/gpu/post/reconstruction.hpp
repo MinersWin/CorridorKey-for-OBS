@@ -6,13 +6,15 @@
 #include <vector>
 #include <array>
 #include <cstring>
+#include <memory>
 
 namespace corridorkey {
 // All calls require graphics ownership. Resources are allocated before capture.
 // The raw texture is straight sRGB + linear alpha, before levels/despill/source alpha.
 class Reconstruction {
 public:
-	Reconstruction(Extent native, Extent grid, const char *effect_path);
+	// Grid is the decoded model grid. Serial grid variants may share the native scratch target.
+	Reconstruction(Extent native, Extent grid, const char *effect_path, Reconstruction *share_native = nullptr);
 	~Reconstruction();
 	Reconstruction(const Reconstruction &) = delete;
 	Reconstruction &operator=(const Reconstruction &) = delete;
@@ -61,7 +63,8 @@ private:
 	Extent native_, grid_;
 	gs_effect_t *effect_ = nullptr;
 	gs_texrender_t *solve_ = nullptr, *coefficients_ = nullptr, *delta_ = nullptr;
-	gs_texrender_t *band_raw_ = nullptr, *band_ = nullptr, *raw_ = nullptr;
+	gs_texrender_t *band_raw_ = nullptr, *band_ = nullptr;
+	std::shared_ptr<gs_texrender_t> raw_;
 	gs_texrender_t *reduction_ = nullptr;
 	gs_texrender_t *background_ = nullptr;
 	std::vector<gs_texrender_t *> pull_, push_, owned_;
