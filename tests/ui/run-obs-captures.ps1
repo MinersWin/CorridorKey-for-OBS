@@ -4,7 +4,10 @@ param(
   [string]$Output = 'docs/images/model-manager',
   [string[]]$Themes = @('yami', 'yami-light'),
   [string]$Scale = '1',
-  [string]$PortableRoot = ''
+  [string]$PortableRoot = '',
+  [string]$ProbeTools = '',
+  [double]$HostScale = 1,
+  [switch]$Diagnostics
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -15,6 +18,7 @@ $lockPath = 'S:\Projects\obs-test\installed-obs.lock'
 $lock = $null
 if ($PortableRoot) {
   $PortableRoot = (Resolve-Path -LiteralPath $PortableRoot).Path
+  if (-not $PortableRoot.StartsWith('S:\Projects\obs-test\obs-', [StringComparison]::OrdinalIgnoreCase)) { throw 'Use an isolated OBS test copy beneath S:\Projects\obs-test\obs-.' }
   $obsExe = Join-Path $PortableRoot 'bin/64bit/obs64.exe'
   $plugin = Join-Path $PortableRoot 'plugins/corridorkey'
   $config = Join-Path $PortableRoot 'config/obs-studio'
@@ -22,8 +26,20 @@ if ($PortableRoot) {
 } else {
   if (Get-Process obs64 -ErrorAction SilentlyContinue) { throw 'OBS is already running. Do not interrupt it.' }
   $lock = [System.IO.File]::Open($lockPath, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::Read)
-  $bytes = [System.Text.Encoding]::UTF8.GetBytes('w07-manager')
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes('d1-design')
   $lock.Write($bytes, 0, $bytes.Length)
+}
+# Refuse a profile that can open listeners or browser networking during capture.
+$websocket = Join-Path $config 'plugin_config/obs-websocket/config.json'
+if (-not (Test-Path -LiteralPath $websocket) -or
+    (Get-Content -Raw -LiteralPath $websocket | ConvertFrom-Json).server_enabled -ne $false) {
+  if ($lock) { $lock.Dispose(); Remove-Item -LiteralPath $lockPath }
+  throw 'Disable obs-websocket in the dedicated test profile before capturing.'
+}
+$scene = Join-Path $config 'basic/scenes/CorridorKey_Test.json'
+if (-not (Test-Path -LiteralPath $scene) -or (Get-Content -Raw -LiteralPath $scene) -match '"browser_source"') {
+  if ($lock) { $lock.Dispose(); Remove-Item -LiteralPath $lockPath }
+  throw 'Use the CorridorKey Test collection without browser sources.'
 }
 $backup = Join-Path $repo ('.cache/obs-capture-backup-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
 $outputPath = [System.IO.Path]::GetFullPath((Join-Path $repo $Output))
@@ -40,9 +56,14 @@ try {
   New-Item -ItemType Directory -Force -Path $plugin | Out-Null
   Copy-Item -LiteralPath (Join-Path $repo "$Build/RelWithDebInfo/corridorkey.dll") -Destination (Join-Path $plugin 'corridorkey.dll')
   Copy-Item -LiteralPath (Join-Path $repo 'data') -Destination $plugin -Recurse -Force
+  if ($ProbeTools) {
+    Copy-Item -LiteralPath $ProbeTools -Destination (Join-Path $plugin 'data/tools') -Recurse -Force
+  }
+  $env:QT_SCREEN_SCALE_FACTORS = '1'
   $env:CK_MANAGER_FIXTURE = Join-Path $repo "$Build/manager-fixture"
   $env:CK_MANAGER_CAPTURE = $outputPath
-  $env:QT_SCALE_FACTOR = $Scale
+  if ($Diagnostics) { $env:CK_DIAGNOSTICS_CAPTURE = $outputPath }
+  $env:QT_SCALE_FACTOR = ([double]$Scale / $HostScale).ToString([Globalization.CultureInfo]::InvariantCulture)
   foreach ($theme in $Themes) {
     if (Get-Process obs64 -ErrorAction SilentlyContinue | Where-Object { -not $PortableRoot -or $_.Path -eq $obsExe }) { throw 'Another OBS process appeared in the selected host.' }
     $themeId = if ($theme -eq 'yami-light') { 'com.obsproject.Yami.Light' } else { 'com.obsproject.Yami.Original' }
@@ -88,7 +109,7 @@ try {
     }
   }
   if ($lock) { $lock.Dispose(); Remove-Item -LiteralPath $lockPath }
-  foreach ($name in @('CK_MANAGER_FIXTURE', 'CK_MANAGER_CAPTURE', 'CK_MANAGER_THEME', 'QT_SCALE_FACTOR')) {
+  foreach ($name in @('CK_MANAGER_FIXTURE', 'CK_MANAGER_CAPTURE', 'CK_MANAGER_THEME', 'QT_SCALE_FACTOR', 'QT_SCREEN_SCALE_FACTORS', 'CK_DIAGNOSTICS_CAPTURE')) {
     [System.Environment]::SetEnvironmentVariable($name, $null, 'Process')
   }
 }

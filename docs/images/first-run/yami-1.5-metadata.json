@@ -1,0 +1,79 @@
+{
+  "properties": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": true,
+    "logical_height": 720,
+    "logical_width": 1000,
+    "obs": "33.0.0",
+    "pixel_height": 1080,
+    "pixel_width": 1500,
+    "qt": "6.11.1"
+  },
+  "first-run": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": false,
+    "logical_height": 699,
+    "logical_width": 793,
+    "obs": "33.0.0",
+    "pixel_height": 1049,
+    "pixel_width": 1190,
+    "qt": "6.11.1"
+  },
+  "setup-licences": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": false,
+    "logical_height": 579,
+    "logical_width": 673,
+    "obs": "33.0.0",
+    "pixel_height": 869,
+    "pixel_width": 1010,
+    "qt": "6.11.1"
+  },
+  "setup-accepted": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": false,
+    "logical_height": 579,
+    "logical_width": 673,
+    "obs": "33.0.0",
+    "pixel_height": 869,
+    "pixel_width": 1010,
+    "qt": "6.11.1"
+  },
+  "downloading": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": true,
+    "logical_height": 699,
+    "logical_width": 793,
+    "obs": "33.0.0",
+    "pixel_height": 1049,
+    "pixel_width": 1190,
+    "qt": "6.11.1"
+  },
+  "binding": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": true,
+    "logical_height": 699,
+    "logical_width": 793,
+    "obs": "33.0.0",
+    "pixel_height": 1049,
+    "pixel_width": 1190,
+    "qt": "6.11.1"
+  },
+  "ready": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": true,
+    "logical_height": 699,
+    "logical_width": 793,
+    "obs": "33.0.0",
+    "pixel_height": 1049,
+    "pixel_width": 1190,
+    "qt": "6.11.1"
+  }
+}

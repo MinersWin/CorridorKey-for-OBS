@@ -13,16 +13,15 @@ There are no paid builds, paid tiers, account sign-up or cloud inference steps. 
 
 Order in the standard filter pane:
 
-1. **Preset**: Balanced / Facecam 60 / Quality / Custom; **Advanced** checkbox beside the top-level controls where layout permits.
-2. **Model**: CK2 or CK1, model status, **Models…**.
-3. **Quality / Performance**: target rate, backend summary, refinement budget when expanded.
-4. **Edge & Hair**: refinement toggle, matte contrast, choke, optional fine controls.
-5. **Colour / Despill**: spill amount, screen color where the model supports it.
-6. **Crop**: four short percentage labels and Preview crop.
-7. **Hint**: normal controls only for CK1; CK2 hint experiments require Expert.
-8. **Output / Debug**: output view and temporary inspection controls.
-9. **Sync / Delay**: measured filter delay, optional microphone selection, trim.
-10. **Advanced / Expert**: backend details, temporal cache, experimental options, reset and diagnostics.
+1. **Preset**, then **Model** and **Edge refiner**.
+2. A human-readable status line and **Manage models...**.
+3. **Crop**, with Show details for its four percentage controls.
+4. **Advanced**, which reveals quality/performance, edge/hair, colour/despill, hint,
+   output and sync sections. **Expert** adds the experimental and backend controls.
+
+The 29 October visual pass puts the everyday choices ahead of these sections.
+A ready status combines model, backend, keyed fps, time per key and delay on one
+line. Error codes and raw backend messages belong in its tooltip and diagnostics.
 
 Use the native `obs_properties_*` API, long descriptions for tooltips, modified callbacks and `obs_property_set_visible` for conditional fields. Ordinary groups are **not guaranteed collapsible** by `OBS_GROUP_NORMAL`. Implement “Show details” buttons/booleans that toggle child visibility inside each group; keep expansion state in UI preferences, separate from processing settings. Do not inject widgets into OBS's private QFormLayout. [Properties API](https://docs.obsproject.com/reference-properties)
 
@@ -275,7 +274,7 @@ Use a simple table/list and one details panel. Model families own their dependen
 
 ## Visual language and accessibility
 
-Inherit OBS's Qt font and palette. Use the host body size (typically about 10-11 pt on Windows), 600 weight for section titles only, 8 px related-control spacing, 16 px group gaps and 16 px dialog margins, adjusted by Qt style metrics and DPI. Use monochrome 16/20 px icons from one compatible, attributed set or Qt standard icons. Keep verbs consistent: Install, Pause, Resume, Retry, Remove, Test. Align numerical units and use plain text for status as well as icons.
+Inherit OBS's Qt font and palette. Use the host body size (typically about 10-11 pt on Windows), 600 weight for section titles only, 8 px related-control spacing, 16 px group gaps and 16 px dialog margins, adjusted by Qt style metrics and DPI. Use the authored GPL monochrome SVGs in `data/icons`, rendered at 16 logical pixels in the host palette. The icons share a 1.5 px stroke and round line joins. Keep verbs consistent: Install, Pause, Resume, Retry, Remove, Test. Align numerical units and use plain text for status as well as icons.
 
 Use palette-derived text/base/button/highlight colors so Yami Dark, Yami Light and system high-contrast modes remain readable. Green means ready, amber means degraded or waiting, red means failure; each always has a word/icon. Custom semantic tints, if necessary, must be checked in both light and dark themes at accessible contrast. Use blue/host highlight for selection, not decorative glows. Keyboard focus, tab order, screen-reader names, accessible progress text and 100/150/200% scaling are release checks.
 

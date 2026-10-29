@@ -13,7 +13,7 @@ SPDX-License-Identifier = "GPL-3.0-or-later"
 # Licence texts visible in the captures retain their original terms.
 
 [[annotations]]
-path = ["docs/images/diagnostics/*.png", "docs/images/diagnostics/obs33-report.txt"]
+path = ["docs/images/diagnostics/*.png", "docs/images/diagnostics/*-report.txt", "docs/images/diagnostics/*metadata.json"]
 SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 
@@ -29,7 +29,12 @@ SPDX-License-Identifier = "GPL-3.0-or-later"
 # Vendor licence text visible in screenshots retains its original terms.
 
 [[annotations]]
-path = ["docs/images/first-run/*.jpg", "docs/images/first-run/metadata.json"]
+path = ["docs/images/first-run/*.png", "docs/images/first-run/*metadata.json"]
 SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
-# Publisher licence texts and Mixkit footage visible in captures retain their original terms.
+# Publisher licence texts visible in captures retain their original terms.
+
+[[annotations]]
+path = ["docs/images/properties/*.png", "docs/images/properties/*metadata.json", "docs/images/design-before/*.png"]
+SPDX-FileCopyrightText = "2026 Moritz Mantel <admin@moritz-mantel.de>"
+SPDX-License-Identifier = "GPL-3.0-or-later"

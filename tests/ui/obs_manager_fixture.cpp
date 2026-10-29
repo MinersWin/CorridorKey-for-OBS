@@ -18,6 +18,7 @@
 #include <QScreen>
 #include <QTableWidget>
 #include <QTimer>
+#include <QSplitter>
 
 namespace corridorkey::ui {
 namespace {
@@ -41,7 +42,7 @@ struct Capture : QObject {
 				 {"logical_height", widget->height()},
 				 {"pixel_width", pixels.width()},
 				 {"pixel_height", pixels.height()},
-				 {"fixture", name != "first-run"},
+				 {"fixture", name != "first-run" && !name.startsWith("setup-")},
 				 {"cursor", "excluded"}};
 		QFile metadata(root + "/" + theme + "-metadata.json");
 		QJsonObject document;
@@ -72,7 +73,20 @@ struct Capture : QObject {
 				auto *production = main->findChild<ModelManager *>("corridorKeyModels");
 				if (!production)
 					throw std::runtime_error("Production manager did not open");
+				for (auto *text : production->findChildren<QLabel *>())
+					if (text->text() == "Calculating cache usage…" && waits++ < 10)
+						return;
+				waits = 0;
 				save(production, "first-run");
+				production->findChild<QPushButton *>("setupCorridorKey")->click();
+				QTimer::singleShot(150, this, [this, production] {
+					for (auto *window : production->findChildren<LicenseDialog *>()) {
+						save(window, "setup-licences");
+						window->findChild<QCheckBox *>("acceptLicences")->setChecked(true);
+						save(window, "setup-accepted");
+						window->close();
+					}
+				});
 				// Exercise the public properties callback and Tools QAction on the same instance.
 				auto *source = obs_source_create_private("corridorkey", "CorridorKey fixture", nullptr);
 				auto *properties = obs_source_properties(source);
@@ -196,7 +210,7 @@ struct Capture : QObject {
 			}
 			if (step == 28) {
 				save(dialog, "compact");
-				dialog->resize(800, 728);
+				dialog->resize(800, 720);
 				auto m = *snapshot.rows[0].manifest;
 				// A real folder import exercises acceptance, verification and publication, not state previews.
 				dialog->hide();
@@ -242,6 +256,56 @@ struct Capture : QObject {
 					   &QWidget::close);
 		}
 	}
+	void capture_properties()
+	{
+		auto *settings = obs_data_create();
+		obs_data_set_int(settings, "width", 1280);
+		obs_data_set_int(settings, "height", 720);
+		obs_data_set_int(settings, "color", 0xff986e3b);
+		auto *source = obs_source_create("color_source_v3", "CorridorKey Test card", settings, nullptr);
+		obs_data_release(settings);
+		auto *filter = obs_source_create("corridorkey", "CorridorKey", nullptr, nullptr);
+		obs_source_filter_add(source, filter);
+		obs_frontend_open_source_filters(source);
+		QTimer::singleShot(500, this, [this, source, filter] {
+			QDialog *window = nullptr;
+			for (auto *widget : QApplication::topLevelWidgets())
+				if (widget->windowTitle().contains("CorridorKey Test card"))
+					window = qobject_cast<QDialog *>(widget);
+			if (!window)
+				throw std::runtime_error("OBS filter window did not open");
+			window->resize(1000, 720);
+			for (auto *splitter : window->findChildren<QSplitter *>())
+				if (splitter->orientation() == Qt::Vertical)
+					splitter->setSizes({160, 480});
+			QTimer::singleShot(500, this, [this, window, source, filter] {
+				save(window, "properties");
+				auto *data = obs_source_get_settings(filter);
+				obs_data_set_bool(data, "details_crop", true);
+				obs_source_update(filter, data);
+				obs_data_release(data);
+				obs_source_update_properties(filter);
+				QTimer::singleShot(500, this, [this, window, source, filter] {
+					save(window, "properties-crop");
+					auto *data = obs_source_get_settings(filter);
+					obs_data_set_bool(data, "advanced", true);
+					obs_data_set_bool(data, "details_crop", false);
+					obs_source_update(filter, data);
+					obs_data_release(data);
+					obs_source_update_properties(filter);
+					QTimer::singleShot(500, this, [this, window, source, filter] {
+						save(window, "properties-advanced");
+						window->close();
+						obs_source_filter_remove(source, filter);
+						obs_source_release(filter);
+						obs_source_release(source);
+						static_cast<QWidget *>(obs_frontend_get_main_window())->close();
+					});
+				});
+			});
+		});
+	}
+
 	int waits = 0;
 	void capture_licences()
 	{
@@ -271,8 +335,7 @@ struct Capture : QObject {
 					delay += 700;
 				}
 		}
-		QTimer::singleShot(delay + 500, static_cast<QWidget *>(obs_frontend_get_main_window()),
-				   &QWidget::close);
+		QTimer::singleShot(delay + 500, this, [this] { capture_properties(); });
 	}
 };
 } // namespace

@@ -6,6 +6,8 @@
 #include <QClipboard>
 #include <QDir>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
@@ -23,6 +25,27 @@ struct Capture : QObject {
 	int step = 0;
 	QPointer<QDialog> preview;
 	QString root = qEnvironmentVariable("CK_DIAGNOSTICS_CAPTURE");
+	QString prefix = qEnvironmentVariable("CK_MANAGER_THEME", "obs33");
+	void save(QWidget *widget, const QString &name)
+	{
+		const auto pixels = widget->grab();
+		if (!pixels.save(root + "/" + prefix + "-" + name + ".png"))
+			throw std::runtime_error("Cannot capture diagnostics");
+		QFile file(root + "/" + prefix + "-" + name + "-metadata.json");
+		if (file.open(QIODevice::WriteOnly))
+			file.write(QJsonDocument(QJsonObject{{"obs", obs_get_version_string()},
+							     {"qt", qVersion()},
+							     {"device_pixel_ratio", widget->devicePixelRatioF()},
+							     {"logical_width", widget->width()},
+							     {"logical_height", widget->height()},
+							     {"pixel_width", pixels.width()},
+							     {"pixel_height", pixels.height()},
+							     {"cursor", "excluded"},
+							     {"workload",
+							      "synthetic colour source; no model performance claim"}})
+					   .toJson());
+	}
+
 	static void render(void *value, std::uint32_t, std::uint32_t)
 	{
 		obs_source_video_render(obs_scene_get_source(static_cast<Capture *>(value)->scene));
@@ -108,22 +131,21 @@ struct Capture : QObject {
 				QApplication::clipboard()->setText(old_clipboard);
 				if (!copied)
 					throw std::runtime_error("Clipboard does not match the reviewed report");
-				QFile file(root + "/obs33-report.txt");
+				QFile file(root + "/" + prefix + "-report.txt");
 				if (!file.open(QIODevice::WriteOnly) || file.write(report.toUtf8()) < 0)
 					throw std::runtime_error("Cannot save diagnostics evidence");
-				if (!preview->grab().save(root + "/obs33-preview.png"))
-					throw std::runtime_error("Cannot capture diagnostics preview");
+				save(preview, "preview");
 				const auto timing = text->document()->find("\"timing\":");
 				if (timing.isNull())
 					throw std::runtime_error("Timing fields are missing from diagnostics");
 				text->setTextCursor(timing);
 				text->verticalScrollBar()->setValue(std::max(0, timing.blockNumber() - 4));
 			} else if (step == 6) {
-				if (!preview->grab().save(root + "/obs33-timing.png"))
-					throw std::runtime_error("Cannot capture diagnostics timing");
+				save(preview, "timing");
 				preview->close();
 				cleanup();
-				QFile done(root + "/complete.txt");
+				QFile done(root +
+					   (prefix == "obs33" ? "/complete.txt" : "/" + prefix + "-complete.txt"));
 				if (done.open(QIODevice::WriteOnly))
 					done.write(
 						"Production report preview, clipboard equality and privacy markers passed.\n");

@@ -4,16 +4,16 @@
 CorridorKey can add its measured video delay to one audio source. Auto lip-sync
 starts off. Choose the microphone that belongs to this camera before enabling it.
 
-![CorridorKey status in OBS 33, showing processing time, transfer time and displayed-frame age](../images/sync/status.png)
+![Earlier diagnostic capture, before the compact status layout](../images/sync/status.png)
 
-These screenshots use a diagnostic build, a test card and muted dummy audio.
+These earlier screenshots use a diagnostic build, a test card and muted dummy audio. The current layout puts Sync / delay under Advanced; its controls work the same way.
 The numbers describe that test pipeline, not a CorridorKey model benchmark.
 
 ## What the delay means
 
 Filter delay measures the time from capturing a frame at this filter's input to
 drawing that same frame's result. When OBS draws the result again, its age keeps
-increasing. The status line shows the median and p95 over a rolling window of up to five seconds.
+increasing. The status line shows median delay over a rolling window of up to five seconds; its tooltip includes p95. Transfer timing is available in diagnostics.
 The p95 is the age at or below which 95% of sampled presentations fall.
 
 Processing time and transfer time describe completed frames. They do not include

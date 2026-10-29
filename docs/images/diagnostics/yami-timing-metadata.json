@@ -1,0 +1,11 @@
+{
+    "cursor": "excluded",
+    "device_pixel_ratio": 1,
+    "logical_height": 588,
+    "logical_width": 770,
+    "obs": "33.0.0",
+    "pixel_height": 588,
+    "pixel_width": 770,
+    "qt": "6.11.1",
+    "workload": "synthetic colour source; no model performance claim"
+}

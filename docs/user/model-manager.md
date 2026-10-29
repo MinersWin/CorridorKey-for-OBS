@@ -7,9 +7,9 @@ manager leaves an installation running; **Cancel task** requests cancellation.
 
 The catalogue offers CK2 Facecam, CK2 Balanced / Quality, and Edge Refiner v12.
 Choose Set up CorridorKey for Balanced. CK1 and hint packages remain unavailable.
-The [first-run guide](first-run.md) follows a real download from an empty cache.
+The [first-run guide](first-run.md) explains setup, licence acceptance and recovery.
 
-![Production catalogue in OBS](../images/first-run/03-model-manager.jpg)
+![Production catalogue in OBS](../images/first-run/yami-first-run.png)
 
 ## Installing a package
 
@@ -47,7 +47,7 @@ in passthrough until that pipeline is ready. TensorRT preparation shows an
 activity indicator and elapsed time; it does not block the manager.
 
 Cancel preserves verified downloads and resumable partial files. Retry can reuse
-them. An error explains the next action and gives a stable `CK-E` code. A failed
+them. An error explains the next action. Diagnostics retain stable `CK-E` codes for troubleshooting. A failed
 update leaves existing revisions in place. Installing alone never changes the
 active revision. The filter selects a revision after successful preparation.
 
@@ -75,9 +75,9 @@ The bundle must contain `blobs/<sha256>` files matching that package's trusted
 manifest. Import uses the same licence review, space checks and verification as
 a download. A bundle cannot add an unsigned package to the catalogue.
 
-**Open folder** opens the model cache. The cache summary shows shared source
-downloads, installed packages, backend builds, total file bytes and free space
-on the cache drive. An installed package includes its graphs, bound weights and
+**Open folder** opens the model cache. Storage shows total cache bytes and free
+space on the drive. Hover the usage summary for source, prepared-model and
+backend-build totals. The shortened folder path has its full value in a tooltip. An installed package includes its graphs, bound weights and
 receipts. Shared sources are counted once in the cache total.
 
 ![A verified local test bundle with measured cache sizes](../images/model-manager/yami-import-ready.png)
@@ -109,8 +109,7 @@ runtime bundle, helper or test configuration is missing or failed.
 **Copy diagnostics...** opens a report you can review. **Copy to clipboard**
 copies it only after that review. The current report includes build versions,
 model revisions, states, error codes and cache byte counts. It excludes personal
-paths, scene names, logs and media. More backend and pipeline details will be
-added as those services are integrated.
+paths, scene names, logs and media. Backend, pipeline and timing details appear when those services have reported them.
 
 **Report a problem** opens the [GitHub issue chooser](https://github.com/MinersWin/CorridorKey-for-OBS/issues/new/choose).
 It does not send a report. Add the reviewed diagnostics and describe what you
@@ -118,8 +117,8 @@ were doing when the problem occurred.
 
 ![Diagnostics preview in OBS](../images/model-manager/yami-light-diagnostics.png)
 
-The window follows OBS's fonts and theme. On smaller screens, scroll the content
+State symbols have text labels, so colour is never the only cue. The window follows OBS's fonts and theme. On smaller screens, scroll the content
 to reach the model actions; the bottom controls remain visible. See the
 [compact window](../images/model-manager/yami-light-compact.png),
-[100% scale](../images/model-manager/scale100-first-run.png) and
-[150% scale](../images/model-manager/scale150-first-run.png) examples.
+[100% scale](../images/model-manager/yami-first-run.png) and
+[150% scale](../images/model-manager/yami-1.5-first-run.png) examples.
