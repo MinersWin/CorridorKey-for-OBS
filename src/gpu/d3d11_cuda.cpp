@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "d3d11_cuda.hpp"
 #include <stdexcept>
+#include <mutex>
 #ifdef _WIN32
 #define NOMINMAX
 #include <d3d11.h>
@@ -23,6 +24,20 @@ D3D11Texture &TextureTransfers::get(std::shared_ptr<Context> context, ID3D11Text
 }
 #ifdef _WIN32
 namespace {
+// Serialize cross-API ownership transitions across the input and refiner workers.
+// Interleaving maps on the legacy stream can introduce circular graphics/CUDA waits.
+std::mutex interop_mutex;
+struct InteropDevice {
+	Microsoft::WRL::ComPtr<ID3D11Device> device;
+	explicit InteropDevice(IDXGIAdapter *adapter)
+	{
+		if (FAILED(D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
+					     D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, &device,
+					     nullptr, nullptr)))
+			throw std::runtime_error("Cannot create worker D3D11 device");
+	}
+};
+std::map<std::pair<LONG, DWORD>, std::weak_ptr<InteropDevice>> worker_devices;
 // CUDA_MEMCPY2D v2 ABI; driver types are declared locally to keep CUDA optional at build time.
 struct Copy2D {
 	std::size_t src_x = 0, src_y = 0;
@@ -47,6 +62,8 @@ template<typename T> T load(const Context &context, const char *name)
 } // namespace
 struct D3D11Texture::Impl {
 	std::shared_ptr<Context> context;
+	std::shared_ptr<InteropDevice> device;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> original, alias;
 	std::shared_ptr<Buffer> linear;
 	void *resource = nullptr;
 	unsigned width = 0, height = 0, format = 0, pixel_bytes = 0;
@@ -56,11 +73,13 @@ struct D3D11Texture::Impl {
 	int(__stdcall *unmap)(unsigned, void **, void *) = nullptr;
 	int(__stdcall *array)(void **, void *, unsigned, unsigned) = nullptr;
 	int(__stdcall *copy)(const Copy2D *) = nullptr;
+	int(__stdcall *sync)(void *) = nullptr;
 	~Impl()
 	{
 		if (!resource)
 			return;
 		try {
+			std::lock_guard lock(interop_mutex);
 			Context::Scope scope(*context);
 			if (mapped)
 				unmap(1, &resource, nullptr);
@@ -73,6 +92,7 @@ struct D3D11Texture::Impl {
 		if (buffer.bytes() != static_cast<std::size_t>(width) * height * pixel_bytes ||
 		    buffer.context()->ordinal() != context->ordinal())
 			throw std::invalid_argument("Interop buffer mismatch");
+		std::lock_guard lock(interop_mutex);
 		Context::Scope scope(*context);
 		Context::check(map(1, &resource, nullptr), "Map D3D11 resource");
 		mapped = true;
@@ -100,6 +120,8 @@ struct D3D11Texture::Impl {
 		}
 		Context::check(unmap(1, &resource, nullptr), "Unmap D3D11 resource");
 		mapped = false;
+		// The consuming graphics device is different from the registration device.
+		Context::check(sync(nullptr), "Complete shared texture transfer");
 	}
 };
 D3D11Texture::D3D11Texture(std::shared_ptr<Context> context, ID3D11Texture2D *texture) : impl_(std::make_unique<Impl>())
@@ -108,6 +130,7 @@ D3D11Texture::D3D11Texture(std::shared_ptr<Context> context, ID3D11Texture2D *te
 		throw std::invalid_argument("Missing D3D11 texture");
 	auto &s = *impl_;
 	s.context = std::move(context);
+	std::lock_guard lock(interop_mutex);
 	Context::Scope scope(*s.context);
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	texture->GetDevice(&device);
@@ -125,11 +148,25 @@ D3D11Texture::D3D11Texture(std::shared_ptr<Context> context, ID3D11Texture2D *te
 	Context::check(get_luid(luid, &node, ordinal), "Read CUDA adapter LUID");
 	if (ordinal != s.context->ordinal() || std::memcmp(luid, &adapter_desc.AdapterLuid, 8) != 0)
 		throw std::runtime_error("OBS and inference CUDA adapters do not match");
+	const auto key = std::pair{adapter_desc.AdapterLuid.HighPart, adapter_desc.AdapterLuid.LowPart};
+	s.device = worker_devices[key].lock();
+	if (!s.device) {
+		s.device = std::make_shared<InteropDevice>(adapter.Get());
+		worker_devices[key] = s.device;
+	}
 	D3D11_TEXTURE2D_DESC desc{};
 	texture->GetDesc(&desc);
 	if (desc.MipLevels != 1 || desc.ArraySize != 1 || desc.SampleDesc.Count != 1 ||
 	    desc.Usage != D3D11_USAGE_DEFAULT)
 		throw std::runtime_error("D3D11 texture is not eligible for CUDA registration");
+	if (!(desc.MiscFlags & D3D11_RESOURCE_MISC_SHARED))
+		throw std::runtime_error("CUDA transport requires a shared D3D11 texture");
+	Microsoft::WRL::ComPtr<IDXGIResource> shared;
+	HANDLE handle = nullptr;
+	if (FAILED(texture->QueryInterface(IID_PPV_ARGS(&shared))) || FAILED(shared->GetSharedHandle(&handle)) ||
+	    FAILED(s.device->device->OpenSharedResource(handle, IID_PPV_ARGS(&s.alias))))
+		throw std::runtime_error("Cannot open texture on worker D3D11 device");
+	s.original = texture;
 	switch (desc.Format) {
 	case DXGI_FORMAT_R8G8B8A8_UNORM:
 		s.format = 0;
@@ -153,9 +190,10 @@ D3D11Texture::D3D11Texture(std::shared_ptr<Context> context, ID3D11Texture2D *te
 	s.unmap = load<decltype(s.unmap)>(*s.context, "cuGraphicsUnmapResources");
 	s.array = load<decltype(s.array)>(*s.context, "cuGraphicsSubResourceGetMappedArray");
 	s.copy = load<decltype(s.copy)>(*s.context, "cuMemcpy2D_v2");
+	s.sync = load<decltype(s.sync)>(*s.context, "cuStreamSynchronize");
 	auto reg = load<int(__stdcall *)(void **, ID3D11Resource *, unsigned)>(*s.context,
 									       "cuGraphicsD3D11RegisterResource");
-	Context::check(reg(&s.resource, texture, 0), "Register D3D11 texture");
+	Context::check(reg(&s.resource, s.alias.Get(), 0), "Register shared D3D11 texture");
 }
 D3D11Texture::~D3D11Texture() = default;
 std::shared_ptr<Buffer> D3D11Texture::read()

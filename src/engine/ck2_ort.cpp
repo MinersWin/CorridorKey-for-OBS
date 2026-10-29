@@ -239,12 +239,6 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 				      selected.options.at("trt_cuda_graph_enable") == "1";
 		const bool device = prepared.provider.backend == Backend::tensorrt ||
 				    prepared.provider.backend == Backend::cuda;
-		if (runtime.info)
-			runtime.info(
-				name + " ready in " +
-				std::to_string(
-					std::chrono::duration<double, std::milli>(Clock::now() - preparing_at).count()) +
-				" ms; capture=" + (captured ? "on" : "off"));
 		if (captured)
 			description << "CUDA graph capture enabled; ";
 		for (const auto &attempt : prepared.attempts)
@@ -289,6 +283,22 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 						     e.what());
 			}
 		}
+		if (captured) {
+			// Helper capture belongs to another process. Warm these fixed bindings before
+			// live graphics transfers can overlap the first TensorRT capture in OBS.
+			auto zeros = input_contract(stage, grid);
+			Inputs warm;
+			for (const auto &[input_name, tensor] : zeros)
+				warm.emplace(input_name, &tensor);
+			graph->run(warm, request.cancellation);
+			graph->run(warm, request.cancellation);
+		}
+		if (runtime.info)
+			runtime.info(
+				name + " ready in " +
+				std::to_string(
+					std::chrono::duration<double, std::milli>(Clock::now() - preparing_at).count()) +
+				" ms; capture=" + (captured ? "on" : "off"));
 		result.graphs.emplace(stage, std::move(graph));
 	}
 	result.detail = description.str() + (request.settings->quality.refiner_enabled

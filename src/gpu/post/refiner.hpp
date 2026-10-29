@@ -38,7 +38,7 @@ private:
 	gs_effect_t *effect_ = nullptr;
 	gs_texrender_t *score_ = nullptr, *sort_a_ = nullptr, *sort_b_ = nullptr, *map_ = nullptr, *gather_ = nullptr,
 		       *blend_ = nullptr;
-	gs_texture_t *centres_ = nullptr;
+	gs_texture_t *centres_ = nullptr, *shared_atlas_ = nullptr;
 	gs_stagesurf_t *stage_ = nullptr;
 	GpuFence fence_;
 	std::vector<gs_texrender_t *> owned_;

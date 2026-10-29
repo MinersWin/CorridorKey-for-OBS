@@ -40,6 +40,8 @@ struct Context::Impl {
 	void *stream = nullptr, *start = nullptr, *end = nullptr;
 	std::map<std::string, void *> functions;
 	std::mutex mutex;
+	std::mutex validation_mutex;
+	Pointer validation_flag = 0;
 	int(CK_CALL *init)(unsigned) = load<decltype(init)>("cuInit");
 	int(CK_CALL *retain)(void **, int) = load<decltype(retain)>("cuDevicePrimaryCtxRetain");
 	int(CK_CALL *release)(int) = load<decltype(release)>("cuDevicePrimaryCtxRelease_v2");
@@ -113,6 +115,8 @@ Context::~Context()
 	try {
 		Scope scope(*this);
 		impl_->sync(impl_->stream);
+		if (impl_->validation_flag)
+			impl_->free(impl_->validation_flag);
 		if (impl_->module)
 			impl_->module_free(impl_->module);
 		impl_->event_destroy(impl_->start);
@@ -172,15 +176,18 @@ double Context::stop_timer()
 }
 void Context::validate(const Buffer &buffer, bool unit_range)
 {
-	auto invalid = allocate(sizeof(unsigned));
-	invalid->zero();
-	auto src = buffer.pointer(), flag = invalid->pointer();
+	Scope scope(*this);
+	std::lock_guard lock(impl_->validation_mutex);
+	if (!impl_->validation_flag)
+		check(impl_->alloc(&impl_->validation_flag, sizeof(unsigned)), "Allocate CUDA validation flag");
+	check(impl_->zero(impl_->validation_flag, 0, sizeof(unsigned)), "Reset CUDA validation flag");
+	auto src = buffer.pointer(), flag = impl_->validation_flag;
 	auto count = static_cast<unsigned>(buffer.bytes() / sizeof(float));
 	unsigned unit = unit_range ? 1 : 0;
 	void *args[]{&src, &count, &unit, &flag};
 	launch("validate", count, args);
 	unsigned bad = 0;
-	invalid->download(&bad, sizeof(bad));
+	check(impl_->download(&bad, flag, sizeof(bad)), "Read CUDA validation flag");
 	if (bad)
 		throw std::runtime_error("CUDA tensor has invalid values");
 }

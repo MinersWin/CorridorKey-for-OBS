@@ -51,8 +51,9 @@ struct StagedTransport::Slot {
 	gs_stagesurf_t *stage = nullptr;
 	gs_texture_t *model = nullptr, *model_half = nullptr;
 	gs_texture_t *device_model = nullptr, *device_model_half = nullptr;
+	gs_texture_t *shared_grid = nullptr;
 	ID3D11Texture2D *grid_handle = nullptr, *model_handle = nullptr, *model_half_handle = nullptr;
-	bool interop_capture = false;
+	bool interop_capture = false, shared_capture = false;
 	gs_texrender_t *output = nullptr;
 	GpuFence captured, drawn;
 	std::shared_ptr<const ImageStorage> original;
@@ -69,6 +70,7 @@ struct StagedTransport::Slot {
 		gs_texture_destroy(model_half);
 		gs_texture_destroy(device_model);
 		gs_texture_destroy(device_model_half);
+		gs_texture_destroy(shared_grid);
 		gs_texrender_destroy(output);
 	}
 };
@@ -106,8 +108,8 @@ StagedTransport::StagedTransport(obs_source_t *source, Extent native, Extent gri
 		if (!slot.captured.supported() || !slot.drawn.supported())
 			return;
 		slot.native = gs_texrender_create(GS_RGBA32F, GS_ZS_NONE);
-		slot.grid = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
-		slot.stage = gs_stagesurface_create(grid.width, grid.height, GS_RGBA);
+		slot.grid = gs_texrender_create(GS_RGBA_UNORM, GS_ZS_NONE);
+		slot.stage = gs_stagesurface_create(grid.width, grid.height, GS_RGBA_UNORM);
 		slot.model = gs_texture_create(grid.width, grid.height, GS_RGBA32F, 1, nullptr, GS_DYNAMIC);
 		slot.model_half =
 			gs_texture_create(grid.width / 2, grid.height / 2, GS_RGBA32F, 1, nullptr, GS_DYNAMIC);
@@ -119,11 +121,14 @@ StagedTransport::StagedTransport(obs_source_t *source, Extent native, Extent gri
 		slot.original = std::make_shared<TextureView>(gs_texrender_get_texture(slot.native));
 		slot.grid_view = std::make_shared<TextureView>(gs_texrender_get_texture(slot.grid));
 		if (gs_get_device_type() == GS_DEVICE_DIRECT3D_11) {
-			slot.device_model = gs_texture_create(grid.width, grid.height, GS_RGBA32F, 1, nullptr, 0);
-			slot.device_model_half =
-				gs_texture_create(grid.width / 2, grid.height / 2, GS_RGBA32F, 1, nullptr, 0);
-			slot.grid_handle =
-				static_cast<ID3D11Texture2D *>(gs_texture_get_obj(gs_texrender_get_texture(slot.grid)));
+			slot.shared_grid =
+				gs_texture_create(grid.width, grid.height, GS_RGBA_UNORM, 1, nullptr, GS_SHARED_TEX);
+			slot.device_model =
+				gs_texture_create(grid.width, grid.height, GS_RGBA32F, 1, nullptr, GS_SHARED_TEX);
+			slot.device_model_half = gs_texture_create(grid.width / 2, grid.height / 2, GS_RGBA32F, 1,
+								   nullptr, GS_SHARED_TEX);
+			if (slot.shared_grid)
+				slot.grid_handle = static_cast<ID3D11Texture2D *>(gs_texture_get_obj(slot.shared_grid));
 			if (slot.device_model && slot.device_model_half) {
 				slot.model_handle =
 					static_cast<ID3D11Texture2D *>(gs_texture_get_obj(slot.device_model));
@@ -193,6 +198,9 @@ Error StagedTransport::try_capture(InputFrame &input) noexcept
 		gs_draw_sprite(gs_texrender_get_texture(slot.native), 0, grid_.width, grid_.height);
 	gs_blend_state_pop();
 	gs_texrender_end(slot.grid);
+	slot.shared_capture = slot.shared_grid && interop_requested_ && !interop_failed_;
+	if (slot.shared_capture)
+		gs_copy_texture(slot.shared_grid, gs_texrender_get_texture(slot.grid));
 	slot.interop_capture = interop_.load();
 	if (!slot.interop_capture)
 		gs_stage_texture(slot.stage, gs_texrender_get_texture(slot.grid));
@@ -291,8 +299,10 @@ Image StagedTransport::analysis(const InputFrame &input, nvidia::TextureTransfer
 {
 	if (!context)
 		interop_ = false;
+	interop_requested_ = bool(context);
 	auto &slot = *slots_[input.lease.id().index];
-	if (context && transfers && slot.grid_handle && !interop_failed_) {
+	if (context && transfers && slot.shared_capture && slot.grid_handle && slot.model_handle &&
+	    slot.model_half_handle && !interop_failed_) {
 		try {
 			auto &texture = transfers->get(context, slot.grid_handle);
 			auto tensor = ck2::device_rgb(texture.read(), grid_, texture.format());
@@ -453,6 +463,10 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 			if (!path)
 				return false;
 			tiles_ = std::make_unique<TileRefiner>(native_, refinement->budget(), path, device_refiner);
+			if (device_refiner && !tiles_->available()) {
+				refiner_interop_failed_ = true;
+				tiles_ = std::make_unique<TileRefiner>(native_, refinement->budget(), path, false);
+			}
 			bfree(path);
 			refine_budget_ = refinement->budget();
 		}

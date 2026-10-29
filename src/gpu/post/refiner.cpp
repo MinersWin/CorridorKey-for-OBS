@@ -30,9 +30,12 @@ TileRefiner::TileRefiner(Extent native, unsigned budget, const char *path, bool 
 	map_ = allocate(cells_);
 	gather_ = allocate(atlas_);
 	blend_ = allocate(native_);
-	centres_ = gs_texture_create(output_.width, output_.height, GS_RGBA32F, 1, nullptr, interop ? 0 : GS_DYNAMIC);
+	centres_ = gs_texture_create(output_.width, output_.height, GS_RGBA32F, 1, nullptr,
+				     interop ? GS_SHARED_TEX : GS_DYNAMIC);
+	if (interop)
+		shared_atlas_ = gs_texture_create(atlas_.width, atlas_.height, GS_RGBA32F, 1, nullptr, GS_SHARED_TEX);
 	stage_ = gs_stagesurface_create(atlas_.width, atlas_.height, GS_RGBA32F);
-	valid_ = centres_ && stage_ &&
+	valid_ = centres_ && stage_ && (!interop || shared_atlas_) &&
 		 std::all_of(owned_.begin(), owned_.end(), [](auto *p) { return p && gs_texrender_get_texture(p); });
 }
 TileRefiner::~TileRefiner()
@@ -40,6 +43,7 @@ TileRefiner::~TileRefiner()
 	for (auto *p : owned_)
 		gs_texrender_destroy(p);
 	gs_texture_destroy(centres_);
+	gs_texture_destroy(shared_atlas_);
 	gs_stagesurface_destroy(stage_);
 	gs_effect_destroy(effect_);
 }
@@ -140,6 +144,8 @@ bool TileRefiner::begin(Reconstruction &post, gs_texture_t *native, gs_texture_t
 	sorted_ = sort_input_;
 	if (!draw(map_, cells_, "Map") || !draw(gather_, atlas_, "Gather"))
 		return false;
+	if (interop_)
+		gs_copy_texture(shared_atlas_, gs_texrender_get_texture(gather_));
 	if (!interop_)
 		gs_stage_texture(stage_, atlas());
 	return fence_.signal();
@@ -184,7 +190,7 @@ gs_texture_t *TileRefiner::raw() const
 }
 gs_texture_t *TileRefiner::atlas() const
 {
-	return gs_texrender_get_texture(gather_);
+	return interop_ ? shared_atlas_ : gs_texrender_get_texture(gather_);
 }
 gs_texture_t *TileRefiner::selection() const
 {
