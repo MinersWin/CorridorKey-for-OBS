@@ -107,7 +107,7 @@ void status(obs_properties_t *p, Form &form, const Settings &s)
 			first = tr("Error." + std::string(error_id(state->failure.code)));
 			second.clear();
 		} else if (state->lifecycle == Lifecycle::ready) {
-			first = s.quality.model == ModelFamily::ck2 ? "CK2" : "CK1";
+			first = s.quality.model == ModelFamily::ck2 ? "CK2" : tr("Status.CK1Experimental");
 			const char *backend = "auto";
 			switch (state->backend) {
 			case Backend::tensorrt_rtx:
@@ -160,6 +160,15 @@ void status(obs_properties_t *p, Form &form, const Settings &s)
 		}
 	}
 	info(p, "status", first + (second.empty() ? "" : " · " + second));
+	if (s.quality.model == ModelFamily::ck1 && state && state->hint_last_ms) {
+		const char *hint = s.hint.source == HintSource::modnet       ? "Choice.modnet"
+				   : s.hint.source == HintSource::ck2_stage1 ? "Choice.ck2_stage1"
+									     : "Choice.chroma";
+		char cost[256];
+		std::snprintf(cost, sizeof(cost), tr("CK1.HintCost"), tr(hint), *state->hint_last_ms);
+		info(p, "ck1_hint_cost", cost);
+	} else
+		info(p, "ck1_hint_cost", tr("Status.NotMeasured"));
 	std::string details = tr("Status.Help");
 	if (state) {
 		if (state->failure)
@@ -193,6 +202,11 @@ void visibility(obs_properties_t *p, Form &form, obs_data_t *data)
 	const bool advanced = obs_data_get_bool(data, "advanced");
 	const bool expert = advanced && obs_data_get_bool(data, "expert");
 	const bool ck2 = s.quality.model == ModelFamily::ck2;
+	visible(p, "ck1_notice", advanced && !ck2);
+	visible(p, "ck1_hint_cost", advanced && !ck2);
+	visible(p, "chroma_notice", advanced && !ck2 && s.hint.source == HintSource::chroma);
+	info(p, "ck1_notice", tr("CK1.Info"));
+	info(p, "chroma_notice", tr("Chroma.Info"));
 	visible(p, "expert", advanced);
 	for (const auto &f : inventory()) {
 		if (f.level == Level::internal)
@@ -201,6 +215,8 @@ void visibility(obs_properties_t *p, Form &form, obs_data_t *data)
 		bool show = f.level == Level::normal || (f.level == Level::advanced && advanced) ||
 			    (f.level == Level::expert && expert);
 		const std::string_view dep = f.dependency;
+		if (std::string_view(f.key) == "model_id")
+			show &= advanced;
 		if (dep == "ck2")
 			show &= ck2;
 		if (dep == "ck1")
@@ -210,7 +226,7 @@ void visibility(obs_properties_t *p, Form &form, obs_data_t *data)
 		if (dep == "refiner")
 			show &= s.quality.refiner_enabled;
 		if (dep == "chroma")
-			show &= !ck2 && s.hint.source == HintSource::chroma;
+			show &= expert && !ck2 && s.hint.source == HintSource::chroma;
 		if (dep == "sync")
 			show &= s.context.auto_sync;
 		if (dep == "mask")
@@ -238,9 +254,11 @@ void visibility(obs_properties_t *p, Form &form, obs_data_t *data)
 			available = form.capabilities.guided_scale;
 		if (std::string_view(f.key) == "auto_sync")
 			available = form.capabilities.audio_sync;
+		if (std::string_view(f.key) == "hint_refresh")
+			available = ck2;
 		enabled(p, name, available);
 		std::string help = tr(std::string(f.key) + ".Help");
-		if (!available)
+		if (!available && std::string_view(f.key) != "hint_refresh")
 			help += "\n" + std::string(tr("Availability.Help"));
 		obs_property_set_long_description(property(p, name), help.c_str());
 		if (f.kind == Kind::text) {
@@ -264,6 +282,10 @@ void visibility(obs_properties_t *p, Form &form, obs_data_t *data)
 			for (const auto &choice : f.choices) {
 				const std::string_view key = f.key, value = choice.value;
 				const bool selected_value = selected == value;
+				if (key == "model_id" && value == "ck1" && !advanced)
+					continue;
+				if (key == "hint_source" && value == "chroma" && !expert && !selected_value)
+					continue;
 				if (key == "hint_source" &&
 				    (value == "distilled" || value == "mediapipe" || value == "external_mask") &&
 				    !allowed(form, key, value))
@@ -311,7 +333,7 @@ void visibility(obs_properties_t *p, Form &form, obs_data_t *data)
 					disabled = (v == "chroma_legacy" && (!expert || !allowed(form, key, v))) ||
 						   (v == "refiner" && !ck2 && !form.capabilities.ck1_refiner);
 				if (key == "hint_source")
-					disabled = v != "chroma" && !allowed(form, key, v);
+					disabled = v == "chroma" ? !expert : !allowed(form, key, v);
 				if (key == "obs_view")
 					disabled = !advanced && (v == "input" || v == "tiles" || v == "roi");
 				obs_property_list_item_disable(list, i, disabled);
@@ -526,6 +548,9 @@ obs_properties_t *create_filter_properties(FilterControl *control, PropertyCapab
 	obs_property_set_long_description(manager, tr("Models.Help"));
 	add_info(p, "action_notice", "Models.Placeholder", "Models.Help");
 	visible(p, "action_notice", false);
+	add_info(p, "ck1_notice", "CK1.Info", "CK1.Info");
+	add_info(p, "ck1_hint_cost", "Status.NotMeasured", "hint_source.Help");
+	add_info(p, "chroma_notice", "Chroma.Info", "Chroma.Info");
 	add_info(p, "migration_info", "Status.Setup", "Migration.Help");
 	visible(p, "migration_info", false);
 	for (const auto *group : {"crop", "performance", "edge", "color", "hint", "output", "sync", "expert"}) {

@@ -28,6 +28,7 @@ uniform bool linear_output;
 uniform bool use_refined;
 uniform bool equation_unmix;
 uniform bool bilinear_alpha;
+uniform int blue_screen;
 sampler_state linear_clamp { Filter = Linear; AddressU = Clamp; AddressV = Clamp; };
 sampler_state point_clamp { Filter = Point; AddressU = Clamp; AddressV = Clamp; };
 struct Vertex { float4 pos : POSITION; float2 uv : TEXCOORD0; };
@@ -238,8 +239,9 @@ float4 Finish(Vertex v) : TARGET
     float alpha = saturate((raw.a - 0.5) * finish_params.x + 0.5 + finish_params.y);
     alpha = saturate((alpha - finish_params.z) / max(finish_params.w - finish_params.z, 0.000001));
     float3 fg = saturate(raw.rgb);
-    float excess = max(fg.g - (fg.r + fg.b) / 2.0, 0.0) * reconstruction_params.z;
-    fg = saturate(fg + float3(excess / 2.0, -excess, excess / 2.0));
+    float excess = blue_screen != 0 ? max(fg.b - (fg.r + fg.g) / 2.0, 0.0) : max(fg.g - (fg.r + fg.b) / 2.0, 0.0);
+    excess *= reconstruction_params.z;
+    fg = saturate(fg + (blue_screen != 0 ? float3(excess / 2.0, excess / 2.0, -excess) : float3(excess / 2.0, -excess, excess / 2.0)));
     alpha *= saturate(clean(guide_image.Sample(point_clamp, v.uv).a)) * inside(v.uv, roi) * inside(v.uv, user_cut);
     float2 uv = (v.uv - roi.xy) / max(roi.zw - roi.xy, float2(0.000001, 0.000001));
     if (view == 1) { fg = float3(alpha, alpha, alpha); alpha = 1.0; }
@@ -249,6 +251,10 @@ float4 Finish(Vertex v) : TARGET
     if (view == 5) { fg = float3(inside(v.uv, user_cut), inside(v.uv, roi), 0.0); alpha = 1.0; }
     if (view == 6) { fg = straight(guide_image.Sample(point_clamp, v.uv)); alpha = 1.0; }
     if (view == 7) { fg = sample_Background(uv).rgb; alpha = 1.0; }
+    if (view == 8) {
+        float hint = saturate(model_image.Sample(linear_clamp, uv).a) * saturate(clean(guide_image.Sample(point_clamp, v.uv).a)) * inside(v.uv, roi) * inside(v.uv, user_cut);
+        fg = float3(hint, hint, hint); alpha = 1.0;
+    }
     return float4(decode(fg) * alpha, alpha);
 }
 float4 Present(Vertex v) : TARGET

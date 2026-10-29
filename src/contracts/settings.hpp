@@ -46,7 +46,7 @@ struct QualitySettings {
 	ScreenColor screen_color = ScreenColor::green;
 };
 struct HintSettings {
-	HintSource source = HintSource::chroma;
+	HintSource source = HintSource::modnet;
 	float similarity = 0.40f, smoothness = 0.10f;
 	std::uint32_t refresh_interval = 1;
 	std::string mask_source_id;

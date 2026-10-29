@@ -98,7 +98,7 @@ TEST_CASE("source inventory provides honest sizes and no future download slot")
 	auto sources = models::parse_source_inventory(
 		models::read_small_file(models::fs::path(CK_SOURCE_DIR) / "data/models/sources-v1.json"));
 	auto rows = model_rows({}, sources);
-	REQUIRE(rows.size() == 5);
+	REQUIRE(rows.size() == 4);
 	CHECK(rows[0].recommended);
 	CHECK(rows[0].download_bytes == 3282961820ULL);
 	for (auto &row : rows) {
@@ -212,10 +212,11 @@ TEST_CASE("production catalogue is pinned, licence-complete and selects packages
 		auto manifest = models::parse_manifest(models::read_small_file(root / pin.manifest.path), pin);
 		for (const auto &licence : manifest.licences)
 			(void)licences.at(licence);
-		CHECK(manifest.key.revision == "5d88114f169cb082cda238426af47feffb9724af");
+		CHECK((manifest.key.revision == "5d88114f169cb082cda238426af47feffb9724af" ||
+		       manifest.key.revision == "082f53c75d275c10b1ddf3be2cb72c5ca559f30b"));
 		manifests.push_back(std::move(manifest));
 	}
-	REQUIRE(manifests.size() == 3);
+	REQUIRE(manifests.size() == 6);
 	Settings refined;
 	for (const auto budget : {256u, 384u, 512u, 768u}) {
 		refined.quality.refiner_max_tiles = budget;
@@ -240,13 +241,38 @@ TEST_CASE("production catalogue is pinned, licence-complete and selects packages
 	CHECK_THROWS(models::admit_installer_catalogue(cache, conflict, models::sha256(conflict)));
 	const auto release = models::strict_json(
 		models::read_small_file(models::fs::path(CK_SOURCE_DIR) / "tests/fixtures/ck2-release-r3.json"));
+	const auto ck1_release = models::strict_json(
+		models::read_small_file(models::fs::path(CK_SOURCE_DIR) / "tests/fixtures/ck1-release-r4.json"));
 	for (const auto &m : manifests)
 		for (const auto &[id, a] : m.artifacts) {
 			(void)id;
 			if (a.format == "onnx" || a.format == "export-json")
-				CHECK(a.sha256 == models::string(release.at("sha256").at(
-							  models::fs::path(a.path).filename().string())));
+				CHECK(a.sha256 ==
+				      models::string((m.key.revision == "082f53c75d275c10b1ddf3be2cb72c5ca559f30b"
+							      ? ck1_release
+							      : release)
+							     .at("sha256")
+							     .at(models::fs::path(a.path).filename().string())));
 		}
+	Settings ck1;
+	ck1.quality.model = ModelFamily::ck1;
+	ck1.quality.grid = {384, 384};
+	ck1.hint.source = HintSource::modnet;
+	for (auto size : {256U, 384U, 512U}) {
+		ck1.quality.grid = {size, size};
+		CHECK(models::activation_manifest(manifests, ck1)->key.id == "ck1-green");
+		ck1.quality.screen_color = ScreenColor::blue;
+		CHECK(models::activation_manifest(manifests, ck1)->key.id == "ck1-blue");
+		ck1.quality.screen_color = ScreenColor::green;
+		CHECK(models::activation_hint_manifest(manifests, ck1)->key.id == "modnet");
+		ck1.hint.source = HintSource::ck2_stage1;
+		CHECK(models::activation_hint_manifest(manifests, ck1)->key.id == "ck2-balanced");
+		ck1.hint.source = HintSource::modnet;
+	}
+	ck1.hint.source = HintSource::chroma;
+	CHECK_FALSE(models::activation_hint_manifest(manifests, ck1));
+	ck1.hint.source = HintSource::external_mask;
+	CHECK_FALSE(models::activation_hint_manifest(manifests, ck1));
 	Settings settings;
 	REQUIRE(models::activation_manifest(manifests, settings));
 	CHECK(models::activation_manifest(manifests, settings)->key.id == "ck2-balanced");

@@ -4,7 +4,7 @@
 #include "staged_transport.hpp"
 #include "engine/fake_pipeline.hpp"
 #ifdef CORRIDORKEY_CK2_RUNTIME
-#include "engine/ck2_ort.hpp"
+#include "ck1_runtime.hpp"
 #include "models/installation.hpp"
 #include "models/activation.hpp"
 #include "ui/manager_model.hpp"
@@ -89,8 +89,8 @@ struct FilterInput::Impl {
 	FakePipeline fake{{}, FakeExecution::manual};
 	Pipeline *pipeline = &fake;
 #ifdef CORRIDORKEY_CK2_RUNTIME
-	std::unique_ptr<Ck2Pipeline> real;
-	std::shared_ptr<const ReadyModel> leased_model, leased_refiner;
+	std::unique_ptr<ModelPipeline> real;
+	std::shared_ptr<const ReadyModel> leased_model, leased_refiner, leased_hint;
 	std::string prepared_key;
 	std::vector<std::shared_ptr<refiner::Stage>> retained_refiners;
 	std::vector<models::Manifest> manifests;
@@ -100,6 +100,7 @@ struct FilterInput::Impl {
 	std::stop_source preparation;
 	Crop capture_roi, completed_roi;
 	std::string model_detail;
+	std::optional<double> model_hint_ms;
 	Backend model_backend = Backend::fake;
 	Scheduler scheduler{admission}; // Worker only; render deduplication is separate.
 	SettingsSnapshot settings;
@@ -467,6 +468,7 @@ struct FilterInput::Impl {
 			worker_options = options;
 			worker_diagnostic = diagnostic;
 			worker_active = active();
+			model_hint_ms.reset();
 		}
 		const auto &snapshot = worker_settings;
 		const auto &config = worker_options;
@@ -504,13 +506,16 @@ struct FilterInput::Impl {
 					if (override_path && *override_path) {
 						auto config = ck2::read_development_config(utf8_path(override_path));
 						runtime = config.runtime;
-						model = ck2::development_model(
-							config.models, snapshot->quality.grid,
-							snapshot->quality.profile == Profile::quality,
-							config.release_fixture,
-							snapshot->quality.refiner_enabled
-								? snapshot->quality.refiner_max_tiles
-								: 0);
+						model = snapshot->quality.model == ModelFamily::ck1
+								? ck1::development_model(config.models, *snapshot,
+											 config.release_fixture)
+								: ck2::development_model(
+									  config.models, snapshot->quality.grid,
+									  snapshot->quality.profile == Profile::quality,
+									  config.release_fixture,
+									  snapshot->quality.refiner_enabled
+										  ? snapshot->quality.refiner_max_tiles
+										  : 0);
 						request.transport.adapter = config.adapter;
 					} else
 #endif
@@ -521,7 +526,7 @@ struct FilterInput::Impl {
 							models::activation_manifest(manifests, *snapshot);
 						models::require(
 							manifest != nullptr,
-							"No package supports this CK2 grid/preset. Open Manage models to install a supported package.",
+							"No package supports this model, screen and grid. Open Manage models to install a supported package.",
 							ErrorCode::model_missing);
 						models::Cache cache(models::obs_model_cache_path());
 						auto licences =
@@ -549,6 +554,8 @@ struct FilterInput::Impl {
 							"This grid's model package is not installed. Open Manage models to install it.",
 							ErrorCode::model_missing);
 						leased_model = model;
+						model = acquire_hint_model(std::move(model), manifests, *snapshot,
+									   cache, licences, leased_hint, stop);
 						if (snapshot->quality.refiner_enabled) {
 							const auto *refiner = models::activation_refiner_manifest(
 								manifests, *snapshot);
@@ -613,6 +620,9 @@ struct FilterInput::Impl {
 						std::to_string(static_cast<int>(snapshot->backend.transport)) + ":" +
 						std::to_string(snapshot->quality.refiner_enabled) + ":" +
 						std::to_string(snapshot->quality.refiner_max_tiles) + ":" +
+						std::to_string(static_cast<int>(snapshot->quality.model)) + ":" +
+						std::to_string(static_cast<int>(snapshot->quality.screen_color)) + ":" +
+						std::to_string(static_cast<int>(snapshot->hint.source)) + ":" +
 						snapshot->quality.model_revision;
 					runtime.info = [](const std::string &message) {
 						blog(LOG_INFO, "[corridorkey] %s",
@@ -633,11 +643,8 @@ struct FilterInput::Impl {
 						pipeline = real.get();
 						problem = real->reset(generation, ResetReason::explicit_reset);
 					} else {
-						auto replacement = std::make_unique<Ck2Pipeline>(
-							[runtime](const PrepareRequest &r) {
-								return ck2::prepare_ort(r, runtime);
-							},
-							obs_now);
+						auto replacement =
+							make_model_pipeline(snapshot->quality.model, runtime, obs_now);
 						problem = replacement->prepare(request);
 						{
 							std::lock_guard lock(mutex);
@@ -737,6 +744,10 @@ struct FilterInput::Impl {
 		if (result && real && pipeline == real.get()) {
 			next_roi = real->suggested_roi();
 			const auto times = real->stage_times();
+			if (snapshot->quality.model == ModelFamily::ck1) {
+				std::lock_guard lock(mutex);
+				model_hint_ms = times.stage1_ms;
+			}
 			++model_frames;
 			moge_runs += times.moge_refreshed ? 1 : 0;
 			stage_total[0] += times.moge_ms;
@@ -1037,6 +1048,7 @@ StatusSnapshot FilterInput::status() const
 	std::lock_guard lock(s.mutex);
 	status->backend = s.model_backend;
 	status->transport = s.chosen_transport.load();
+	status->hint_last_ms = s.model_hint_ms;
 	status->generation = s.pool.generation();
 	status->failure = error(s.failure.load());
 	status->lifecycle = status->failure ? Lifecycle::bypassed : Lifecycle::ready;

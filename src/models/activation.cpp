@@ -4,9 +4,18 @@
 namespace corridorkey::models {
 const Manifest *activation_manifest(const std::vector<Manifest> &manifests, const Settings &settings)
 {
-	if (settings.quality.model != ModelFamily::ck2)
-		return nullptr;
 	const auto grid = settings.quality.grid;
+	if (settings.quality.model == ModelFamily::ck1) {
+		const auto id = settings.quality.screen_color == ScreenColor::blue ? "ck1-blue" : "ck1-green";
+		for (const auto &m : manifests)
+			if (m.pipeline == "ck1" && m.key.id == id &&
+			    (settings.quality.model_revision.empty() ||
+			     settings.quality.model_revision == m.key.revision))
+				for (const auto &profile : m.profiles)
+					if (profile.at("grid_hw") == Json::array({grid.height, grid.width}))
+						return &m;
+		return nullptr;
+	}
 	const bool quality = settings.quality.profile == Profile::quality;
 	for (const auto &m : manifests) {
 		if (m.pipeline != "ck2" ||
@@ -24,6 +33,27 @@ const Manifest *activation_manifest(const std::vector<Manifest> &manifests, cons
 				return &m;
 		}
 	}
+	return nullptr;
+}
+const Manifest *activation_hint_manifest(const std::vector<Manifest> &manifests, const Settings &settings)
+{
+	if (settings.quality.model != ModelFamily::ck1 || settings.hint.source == HintSource::chroma)
+		return nullptr;
+	if (settings.hint.source == HintSource::ck2_stage1) {
+		auto hint = settings;
+		hint.quality.model = ModelFamily::ck2;
+		hint.quality.model_revision.clear();
+		hint.quality.grid = {512, 512};
+		hint.quality.profile = Profile::custom;
+		return activation_manifest(manifests, hint);
+	}
+	if (settings.hint.source == HintSource::modnet)
+		for (const auto &m : manifests)
+			if (m.pipeline == "hint" && m.key.id == "modnet")
+				for (const auto &profile : m.profiles)
+					if (profile.at("grid_hw") ==
+					    Json::array({settings.quality.grid.height, settings.quality.grid.width}))
+						return &m;
 	return nullptr;
 }
 const Manifest *activation_refiner_manifest(const std::vector<Manifest> &manifests, const Settings &settings)

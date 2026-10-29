@@ -15,6 +15,7 @@
 #include "obs/gpu_fence.hpp"
 
 int run_post_tests(const char *directory);
+int run_ck1_chroma_tests(const char *directory);
 int run_post_offline(const char *directory, const char *manifest);
 
 namespace {
@@ -191,8 +192,9 @@ int main(int argc, char **argv)
 	}
 	if (std::strcmp(argv[4], "numeric") == 0) {
 		const int result = run_post_tests(argv[2]);
+		const int chroma = run_ck1_chroma_tests(argv[2]);
 		obs_shutdown();
-		return result;
+		return result || chroma;
 	}
 	if (std::strcmp(argv[4], "offline") == 0 && argc == 6) {
 		const int result = run_post_offline(argv[2], argv[5]);

@@ -175,8 +175,6 @@ std::vector<ModelRow> model_rows(const std::vector<models::Manifest> &manifests,
 	placeholder("refiner-v12", "Edge Refiner v12",
 		    "Moritz Mantel · CorridorKey attribution: Corridor Digital / Niko Pueringer",
 		    "Included with the recommended CK2 set when its package is released.", false, {"refiner"});
-	placeholder("ck1", "CorridorKey 1.0", "Corridor Digital / Niko Pueringer",
-		    "Package pending: checkpoint licence wording and exported graphs must be verified.", false, {});
 	placeholder("modnet", "MODNet hint", "ZHKKKe / MODNet contributors",
 		    "Optional CK1 hint. A verified checkpoint and graph package are not available yet.", false, {});
 	placeholder("mediapipe", "MediaPipe hint", "Google / MediaPipe contributors",

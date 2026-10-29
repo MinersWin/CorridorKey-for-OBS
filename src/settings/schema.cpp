@@ -180,6 +180,16 @@ void clamp(Settings &s)
 		assign(s, f, f.get(copy));
 	s.quality.clip_white = std::max(s.quality.clip_white, s.quality.clip_black + .01f);
 	// Off is RGB guided; selecting a method updates the boolean in edit().
+	if (s.quality.model == ModelFamily::ck1) {
+		s.quality.refiner_enabled = false;
+		s.quality.roi_enabled = false;
+		s.quality.aspect_fix = false;
+		s.quality.stage2_interval = 0;
+		s.hint.refresh_interval = 1;
+		if (s.quality.grid.width != s.quality.grid.height ||
+		    (s.quality.grid.width != 256 && s.quality.grid.width != 384 && s.quality.grid.width != 512))
+			s.quality.grid = {384, 384};
+	}
 	if (!s.quality.refiner_enabled && s.quality.guide_mode == GuideMode::refiner)
 		s.quality.guide_mode = GuideMode::rgb_guided;
 	s.schema_version = static_cast<std::uint32_t>(schema_version);
