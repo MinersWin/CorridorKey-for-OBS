@@ -21,8 +21,7 @@ if(NOT ZLIB_FOUND AND WIN32)
   include(FetchContent)
   FetchContent_Declare(
     ck_zlib
-    URL https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.gz
-        https://zlib.net/zlib-1.3.2.tar.gz
+    URL https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.gz https://zlib.net/zlib-1.3.2.tar.gz
     URL_HASH SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
