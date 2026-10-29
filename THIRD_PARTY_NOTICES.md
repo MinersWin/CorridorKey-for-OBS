@@ -75,3 +75,20 @@ admitting a CK1 package.
 Attribution here is informational and grants no model rights. Verify each
 model's exact revision, licence and required notices before adding it to a
 download manifest. Model terms do not change this plugin's GPL licence.
+
+## CK1 and MODNet model packages
+
+CorridorKey 1.0 green and blue checkpoints are by Corridor Digital / Niko Pueringer.
+Their HF cards list CC-BY-NC-SA-4.0. The model licence acceptance also includes the
+published Corridor Key Licence v1 additional terms, preserved in
+`data/models/licenses-v1.json` as `LicenseRef-Corridor-Key-1.0`. These model terms
+are separate from the GPL plugin. CK1-derived graphs retain the graph publisher's
+Corridor Key Licence.
+
+MODNet is by Zhanghan Ke, Kaican Li, Yurou Zhou, Qiong Yan and Rynson W. H. Lau.
+The pinned webcam safetensors conversion is by Moritz Mantel. Its complete
+Apache-2.0 LICENSE and NOTICE are included together in the licence registry as
+`LicenseRef-MODNet-Apache-2.0`; acceptance covers both texts. Graph exports have
+their own Corridor Key Licence record. Models and graphs are downloaded and
+bound locally, and are not included in plugin installers. Full revisions and
+content hashes are in `data/models/sources-v1.json` and the package manifests.

@@ -1,0 +1,348 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. Metadata only; model payloads retain their publisher licences.",
+  "schema_version": 1,
+  "id": "modnet",
+  "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+  "display_name": "MODNet hint",
+  "publisher": "MODNet contributors; webcam safetensors conversion and graph exports: Moritz Mantel",
+  "description": "Default CK1 hint at the same capture/grid. A person matte can remove props or chairs. Includes the webcam checkpoint LICENSE and NOTICE.",
+  "pipeline": "hint",
+  "export_contract": 1,
+  "provenance": {
+    "source_url": "https://huggingface.co/mantelmoritz/CorridorKey-ONNX-Graphs/tree/082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+    "export_revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b"
+  },
+  "licenses": [
+    {
+      "id": "LicenseRef-Corridor-Key-2.0",
+      "text_sha256": "c92ce56f64162b231c7ce08ce3ed7d8cae15f01a560ca05a8e8db67878eb0065"
+    },
+    {
+      "id": "LicenseRef-MODNet-Apache-2.0",
+      "text_sha256": "31fb9636084278984e09802e76fae976750cb0ef98d6caca5da998f642b448be"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "modnet",
+      "path": "sources/modnet/model.safetensors",
+      "format": "safetensors",
+      "bytes": 35210636,
+      "sha256": "ff7b42f33371d1ba7be124487ce3586e230708b3bef289742f13fac491d07102",
+      "licenses": [
+        "LicenseRef-MODNet-Apache-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/MODNet-Webcam-safetensors",
+        "revision": "2b4102c4a84a919ed189b685f8d1089194eaa454",
+        "file": "model.safetensors"
+      }
+    },
+    {
+      "id": "modnet_384-onnx",
+      "path": "graphs/modnet_384.onnx",
+      "format": "onnx",
+      "bytes": 702971,
+      "sha256": "78ed304ace7ebef715596d373aea34dc60b962bb2f65d20ea0e42f78f1b1c3fc",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/modnet_384.onnx"
+      }
+    },
+    {
+      "id": "modnet_384-json",
+      "path": "graphs/modnet_384.json",
+      "format": "export-json",
+      "bytes": 111845,
+      "sha256": "2733f96374d530a1718b9d5c83eb142774f1040c3b69ba860820299098408904",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/modnet_384.json"
+      }
+    },
+    {
+      "id": "modnet_256-onnx",
+      "path": "graphs/modnet_256.onnx",
+      "format": "onnx",
+      "bytes": 702969,
+      "sha256": "d2104572be128a636f8f4f7c661a51f73ea10512fe1da41cdd8ea3182f23c178",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/modnet_256.onnx"
+      }
+    },
+    {
+      "id": "modnet_256-json",
+      "path": "graphs/modnet_256.json",
+      "format": "export-json",
+      "bytes": 111845,
+      "sha256": "72ac8946f701ce82f7f5ad0545380c2f54cd36c2498b186a9063d0bc49b0c7cc",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/modnet_256.json"
+      }
+    },
+    {
+      "id": "modnet_512-onnx",
+      "path": "graphs/modnet_512.onnx",
+      "format": "onnx",
+      "bytes": 703119,
+      "sha256": "a33caeaff8a8624b6bbdd88f300a9a8a608f56049b2bc69d3df48921d6153125",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/modnet_512.onnx"
+      }
+    },
+    {
+      "id": "modnet_512-json",
+      "path": "graphs/modnet_512.json",
+      "format": "export-json",
+      "bytes": 111845,
+      "sha256": "678a65120f2d55e3d4ce4e60cc41f53b60adf46498ef09565546783d492658ae",
+      "licenses": [
+        "LicenseRef-Corridor-Key-2.0"
+      ],
+      "origin": {
+        "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+        "revision": "082f53c75d275c10b1ddf3be2cb72c5ca559f30b",
+        "file": "graphs/modnet_512.json"
+      }
+    }
+  ],
+  "graphs": [
+    {
+      "id": "modnet_384",
+      "role": "hint",
+      "graph": "modnet_384-onnx",
+      "metadata": "modnet_384-json",
+      "external_data": "graphs/modnet_384.weights",
+      "weights_bytes": 26046048,
+      "weights_sha256": "5c15b234f5c98251ba5af04bc4188a0f0c8debae5d25b4bce71d17133d7ef870",
+      "sources": [
+        "modnet"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "rgb",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              384,
+              384
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "matte",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              384,
+              384
+            ]
+          }
+        ]
+      },
+      "color_contract": "sRGB RGB [0,1]; graph normalization; linear alpha/hint; straight sRGB foreground. Square frame squash.",
+      "parity": {
+        "report_url": "https://github.com/MinersWin/CorridorKey-for-OBS/blob/main/docs/dev/validation-w14-artifacts.json",
+        "report_sha256": "1fec80a74a568d90cf1dc90585a1814ba973a073c601a6ef822549ec852bb02c",
+        "status": "unverified"
+      }
+    },
+    {
+      "id": "modnet_256",
+      "role": "hint",
+      "graph": "modnet_256-onnx",
+      "metadata": "modnet_256-json",
+      "external_data": "graphs/modnet_256.weights",
+      "weights_bytes": 26046048,
+      "weights_sha256": "5c15b234f5c98251ba5af04bc4188a0f0c8debae5d25b4bce71d17133d7ef870",
+      "sources": [
+        "modnet"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "rgb",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              256,
+              256
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "matte",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              256,
+              256
+            ]
+          }
+        ]
+      },
+      "color_contract": "sRGB RGB [0,1]; graph normalization; linear alpha/hint; straight sRGB foreground. Square frame squash.",
+      "parity": {
+        "report_url": "https://github.com/MinersWin/CorridorKey-for-OBS/blob/main/docs/dev/validation-w14-artifacts.json",
+        "report_sha256": "1fec80a74a568d90cf1dc90585a1814ba973a073c601a6ef822549ec852bb02c",
+        "status": "unverified"
+      }
+    },
+    {
+      "id": "modnet_512",
+      "role": "hint",
+      "graph": "modnet_512-onnx",
+      "metadata": "modnet_512-json",
+      "external_data": "graphs/modnet_512.weights",
+      "weights_bytes": 26046048,
+      "weights_sha256": "5c15b234f5c98251ba5af04bc4188a0f0c8debae5d25b4bce71d17133d7ef870",
+      "sources": [
+        "modnet"
+      ],
+      "opset": 18,
+      "precision": "fp32",
+      "ir_version": 10,
+      "interface": {
+        "inputs": [
+          {
+            "name": "rgb",
+            "dtype": "float32",
+            "shape": [
+              1,
+              3,
+              512,
+              512
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "matte",
+            "dtype": "float32",
+            "shape": [
+              1,
+              1,
+              512,
+              512
+            ]
+          }
+        ]
+      },
+      "color_contract": "sRGB RGB [0,1]; graph normalization; linear alpha/hint; straight sRGB foreground. Square frame squash.",
+      "parity": {
+        "report_url": "https://github.com/MinersWin/CorridorKey-for-OBS/blob/main/docs/dev/validation-w14-artifacts.json",
+        "report_sha256": "1fec80a74a568d90cf1dc90585a1814ba973a073c601a6ef822549ec852bb02c",
+        "status": "unverified"
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "default",
+      "graphs": [
+        "modnet_384"
+      ],
+      "grid_hw": [
+        384,
+        384
+      ],
+      "roi": false,
+      "refiner_tiles": 0,
+      "settings_schema": 1
+    },
+    {
+      "id": "grid-256",
+      "graphs": [
+        "modnet_256"
+      ],
+      "grid_hw": [
+        256,
+        256
+      ],
+      "roi": false,
+      "refiner_tiles": 0,
+      "settings_schema": 1
+    },
+    {
+      "id": "grid-512",
+      "graphs": [
+        "modnet_512"
+      ],
+      "grid_hw": [
+        512,
+        512
+      ],
+      "roi": false,
+      "refiner_tiles": 0,
+      "settings_schema": 1
+    }
+  ],
+  "budgets": {
+    "bound_bytes": 78138144,
+    "workspace_bytes": 1073741824,
+    "engine_bytes": 1073741824,
+    "margin_bytes": 1073741824
+  },
+  "compatibility": [
+    {
+      "backend": "tensorrt",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "See docs/dev/ck1-pipeline.md for measured coverage. GPU probes and exact graph validation run before activation."
+    },
+    {
+      "backend": "directml",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "See docs/dev/ck1-pipeline.md for measured coverage. GPU probes and exact graph validation run before activation."
+    },
+    {
+      "backend": "cuda",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "See docs/dev/ck1-pipeline.md for measured coverage. GPU probes and exact graph validation run before activation."
+    },
+    {
+      "backend": "migraphx",
+      "required_features": [],
+      "test_status": "unverified",
+      "evidence": "See docs/dev/ck1-pipeline.md for measured coverage. GPU probes and exact graph validation run before activation."
+    }
+  ]
+}

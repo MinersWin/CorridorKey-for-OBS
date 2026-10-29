@@ -68,3 +68,15 @@ RVM retains publisher MD5 `ZJb6kj8+tasiJbVeplXu7Q==`; installation uses SHA-256.
 Bound-output pins were computed from the exporter's local files. The first-run
 installation verifies the native binder's results against those pins before
 publishing the package. No model or graph payload is stored in Git.
+
+## CK1 and MODNet (revision 4)
+
+Graph release `082f53c75d275c10b1ddf3be2cb72c5ca559f30b` adds separate green and blue CK1 packages and a MODNet hint. Each includes the 256, 384 and 512 square grids; CK1 defaults to 384. All checkpoint and graph bytes were checked anonymously against the pinned publisher listings. JSON bytes matched the HF Git blob IDs before SHA-256 was computed.
+
+| Package | Download bytes | Bound bytes | Manifest SHA-256 |
+| --- | ---: | ---: | --- |
+| ck1-green | 405579584 | 1196433024 | `0aa19052839e2e1a40102777757f8b173a34438a311dffecfeca44f541a9f1f8` |
+| ck1-blue | 405577406 | 1196433024 | `bd72990e5465120a6537fb9c7dc0b94e48bb79665de597e180ac34c8f4df8312` |
+| modnet | 37655230 | 78138144 | `e5618de7af40dab7d49e1976bb6b1917e50f28f6a64f5e9d555e7b28e94e29ff` |
+
+Full revisions, graph/metadata byte counts and checkpoint hashes are in [validation-w14-artifacts.json](validation-w14-artifacts.json). Per-grid bound-output hashes and interfaces are in the package manifests. All nine locally bound weight files match the exporter byte for byte. The MODNet acceptance record contains both the pinned LICENSE and NOTICE. CK1 uses its published v1 additional terms, separately from the graph licence. GPU parity and test conditions are covered in [CK1 validation](ck1-pipeline.md).

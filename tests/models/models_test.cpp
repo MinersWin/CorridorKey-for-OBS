@@ -337,7 +337,7 @@ TEST_CASE("Bundled licence texts have exact hashes and MODNet remains separate")
 	auto raw = read_small_file(fs::path(CK_SOURCE_DIR) / "data/models/licenses-v1.json");
 	auto registry = LicenceRegistry::parse(raw);
 	auto j = strict_json(raw);
-	CHECK(j["licenses"].size() == 5);
+	CHECK(j["licenses"].size() == 6);
 	for (auto &r : j["licenses"])
 		CHECK(registry.at({r["id"].get<std::string>(), r["text_sha256"].get<std::string>()}).digest ==
 		      sha256(r["text"].get<std::string>()));
@@ -347,7 +347,7 @@ TEST_CASE("Bundled licence texts have exact hashes and MODNet remains separate")
 TEST_CASE("Publisher source inventory contains no graph placeholders")
 {
 	auto sources = parse_source_inventory(read_small_file(fs::path(CK_SOURCE_DIR) / "data/models/sources-v1.json"));
-	CHECK(sources.size() == 5);
+	CHECK(sources.size() == 8);
 	CHECK(sources.at("moge").format == "safetensors");
 	CHECK(sources.at("rvm").bytes == 270086372);
 	CHECK(sources.at("moge").revision == "3090937b74a09929079cf6c77ad1edd40a0a9aaf");
