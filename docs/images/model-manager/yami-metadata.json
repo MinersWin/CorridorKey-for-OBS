@@ -1,0 +1,211 @@
+{
+    "acceptance": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "backend-unavailable": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 464,
+        "logical_width": 595,
+        "obs": "33.0.0",
+        "pixel_height": 928,
+        "pixel_width": 1190,
+        "qt": "6.11.1"
+    },
+    "binding": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "building": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "compact": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 460,
+        "logical_width": 640,
+        "obs": "33.0.0",
+        "pixel_height": 920,
+        "pixel_width": 1280,
+        "qt": "6.11.1"
+    },
+    "corridorkey-licence": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 584,
+        "logical_width": 675,
+        "obs": "33.0.0",
+        "pixel_height": 1168,
+        "pixel_width": 1350,
+        "qt": "6.11.1"
+    },
+    "diagnostics": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 464,
+        "logical_width": 635,
+        "obs": "33.0.0",
+        "pixel_height": 928,
+        "pixel_width": 1270,
+        "qt": "6.11.1"
+    },
+    "downloading": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "error": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "first-run": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": false,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "import-ready": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 728,
+        "logical_width": 800,
+        "obs": "33.0.0",
+        "pixel_height": 1456,
+        "pixel_width": 1600,
+        "qt": "6.11.1"
+    },
+    "licences": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 584,
+        "logical_width": 675,
+        "obs": "33.0.0",
+        "pixel_height": 1168,
+        "pixel_width": 1350,
+        "qt": "6.11.1"
+    },
+    "moge-licence": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 584,
+        "logical_width": 675,
+        "obs": "33.0.0",
+        "pixel_height": 1168,
+        "pixel_width": 1350,
+        "qt": "6.11.1"
+    },
+    "not-installed": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "ready": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "rvm-licence": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 584,
+        "logical_width": 675,
+        "obs": "33.0.0",
+        "pixel_height": 1168,
+        "pixel_width": 1350,
+        "qt": "6.11.1"
+    },
+    "testing": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "update": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    },
+    "verifying": {
+        "cursor": "excluded",
+        "device_pixel_ratio": 2,
+        "fixture": true,
+        "logical_height": 712,
+        "logical_width": 795,
+        "obs": "33.0.0",
+        "pixel_height": 1424,
+        "pixel_width": 1590,
+        "qt": "6.11.1"
+    }
+}

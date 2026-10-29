@@ -1,2 +1,6 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-Own the Qt model manager, download progress and Tools menu entry. Keep licence acceptance before every first model download, localize all user-visible strings, and marshal background results onto the UI thread. The properties button is disabled until the dialog exists.
+The model manager shares one modeless Qt window across Tools and filter properties.
+Keep cache and installation work in `ManagerController`; widget code renders snapshots
+and sends commands. Licence acceptance precedes downloads and offline import.
+See [integration notes](../../docs/dev/model-manager.md) for the binder, probe,
+diagnostics and release-catalogue seams.
