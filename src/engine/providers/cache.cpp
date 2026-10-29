@@ -55,7 +55,15 @@ CacheLease::CacheLease(const fs::path &root, const CacheIdentity &identity, bool
 {
 	const auto metadata = identity.canonical();
 	const auto key = sha256(metadata);
-	shared_ = fs::absolute(root) / key;
+	const auto absolute_root = fs::absolute(root);
+	shared_ = absolute_root / key;
+#ifdef _WIN32
+	// Keep long engine filenames usable even when the host lacks a long-path manifest.
+	auto native = shared_.make_preferred().native();
+	if (!native.starts_with(L"\\\\?\\"))
+		shared_ = fs::path(native.starts_with(L"\\\\") ? L"\\\\?\\UNC\\" + native.substr(2)
+							       : L"\\\\?\\" + native);
+#endif
 	fs::create_directories(shared_);
 	if (fs::is_symlink(shared_))
 		throw std::runtime_error("Backend cache directory is a symlink");
@@ -82,7 +90,7 @@ CacheLease::CacheLease(const fs::path &root, const CacheIdentity &identity, bool
 		std::random_device random;
 		for (int attempt = 0; attempt < 8; ++attempt) {
 			// Provider cache filenames are long; the identity already belongs to shared_.
-			path_ = shared_.parent_path() /
+			path_ = absolute_root /
 				(".working-" + std::to_string(random()) + "-" + std::to_string(random()));
 			if (fs::create_directory(path_))
 				break;

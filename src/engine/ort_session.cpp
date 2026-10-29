@@ -105,6 +105,9 @@ struct Session::Impl {
 };
 Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 {
+	// TensorRT resolves external weights from the native separator in the model path.
+	// Catalogue paths may mix forward slashes with the host's Windows cache root.
+	config.graph = fs::absolute(config.graph).make_preferred();
 	if (config.precision == Precision::bf16 && !config.diagnostic_only)
 		throw std::runtime_error("BF16 is diagnostic-only; use this graph's validated FP16 or FP32 policy");
 	// EP registration and device enumeration share the process-wide environment.
