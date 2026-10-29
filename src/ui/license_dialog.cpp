@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "license_dialog.hpp"
+#include "visuals.hpp"
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QLabel>
@@ -25,14 +26,15 @@ LicenseDialog::LicenseDialog(QWidget *parent, const ModelRow &row, const models:
 	font.setWeight(QFont::DemiBold);
 	title->setFont(font);
 	layout->addWidget(title);
-	auto *summary = new QLabel(
-		tr("Download: %1 · Peak additional space: %2\nDestination: %3")
-			.arg(QString::fromStdString(byte_size(row.download_bytes)),
-			     QString::fromStdString(byte_size(row.manifest->peak_additional_bytes())), destination),
-		this);
+	auto *summary =
+		new QLabel(tr("Download %1 · Up to %2 additional space during setup")
+				   .arg(QString::fromStdString(byte_size(row.download_bytes)),
+					QString::fromStdString(byte_size(row.manifest->peak_additional_bytes()))),
+			   this);
 	summary->setTextFormat(Qt::PlainText);
 	summary->setWordWrap(true);
 	layout->addWidget(summary);
+	layout->addWidget(new ElidedPath(destination, this));
 	QString text;
 	for (auto &[id, a] : row.manifest->artifacts)
 		text += QString::fromStdString(a.id + " · " + byte_size(a.bytes) + "\n");

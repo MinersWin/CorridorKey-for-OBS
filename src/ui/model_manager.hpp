@@ -23,6 +23,7 @@ class ModelManager final : public QDialog {
 	QPointer<QDialog> backend_dialog_;
 	const ModelRow *selected() const;
 	void render();
+	void changeEvent(QEvent *) override;
 	void details();
 	void review(bool only, std::optional<models::fs::path> offline = {});
 	void import();
