@@ -16,8 +16,8 @@ selected hint package separately, with its own licence acceptance. The optional 
 graphs are excluded. With Edge refiner enabled, activation leases the refiner
 package alongside CK2 and selects the graph matching the tile budget.
 
-The catalogue is **unsigned and installer-only** pending coordinator key
-provisioning. CMake hashes its exact bytes into `CORRIDORKEY_BUNDLED_CATALOGUE_SHA256`.
+Development and ordinary CI builds use an unsigned, installer-only catalogue.
+CMake hashes its exact bytes into `CORRIDORKEY_BUNDLED_CATALOGUE_SHA256`.
 `installed_catalogue` reads only OBS's installed module data path and calls
 `admit_installer_catalogue` with that compiled pin. A changed file fails admission,
 including a replacement beside an unchanged plugin DLL. Package manifests are
@@ -27,13 +27,18 @@ builds currently have no Authenticode signature; users must obtain the installer
 from the project's release channel. The digest does not authenticate a plugin
 binary replaced by an attacker.
 
-A release must provision the public key and sign the exact catalogue bytes in
-the protected `release` environment. Set `CORRIDORKEY_CATALOGUE_PUBLIC_KEY` at
-build time and install `catalogue-signature.json`. When a public key is compiled
-in, a missing or invalid signature fails closed: there is no unsigned fallback.
-Key generation and private-key handling belong to the coordinator. The release
-workflow blocks its draft job until the signing placeholder is replaced; local
-and CI development builds may use the pinned installer catalogue. Before enabling remote refresh, publish the
+Release builds embed the public point from
+[`packaging/catalogue-public-key.txt`](../../packaging/catalogue-public-key.txt)
+through `CORRIDORKEY_CATALOGUE_PUBLIC_KEY`. After the build, the protected
+`release` job signs the exact catalogue bytes and verifies the result. Packaging
+checks the staged catalogue and build trust metadata, then installs
+`models/catalogue-signature.json` beside `models/catalogue-v1.json`. Its only
+field is `signature`, containing 128 lowercase hex digits. When a public key is
+compiled in, a missing or invalid signature fails closed, with no unsigned
+fallback. The Windows executable and installer still have no Authenticode
+signature; catalogue signing authenticates catalogue data.
+
+Before enabling remote refresh, publish the
 manifest assets at the catalogue's `model-catalogue-v1` release URLs; those
 locators reserve the release destination and are not fetched by bundled setup.
 
@@ -75,7 +80,8 @@ key cannot grant itself trust.
 It rejects rollback and different bytes at the same sequence. The host fetches
 small catalogue/manifest metadata with bounded HTTPS requests, authenticates the
 catalogue, then calls `parse_manifest` with the catalogue's digest. No remote
-catalogue refresh is scheduled by this service. The bundled unsigned catalogue cannot pass remote admission.
+catalogue refresh is scheduled by this service. An unsigned development
+catalogue cannot pass remote admission.
 
 A manifest contains:
 
@@ -107,6 +113,72 @@ checkpoint, so dependency cycles are unrepresentable. Every artifact must be
 referenced. Artifact paths cannot collide, including by case on Windows. Absolute
 paths, `..`, backslashes, device names, alternate data streams and cache metadata
 filenames are rejected. The format list contains no executable or pickle format.
+
+## Signing and key custody
+
+[`tools/sign-catalogue.py`](../../tools/sign-catalogue.py) reads the PKCS#8 PEM
+private key only from `CATALOGUE_SIGNING_KEY`. It requires an ECDSA P-256 key,
+compares its public point with the committed public key, signs the input bytes
+using SHA-256, converts DER to raw `r || s`, and verifies that raw signature with
+the committed public key before writing the envelope. It never normalizes JSON
+or line endings. Missing keys, a different public point and invalid signatures
+stop the job. Error messages omit key material and parser exception details.
+The signing dependency is pinned in `tools/requirements-signing.txt`.
+
+The production private key lives only in the protected GitHub Actions `release`
+environment secret `CATALOGUE_SIGNING_KEY` and an owner-held offline backup.
+The environment permits `v*` tags and requires review by MinersWin. Only the
+signing step receives the secret. Packaging receives the catalogue and signature
+as public artifacts. Key generation and secret provisioning belong to the
+coordinator; never put a production private key in a checkout, command argument,
+log or test fixture.
+
+The signing tests generate throwaway keys in memory and pass them through the
+child process environment. The native `corridorkey_catalogue_verify` executable
+calls the same `parse_catalogue` verifier used by the plugin. To run locally:
+
+```sh
+python -m pip install -r tools/requirements-signing.txt
+cmake -S . -B build-signing -DCORRIDORKEY_BUILD_PLUGIN=OFF -DCORRIDORKEY_TEST_CATALOGUE_SIGNING=ON
+cmake --build build-signing --config RelWithDebInfo --target corridorkey_catalogue_verify
+ctest --test-dir build-signing -C RelWithDebInfo --output-on-failure -R '^catalogue_signing$'
+```
+
+The CI signing-test job runs on Windows and Linux without the `release`
+environment or a production secret. It checks valid signatures, changes to one
+byte or trailing whitespace, damaged signatures, mismatched keys and invalid
+key formats.
+
+### Rotate the key
+
+The coordinator generates a new P-256 key, replaces the environment secret,
+gives the owner an offline backup and removes the provisioning copy. Commit the
+new `x || y` public point in `packaging/catalogue-public-key.txt` and rebuild all
+release binaries. Coordinate the secret and public-key change before approving
+the next signing job: a mismatch stops signing. Increase the catalogue sequence
+when changing its contents and preserve existing sequence floors.
+
+The verifier trusts one compiled key. Existing binaries continue to trust the
+old key and cannot authenticate catalogues signed by its replacement. Distribute
+the rebuilt plugin through the project's release channel and tell users to
+upgrade before consuming catalogues signed with the new key. Replacing the data
+file alone cannot rotate an installed plugin's trust anchor.
+
+### If the private key leaks
+
+Stop approving release jobs, cancel pending signing runs and remove the
+compromised environment secret. The owner and coordinator must replace the key
+and offline backup, commit the new public point, rebuild the plugin and review
+catalogues and drafts produced during the exposure. Withdraw affected drafts
+or assets and publish an incident notice with upgrade instructions. Never paste
+the leaked key into an issue or log.
+
+A valid signature from a compromised key no longer establishes publisher
+authenticity. Older binaries still trust that key, so deleting the secret alone
+does not revoke their trust. Recovery requires installing a rebuilt plugin from
+the trusted release channel. Review affected cache sequence floors as part of
+recovery; the runtime must keep rejecting rollback and conflicting bytes at the
+same sequence.
 
 ## Exporter layout
 

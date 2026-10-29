@@ -20,8 +20,9 @@ cause an actionable refusal rather than deletion outside that target.
 Portable installs use the documented zips. The smoke-only Inno `PackagingSmoke`
 define changes the uninstall identity and privileges so a portable test cannot
 overwrite the normal system uninstall entry. Its payload and layout logic are
-the same. Production builds are unsigned and require administration for the
-ProgramData target. The compiler is Inno Setup 6.5.4, pinned by SHA-256. Its
+the same. Windows executables and installers lack Authenticode signatures.
+Installation to ProgramData requires administration. The compiler is Inno Setup
+6.5.4, pinned by SHA-256. Its
 licence permits distributing generated installers; original attribution remains
 in the installer. See [Inno licensing](https://jrsoftware.org/isinfo.php).
 
@@ -147,18 +148,62 @@ The old project-wide dependency list is retained as `PROJECT_DEPENDENCIES.md`,
 separate from the shipped-payload inventory. The legacy zip's inventory records
 its relocated module path. Generated inventories exclude their own hash.
 
-`release.yml` accepts `v<buildspec-version>`, `-rc.N` and `-test.N`. All build and
-package steps run for test tags. `-test.N` creates no GitHub Release and uses no
-release environment. `workflow_dispatch` defaults to packages only; an existing
-version tag and `create_draft=true` are required to request a draft there. Normal
-and RC tags create a draft prerelease; maintainers control publication.
+`release.yml` accepts `v<buildspec-version>`, `-rc.N` and `-test.N`.
+Production and RC tags run in this order:
 
-The clearly named catalogue-signing placeholder reads
-`secrets.CATALOGUE_SIGNING_KEY` only in the protected `release` environment.
-It never generates, exports or prints a key and does not claim to sign anything.
-The coordinator must supply the signer, raw P-256 `r||s` encoding, verification
-against the embedded public key and production catalogue wiring. Draft notes
-state that production catalogue signing remains pending.
+```mermaid
+flowchart LR
+    B[Build with committed public key] --> S[Sign in protected release environment]
+    S --> P[Verify staged catalogue and package]
+    P --> D[Create draft prerelease]
+```
+
+The reusable build workflow reads `packaging/catalogue-public-key.txt` and passes
+its contents as `-DCORRIDORKEY_CATALOGUE_PUBLIC_KEY`. CMake records that public
+point and the exact catalogue digest in installed `models/catalogue-build.json`.
+The signing job installs the pinned `tools/requirements-signing.txt` dependency
+and runs `tools/sign-catalogue.py`. It reads the PKCS#8 PEM key only from the
+step's `CATALOGUE_SIGNING_KEY` environment variable, checks that the public point
+matches the committed key, and signs the exact bytes of
+`data/models/catalogue-v1.json`. It verifies the result before uploading the
+catalogue and signature. The envelope is `{"signature":"<128 lowercase hex digits>"}`,
+with the raw P-256/SHA-256 `r || s` format expected by the C++ verifier.
+
+The private key lives only in the protected `release` environment secret and an
+owner-held offline backup. The environment requires MinersWin's approval and
+allows `v*` tags. No build or packaging job receives the private key.
+`tools/stage-catalogue.py` checks the build's public point, compiled digest,
+staged catalogue bytes and signature before copying `catalogue-signature.json`
+beside the installed catalogue. Missing signatures, wrong keys or changed bytes
+stop packaging. All package formats inherit this verified payload. Signed
+plugins reject a missing or invalid signature without an unsigned fallback.
+
+All build and package steps still run for `-test.N` tags. Signing is skipped,
+the build uses the compiled digest path, and no job requests the release
+environment. The payload contains `UNSIGNED-TEST.txt`; package filenames start
+with `unsigned-test-`, and Actions artifact names end with `-unsigned-test`.
+Test tags create no GitHub Release. Ordinary branch/PR builds also retain the
+unsigned pinned path. A branch `workflow_dispatch` produces unsigned test
+artifacts with the same labels.
+
+To run a release, update `buildspec.json`, review the catalogue and manifests,
+and push a matching version or RC tag through the normal maintainer process.
+Approve the protected signing job after reviewing its commit and catalogue.
+The workflow packages both platforms and requests approval for the draft job.
+Normal and RC tag pushes create a draft prerelease; maintainers review its
+checksums and inventories before publication. No step publishes it automatically.
+For `workflow_dispatch`, select an existing version tag; `create_draft=false`
+signs and packages only, while `create_draft=true` also requests the draft.
+
+For key rotation, the coordinator replaces the environment secret and offline
+backup, commits the replacement public point, and rebuilds all release binaries.
+Coordinate those changes before approving signing; a mismatched key fails the
+job. Existing installations need the rebuilt plugin because their trusted key
+is compiled in. If the key leaks, stop approvals, cancel pending runs, remove
+the compromised secret, rotate the key and review or withdraw affected drafts
+and assets. Publish recovery instructions requiring a plugin upgrade. See
+[catalogue key custody and recovery](models-catalogue.md#signing-and-key-custody)
+for the sequence-floor and trust implications.
 
 For a local Windows package build, stage a baseline ORT-enabled CMake build,
 install Python 3.12+ with `onnx==1.19.1` for the synthetic diagnostics, then run:
