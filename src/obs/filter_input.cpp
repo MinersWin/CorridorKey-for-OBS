@@ -3,6 +3,11 @@
 #include "filter_input.hpp"
 #include "staged_transport.hpp"
 #include "engine/fake_pipeline.hpp"
+#ifdef CORRIDORKEY_CK2_DEV
+#include "engine/ck2_ort.hpp"
+#include "util/utf8_path.hpp"
+#include <cstdlib>
+#endif
 #include "runtime/scheduler.hpp"
 #include "telemetry/frame_timing.hpp"
 #include "telemetry/obs_clock.hpp"
@@ -71,7 +76,16 @@ struct FilterInput::Impl {
 	mutable std::mutex mutex;
 	std::mutex mailbox_mutex;
 	FramePool pool{FramePool::maximum_capacity};
-	FakePipeline pipeline{{}, FakeExecution::manual};
+	FakePipeline fake{{}, FakeExecution::manual};
+	Pipeline *pipeline = &fake;
+#ifdef CORRIDORKEY_CK2_DEV
+	std::unique_ptr<Ck2Pipeline> real;
+	std::string prepared_key;
+#endif
+	std::stop_source preparation;
+	Crop capture_roi, completed_roi;
+	std::string model_detail;
+	Backend model_backend = Backend::fake;
 	Scheduler scheduler{admission}; // Worker only; render deduplication is separate.
 	SettingsSnapshot settings;
 	FakeOptions options;
@@ -113,6 +127,10 @@ struct FilterInput::Impl {
 	Error preparation_error;
 	Generation resource_attempt = 0;
 	std::uint64_t logged_count = 0;
+	std::array<double, 4> stage_total{};
+	std::uint64_t model_frames = 0, moge_runs = 0, last_published = 0;
+	std::atomic<std::uint64_t> published{0};
+	double inference_total = 0;
 
 	explicit Impl(obs_source_t *owner) : source(owner)
 	{
@@ -122,6 +140,10 @@ struct FilterInput::Impl {
 	{
 		stopping = true;
 		wake.notify_one();
+		{
+			std::lock_guard lock(mutex);
+			preparation.request_stop();
+		}
 		worker.join();
 		if (target)
 			obs_weak_source_release(target);
@@ -154,6 +176,8 @@ struct FilterInput::Impl {
 	}
 	void invalidate()
 	{
+		preparation.request_stop();
+		capture_roi = settings ? settings->context.crop : Crop{};
 		pool.advance_generation();
 		frame_timing.reset();
 		last_presented = 0;
@@ -223,6 +247,20 @@ struct FilterInput::Impl {
 		     CallbackTimes::quantile(inference_cpu_timings.total, inference_cpu_timings.count.load(), .95),
 		     CallbackTimes::quantile(worker_timings.total, worker_timings.count.load(), .5),
 		     CallbackTimes::quantile(worker_timings.total, worker_timings.count.load(), .95));
+		if (model_frames) {
+			blog(LOG_INFO,
+			     "[corridorkey:w09] frames=%llu published=%llu keyed_fps=%.2f moge_ms=%.3f rvm_ms=%.3f stage1_ms=%.3f stage2_ms=%.3f worker_ms=%.3f",
+			     static_cast<unsigned long long>(model_frames),
+			     static_cast<unsigned long long>(published.load()),
+			     static_cast<double>(published - last_published) /
+				     std::chrono::duration<double>(now - last_log).count(),
+			     moge_runs ? stage_total[0] / static_cast<double>(moge_runs) : 0,
+			     stage_total[1] / static_cast<double>(model_frames),
+			     stage_total[2] / static_cast<double>(model_frames),
+			     stage_total[3] / static_cast<double>(model_frames),
+			     inference_total / static_cast<double>(model_frames));
+		}
+		last_published = published.load();
 		logged_count = count;
 		last_log = now;
 	}
@@ -338,14 +376,19 @@ struct FilterInput::Impl {
 		result->input.lease.transition(FrameState::presenting);
 		last_presented = result->identity.sequence;
 		presented = std::move(result);
+		capture_roi = completed_roi;
+		++published;
 		failure = ErrorCode::none;
 	}
 	void work(Generation &prepared)
 	{
+		std::stop_token stop;
 		const auto work_start = obs_now();
 		const auto generation = pool.generation();
 		if (prepared != generation) {
 			std::lock_guard lock(mutex);
+			preparation = std::stop_source{};
+			stop = preparation.get_token();
 			worker_settings = settings;
 			worker_options = options;
 			worker_active = active();
@@ -354,14 +397,67 @@ struct FilterInput::Impl {
 		const auto &config = worker_options;
 		const bool active = worker_active;
 		if (prepared != generation) {
-			pipeline.cancel();
+			pipeline->cancel();
 			scheduler.reset();
-			pipeline.configure(config);
 			PrepareRequest request;
 			request.instance = instance;
 			request.generation = generation;
 			request.settings = snapshot;
-			const auto problem = pipeline.prepare(request);
+			request.cancellation = stop;
+			Error problem;
+#ifdef CORRIDORKEY_CK2_DEV
+			const char *override_path = std::getenv("CORRIDORKEY_CK2_DEV_CONFIG");
+			if (override_path && *override_path && snapshot && active) {
+				const auto key = std::to_string(snapshot->quality.grid.width) + ":" +
+						 std::to_string(snapshot->quality.grid.height) + ":" +
+						 std::to_string(static_cast<int>(snapshot->quality.profile)) + ":" +
+						 std::to_string(static_cast<int>(snapshot->backend.backend)) + ":" +
+						 snapshot->quality.model_revision;
+				if (!Ck2Pipeline::supports(*snapshot)) {
+					problem = error(ErrorCode::unsupported);
+					std::lock_guard lock(mutex);
+					model_detail = "CK2 settings request an unsupported stage or input transform.";
+				} else if (real && key == prepared_key) {
+					pipeline = real.get();
+					problem = real->reset(generation, ResetReason::explicit_reset);
+				} else {
+					auto config = ck2::read_development_config(utf8_path(override_path));
+					config.runtime.info = [](const std::string &message) {
+						blog(LOG_INFO, "[corridorkey:w09] %s", message.c_str());
+					};
+					auto replacement = std::make_unique<Ck2Pipeline>(
+						[config](const PrepareRequest &original) {
+							auto request = original;
+							request.model = ck2::development_model(
+								config.models, request.settings->quality.grid,
+								request.settings->quality.profile == Profile::quality,
+								config.release_fixture);
+							request.transport.adapter = config.adapter;
+							return ck2::prepare_ort(request, config.runtime);
+						},
+						obs_now);
+					problem = replacement->prepare(request);
+					{
+						std::lock_guard lock(mutex);
+						model_detail = replacement->detail();
+						blog(problem ? LOG_WARNING : LOG_INFO,
+						     "[corridorkey:w09] preparation: %s", model_detail.c_str());
+					}
+					if (!problem) {
+						real = std::move(replacement);
+						pipeline = real.get();
+						prepared_key = key;
+						std::lock_guard lock(mutex);
+						model_backend = real->capabilities().backend;
+					}
+				}
+			} else
+#endif
+			{
+				pipeline = &fake;
+				fake.configure(config);
+				problem = fake.prepare(request);
+			}
 			preparation_error = problem;
 			prepared = generation;
 			if (problem)
@@ -369,8 +465,9 @@ struct FilterInput::Impl {
 		}
 
 		const auto inference_start = obs_now();
-		pipeline.advance(obs_now());
-		auto result = pipeline.poll_result();
+		if (pipeline == &fake)
+			fake.advance(obs_now());
+		auto result = pipeline->poll_result();
 		const bool produced = result.has_value();
 		if (produced)
 			inference_cpu_timings.record(obs_now() - inference_start, {});
@@ -396,6 +493,20 @@ struct FilterInput::Impl {
 				result.reset();
 			}
 		}
+		Crop next_roi = snapshot ? snapshot->context.crop : Crop{};
+#ifdef CORRIDORKEY_CK2_DEV
+		if (result && real && pipeline == real.get()) {
+			next_roi = real->suggested_roi();
+			const auto times = real->stage_times();
+			++model_frames;
+			moge_runs += times.moge_refreshed ? 1 : 0;
+			stage_total[0] += times.moge_ms;
+			stage_total[1] += times.rvm_ms;
+			stage_total[2] += times.stage1_ms;
+			stage_total[3] += times.stage2_ms;
+			inference_total += std::chrono::duration<double, std::milli>(result->timings.inference).count();
+		}
+#endif
 		std::optional<InputFrame> input;
 		if (result || input_available) {
 			std::lock_guard lock(mailbox_mutex);
@@ -403,6 +514,7 @@ struct FilterInput::Impl {
 				completed_result.swap(result);
 				completed_pixels.swap(rgba);
 				publication_started = obs_now();
+				completed_roi = next_roi;
 			}
 			input = std::move(staged_input);
 			staged_input.reset();
@@ -417,7 +529,7 @@ struct FilterInput::Impl {
 			dropped += scheduler.dropped() - previous_dropped;
 		}
 		if (active && !preparation_error && generation == pool.generation()) {
-			const auto problem = scheduler.submit(pipeline, tick.load(), obs_now());
+			const auto problem = scheduler.submit(*pipeline, tick.load(), obs_now());
 			if (!problem)
 				++submitted;
 			else if (problem.code != ErrorCode::busy)
@@ -441,9 +553,9 @@ struct FilterInput::Impl {
 			std::unique_lock wait_lock(wake_mutex);
 			wake.wait_for(wait_lock, std::chrono::milliseconds(1));
 		}
-		pipeline.cancel();
+		pipeline->cancel();
 		scheduler.reset();
-		pipeline.shutdown();
+		pipeline->shutdown();
 		pool.advance_generation();
 		graphics_task([&] {
 			// FIFO barrier: the last asynchronous callback has returned before
@@ -476,6 +588,11 @@ void FilterInput::update(obs_data_t *data, SettingsSnapshot settings)
 	impl_->settings = std::move(settings);
 	impl_->enabled = obs_data_get_bool(data, "w03_fake_enabled");
 	impl_->debug_view = static_cast<int>(std::clamp<long long>(obs_data_get_int(data, "w08_debug_view"), 0, 7));
+#ifdef CORRIDORKEY_CK2_DEV
+	const char *override_path = std::getenv("CORRIDORKEY_CK2_DEV_CONFIG");
+	if (override_path && *override_path)
+		impl_->enabled = true;
+#endif
 	impl_->options.delay =
 		std::chrono::milliseconds(std::clamp<long long>(obs_data_get_int(data, "w03_fake_delay"), 0, 2000));
 	impl_->options.reorder_delay = obs_data_get_bool(data, "w03_fake_reorder") ? std::chrono::milliseconds(100)
@@ -583,7 +700,8 @@ bool FilterInput::render() noexcept
 				input.lease = std::move(*lease);
 				input.identity = {s.instance, s.pool.generation(), ++s.sequence, tick, now};
 				input.transform.source_size = s.size;
-				input.transform.user_crop = input.transform.sampled_roi = s.settings->context.crop;
+				input.transform.user_crop = s.settings->context.crop;
+				input.transform.sampled_roi = s.capture_roi;
 				input.settings = s.settings;
 				const auto problem = s.transport->try_capture(input);
 				host = s.transport->host_draw_time();
@@ -634,7 +752,8 @@ StatusSnapshot FilterInput::status() const
 {
 	const auto &s = *impl_;
 	auto status = std::make_shared<Status>();
-	status->backend = Backend::fake;
+	std::lock_guard lock(s.mutex);
+	status->backend = s.model_backend;
 	status->transport = TransportKind::staged_grid;
 	status->generation = s.pool.generation();
 	status->failure = error(s.failure.load());
@@ -660,6 +779,10 @@ StatusSnapshot FilterInput::status() const
 	status->repeated = timing.repeated;
 	if (s.unsupported_hdr)
 		status->diagnostic_detail = "HDR input is not supported by this model; passthrough.";
+	if (!s.model_detail.empty())
+		status->diagnostic_detail =
+			s.model_detail +
+			(status->failure ? " Passthrough: " + std::string(status->failure.action) : "");
 	status->submitted = s.submitted.load();
 	status->completed = s.completed.load();
 	status->dropped = s.dropped.load();
@@ -667,6 +790,7 @@ StatusSnapshot FilterInput::status() const
 }
 void FilterInput::add_properties(obs_properties_t *properties)
 {
+#ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
 	auto *group = obs_properties_create();
 	obs_properties_add_bool(group, "w03_fake_enabled", "Key source with diagnostic fake");
 	auto *view = obs_properties_add_list(group, "w08_debug_view", "Reconstruction view", OBS_COMBO_TYPE_LIST,
@@ -685,5 +809,8 @@ void FilterInput::add_properties(obs_properties_t *properties)
 	obs_property_list_add_int(fault, "Invalid output", 3);
 	obs_properties_add_group(properties, "w03_fake", "Input capture diagnostics (no neural model)",
 				 OBS_GROUP_NORMAL, group);
+#else
+	(void)properties;
+#endif
 }
 } // namespace corridorkey

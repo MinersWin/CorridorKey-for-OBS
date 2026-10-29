@@ -3,8 +3,12 @@
 #include <stdexcept>
 
 namespace corridorkey {
-Ck2Pipeline::Ck2Pipeline(Ck2Factory factory) : factory_(std::move(factory))
+Ck2Pipeline::Ck2Pipeline(Ck2Factory factory, std::function<TimePoint()> now)
+	: factory_(std::move(factory)),
+	  now_(std::move(now))
 {
+	if (!now_)
+		throw std::invalid_argument("Missing pipeline clock");
 	worker_ = std::thread([this] { work(); });
 }
 Ck2Pipeline::~Ck2Pipeline()
@@ -160,18 +164,15 @@ void Ck2Pipeline::work()
 		output.identity = output.input.identity;
 		output.transform = output.input.transform;
 		output.timings.submitted_at = job->submitted;
-		output.timings.started_at = Clock::now();
+		output.timings.started_at = now_();
 		std::optional<ck2::LowResolutionResult> decoded;
 		try {
 			if (cancelled_ || stopping_ || preparation_stop_.stop_requested())
 				output.failure = error(ErrorCode::cancelled);
 			else {
 				decoded = sequence_->process(output.input, output.input.cancellation, &cancelled_);
-				const auto grid = output.input.analysis.size;
-				output.foreground = ck2::packed_image(ck2::resize_bilinear(decoded->foreground, grid),
-								      PixelFormat::rgb_f32);
-				output.alpha = ck2::packed_image(ck2::resize_bilinear(decoded->alpha, grid),
-								 PixelFormat::alpha_f32);
+				output.foreground = ck2::packed_image(decoded->foreground, PixelFormat::rgb_f32);
+				output.alpha = ck2::packed_image(decoded->alpha, PixelFormat::alpha_f32);
 				output.failure = validate_result(output);
 			}
 		} catch (const std::bad_alloc &) {
@@ -181,7 +182,7 @@ void Ck2Pipeline::work()
 		} catch (...) {
 			output.failure = error(ErrorCode::invalid_output);
 		}
-		output.timings.completed_at = Clock::now();
+		output.timings.completed_at = now_();
 		output.timings.inference = output.timings.completed_at - output.timings.started_at;
 		std::lock_guard lock(mutex_);
 		if (cancelled_ || stopping_ || preparation_stop_.stop_requested() ||

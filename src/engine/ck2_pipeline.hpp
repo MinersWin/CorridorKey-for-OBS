@@ -17,7 +17,7 @@ struct Ck2Prepared {
 using Ck2Factory = std::function<Ck2Prepared(const PrepareRequest &)>;
 class Ck2Pipeline final : public Pipeline {
 public:
-	explicit Ck2Pipeline(Ck2Factory);
+	explicit Ck2Pipeline(Ck2Factory, std::function<TimePoint()> now = Clock::now);
 	~Ck2Pipeline() override;
 	Error prepare(const PrepareRequest &) override;
 	Error reset(Generation, ResetReason) override;
@@ -40,6 +40,7 @@ private:
 	void work();
 	void clear();
 	Ck2Factory factory_;
+	std::function<TimePoint()> now_;
 	mutable std::mutex mutex_;
 	std::mutex execution_;
 	std::condition_variable wake_;
