@@ -6,7 +6,7 @@
 #include "obs/audio_sync_obs.hpp"
 #include "settings/obs_settings.hpp"
 #include "telemetry/diagnostics.hpp"
-#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_DEV)
+#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 #include "obs/filter_input.hpp"
 #endif
 #include <obs-module.h>
@@ -17,7 +17,7 @@ namespace {
 struct Filter final : FilterControl {
 	explicit Filter(obs_source_t *owner)
 		: source(owner)
-#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_DEV)
+#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 		  ,
 		  input(owner)
 #endif
@@ -37,7 +37,7 @@ struct Filter final : FilterControl {
 	}
 	StatusSnapshot pipeline_status() const
 	{
-#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_DEV)
+#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 		auto status = input.status();
 		diagnostics::record_error(status->failure.code);
 		return status;
@@ -63,11 +63,11 @@ struct Filter final : FilterControl {
 	}
 	void request_reset() noexcept override
 	{
-#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_DEV)
+#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 		input.reset();
 #endif
 	}
-#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_DEV)
+#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 	FilterInput input;
 #endif
 };
@@ -80,7 +80,7 @@ void update_filter(void *data, obs_data_t *settings)
 	try {
 		auto *filter = static_cast<Filter *>(data);
 		auto snapshot = read_settings(settings);
-#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_DEV)
+#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 		filter->input.update(settings, snapshot);
 #endif
 		{
@@ -140,7 +140,7 @@ obs_properties_t *filter_properties(void *data)
 		PropertyCapabilities capabilities;
 		capabilities.audio_sync = true;
 		auto *properties = create_filter_properties(static_cast<Filter *>(data), capabilities);
-#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_DEV)
+#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 		FilterInput::add_properties(properties);
 #endif
 		return properties;
@@ -152,7 +152,7 @@ obs_properties_t *filter_properties(void *data)
 void render_filter(void *data, gs_effect_t *)
 {
 	auto *filter = static_cast<Filter *>(data);
-#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_DEV)
+#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 	if (filter->input.render())
 		return;
 #endif
@@ -168,7 +168,7 @@ gs_color_space filter_color_space(void *data, size_t count, const gs_color_space
 void tick_filter(void *data, float)
 {
 	static_cast<Filter *>(data)->sync->tick();
-#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_DEV)
+#if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 	static_cast<Filter *>(data)->input.tick();
 #else
 	(void)data;

@@ -7,6 +7,43 @@
 #include <sstream>
 
 namespace corridorkey::ui {
+namespace {
+std::mutex preparation_mutex;
+std::map<InstanceId, PreparationTask> preparations;
+} // namespace
+void preparation_state(InstanceId id, ModelKey key, ModelState state, std::stop_source stop)
+{
+	std::lock_guard lock(preparation_mutex);
+	auto &task = preparations[id];
+	if (task.started == TimePoint{} || task.status.key != key)
+		task.started = Clock::now();
+	task.status = {std::move(key), state, {0, {}, true}, {}};
+	task.cancellation = std::move(stop);
+}
+void preparation_finished(InstanceId id)
+{
+	std::lock_guard lock(preparation_mutex);
+	preparations.erase(id);
+}
+std::vector<PreparationTask> preparation_tasks()
+{
+	std::lock_guard lock(preparation_mutex);
+	std::vector<PreparationTask> result;
+	for (const auto &[id, task] : preparations) {
+		(void)id;
+		result.push_back(task);
+	}
+	return result;
+}
+void cancel_preparation(const ModelKey &key)
+{
+	std::lock_guard lock(preparation_mutex);
+	for (auto &[id, task] : preparations) {
+		(void)id;
+		if (task.status.key == key)
+			task.cancellation.request_stop();
+	}
+}
 bool working(ModelState s)
 {
 	return s == ModelState::downloading || s == ModelState::verifying || s == ModelState::binding ||

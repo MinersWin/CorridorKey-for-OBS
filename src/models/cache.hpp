@@ -41,7 +41,8 @@ public:
 	void prepare(const Manifest &);
 	void publish(const Manifest &, std::stop_token = {});
 	std::shared_ptr<const ReadyModel> acquire(const Manifest &, std::stop_token = {}) const;
-	bool remove(const ModelKey &); // false while leased or installing
+	// Explicit manager removal may clear selection, but only after acquiring the exclusive reader lock.
+	bool remove(const ModelKey &, bool remove_selected = false); // false while leased or installing
 	std::optional<ModelKey> current(std::string_view id) const;
 	void select_current(const Manifest &); // explicit activation, never part of install
 	void clear_current(std::string_view id);

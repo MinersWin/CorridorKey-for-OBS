@@ -2,6 +2,7 @@
 #include "model_manager.hpp"
 #include "backend_test.hpp"
 #include "license_dialog.hpp"
+#include "models/installation.hpp"
 #include "telemetry/diagnostics_obs.hpp"
 #include "util/utf8_path.hpp"
 #include <obs-module.h>
@@ -71,51 +72,11 @@ void heading(QLabel *l, bool large = false)
 	}
 	l->setFont(f);
 }
-ort::ProbeConfig probe_config()
-{
-	ort::ProbeConfig config;
-#ifdef _WIN32
-	config.helper = module_path("tools/corridorkey_backend_probe.exe");
-#else
-	config.helper = utf8_path(CORRIDORKEY_PROBE_HELPER);
-#endif
-	config.scratch = models::obs_model_cache_path().parent_path() / "backend-tests";
-	config.fixture_fp32 = module_path("tools/probe-fp32.onnx");
-	config.fixture_fp16 = module_path("tools/probe-fp16.onnx");
-	// Only installer-owned runtime descriptors may select native libraries.
-	const auto index = module_path("runtimes/probes.json");
-	if (!index.empty() && models::fs::exists(index)) {
-		auto j = models::strict_json(models::read_small_file(index));
-		models::fields(j, {"schema_version", "bundles"});
-		models::require(j.at("schema_version") == 1 && j.at("bundles").is_object(), "Invalid probe index");
-		for (auto &[name, value] : j.at("bundles").items()) {
-			const auto relative = models::string(value);
-			models::relative_path(relative);
-			config.bundles.emplace(ort::parse_backend(name), index.parent_path() / utf8_path(relative));
-		}
-	}
-	return config;
-}
 std::shared_ptr<ManagerController> make_controller()
 {
 	auto licences = models::LicenceRegistry::parse(models::read_small_file(module_path("models/licenses-v1.json")));
 	auto sources = models::parse_source_inventory(models::read_small_file(module_path("models/sources-v1.json")));
-	std::vector<models::Manifest> manifests;
-	const auto catalogue_path = module_path("models/catalogue-v1.json");
-	auto bytes = models::read_small_file(catalogue_path);
-	auto index = models::strict_json(bytes);
-	if (!index.at("packages").empty()) {
-		// The release key is compiled in. A catalogue cannot supply its own trust.
-		const std::string public_key = CORRIDORKEY_CATALOGUE_PUBLIC_KEY;
-		models::require(!public_key.empty(), "Release catalogue key not configured", ErrorCode::unsupported);
-		auto sig = models::strict_json(models::read_small_file(module_path("models/catalogue-signature.json")));
-		models::Cache cache(models::obs_model_cache_path());
-		auto admitted = models::admit_catalogue(cache, bytes, models::string(sig.at("signature")), public_key);
-		for (const auto &pin : admitted.entries) {
-			const auto path = module_path(("models/manifests/" + pin.manifest.sha256 + ".json").c_str());
-			manifests.push_back(models::parse_manifest(models::read_small_file(path), pin));
-		}
-	}
+	auto manifests = models::installed_catalogue();
 	return std::make_shared<ManagerController>(models::obs_model_cache_path(), std::move(licences),
 						   model_rows(manifests, sources), registered_binder);
 }
@@ -341,7 +302,7 @@ void ModelManager::render()
 	setup_->setEnabled(recommended != snapshot_.rows.end() && ui::actions(*recommended).install);
 	setup_->setToolTip(recommended == snapshot_.rows.end() ? tr("No recommended package in this catalogue")
 							       : q(recommended->availability));
-	intro_->setText(offer_setup ? tr("Start with Balanced · CK2 and Edge Refiner v12\n%1")
+	intro_->setText(offer_setup ? tr("Start with Balanced: CorridorKey 2.0\n%1")
 					      .arg(recommended == snapshot_.rows.end()
 							   ? tr("Package size pending")
 							   : q(byte_size(recommended->download_bytes)) +
@@ -391,6 +352,13 @@ void ModelManager::details()
 				     q(byte_size(static_cast<std::uint64_t>(std::max(0., r->bytes_per_second)))));
 	} else if (r->status.state == ModelState::binding)
 		task += tr(" · One-time local preparation");
+	if (r->preparation_started != TimePoint{}) {
+		const auto seconds =
+			std::chrono::duration_cast<std::chrono::seconds>(Clock::now() - r->preparation_started).count();
+		task += tr(" · %1:%2 elapsed · Video stays in passthrough")
+				.arg(seconds / 60)
+				.arg(seconds % 60, 2, 10, QChar('0'));
+	}
 	if (r->cancelling)
 		task += tr(" · Cancelling at a safe boundary…");
 	task_->setText(task);
@@ -490,7 +458,7 @@ void open_model_manager()
 						controller = make_controller();
 					manager =
 						new ModelManager(static_cast<QWidget *>(obs_frontend_get_main_window()),
-								 controller, probe_config());
+								 controller, models::installed_probe_config());
 				}
 				manager->show();
 				manager->raise();
