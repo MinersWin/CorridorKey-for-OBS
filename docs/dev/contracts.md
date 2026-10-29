@@ -13,7 +13,7 @@ flowchart LR
     Loader[Pipeline preparation] -->|ready generation| Capture
     Capture[W03 filter input] -->|InputFrame and exclusive slot lease| Worker[Pipeline worker]
     Worker -->|FrameResult with original input| Present[W03 presentation]
-    Present -->|retire after completion| Pool[Three-slot FramePool]
+    Present -->|retire after completion| Pool[Bounded FramePool]
     Pool -->|try_acquire| Capture
 ```
 
@@ -49,7 +49,10 @@ instances.
 
 ## Frame ownership and time
 
-`FramePool` starts at generation 1 and has exactly three slots. `try_acquire`
+`FramePool` starts at generation 1 and defaults to three slots. The staged OBS
+transport requests five slots for capture through GPU retirement; the maximum is
+five. Inference admission and pending replacement keep their separate bounds.
+`try_acquire`
 uses bounded atomic operations. A move-only `FrameLease` carries the generation,
 slot index and reuse counter. It follows
 `capturing -> ready -> processing -> complete -> presenting -> retired`.

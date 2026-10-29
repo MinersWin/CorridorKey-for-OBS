@@ -1,0 +1,245 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
+uniform float4x4 ViewProj;
+uniform texture2d image;
+uniform texture2d guide_image;
+uniform texture2d model_image;
+uniform texture2d coefficient_image;
+uniform texture2d delta_image;
+uniform texture2d background_image;
+uniform texture2d band_image;
+uniform texture2d coarse_image;
+uniform texture2d refined_image;
+uniform float2 texel;
+uniform float2 input_size;
+uniform float2 grid_size;
+uniform float2 coarse_size;
+uniform float4 roi;
+uniform float4 user_cut;
+uniform float4 finish_params; // contrast, offset, black, white
+uniform float4 reconstruction_params; // epsilon, inner correction, despill, band gain
+uniform float band_low;
+uniform int radius;
+uniform int view;
+uniform bool linear_output;
+uniform bool use_refined;
+uniform bool equation_unmix;
+uniform bool bilinear_alpha;
+sampler_state linear_clamp { Filter = Linear; AddressU = Clamp; AddressV = Clamp; };
+sampler_state point_clamp { Filter = Point; AddressU = Clamp; AddressV = Clamp; };
+struct Vertex { float4 pos : POSITION; float2 uv : TEXCOORD0; };
+Vertex VS(Vertex v) { v.pos = mul(float4(v.pos.xyz, 1.0), ViewProj); return v; }
+float clean(float x) { return (x >= -65504.0 && x <= 65504.0) ? x : 0.0; }
+float4 safe4(float4 p) { return float4(clean(p.r), clean(p.g), clean(p.b), clean(p.a)); }
+float to_linear(float x) { x = saturate(clean(x)); return x <= 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4); }
+float to_srgb(float x) { x = saturate(clean(x)); return x <= 0.0031308 ? x * 12.92 : 1.055 * pow(x, 1.0 / 2.4) - 0.055; }
+float3 decode(float3 c) { return float3(to_linear(c.r), to_linear(c.g), to_linear(c.b)); }
+float3 encode(float3 c) { return float3(to_srgb(c.r), to_srgb(c.g), to_srgb(c.b)); }
+float inside(float2 uv, float4 bounds) { return step(bounds.x, uv.x) * step(bounds.y, uv.y) * step(uv.x, bounds.z) * step(uv.y, bounds.w); }
+float3 straight(float4 p) { p = safe4(p); return p.a > 0.000001 ? saturate(p.rgb / p.a) : float3(0.0, 0.0, 0.0); }
+
+float4 sample_Coefficients(float2 uv)
+{
+    float2 p = uv * grid_size - 0.5;
+    float2 base = floor(p), weight = p - base;
+    float2 a = (base + 0.5) / grid_size;
+    float2 step_uv = 1.0 / grid_size;
+    return lerp(lerp(coefficient_image.Sample(point_clamp, a), coefficient_image.Sample(point_clamp, a + float2(step_uv.x, 0.0)), weight.x),
+                lerp(coefficient_image.Sample(point_clamp, a + float2(0.0, step_uv.y)), coefficient_image.Sample(point_clamp, a + step_uv), weight.x), weight.y);
+}
+float4 sample_Correction(float2 uv)
+{
+    float2 p = uv * grid_size - 0.5;
+    float2 base = floor(p), weight = p - base;
+    float2 a = (base + 0.5) / grid_size;
+    float2 step_uv = 1.0 / grid_size;
+    return lerp(lerp(delta_image.Sample(point_clamp, a), delta_image.Sample(point_clamp, a + float2(step_uv.x, 0.0)), weight.x),
+                lerp(delta_image.Sample(point_clamp, a + float2(0.0, step_uv.y)), delta_image.Sample(point_clamp, a + step_uv), weight.x), weight.y);
+}
+float4 sample_Background(float2 uv)
+{
+    float2 p = uv * grid_size - 0.5;
+    float2 base = floor(p), weight = p - base;
+    float2 a = (base + 0.5) / grid_size;
+    float2 step_uv = 1.0 / grid_size;
+    return lerp(lerp(background_image.Sample(point_clamp, a), background_image.Sample(point_clamp, a + float2(step_uv.x, 0.0)), weight.x),
+                lerp(background_image.Sample(point_clamp, a + float2(0.0, step_uv.y)), background_image.Sample(point_clamp, a + step_uv), weight.x), weight.y);
+}
+float4 sample_Network(float2 uv)
+{
+    float2 p = uv * grid_size - 0.5;
+    float2 base = floor(p), weight = p - base;
+    float2 a = (base + 0.5) / grid_size;
+    float2 step_uv = 1.0 / grid_size;
+    return lerp(lerp(model_image.Sample(point_clamp, a), model_image.Sample(point_clamp, a + float2(step_uv.x, 0.0)), weight.x),
+                lerp(model_image.Sample(point_clamp, a + float2(0.0, step_uv.y)), model_image.Sample(point_clamp, a + step_uv), weight.x), weight.y);
+}
+float4 sample_Coarse(float2 uv)
+{
+    float2 p = uv * coarse_size - 0.5;
+    float2 base = floor(p), weight = p - base;
+    float2 a = (base + 0.5) / coarse_size;
+    float2 step_uv = 1.0 / coarse_size;
+    return lerp(lerp(coarse_image.Sample(point_clamp, a), coarse_image.Sample(point_clamp, a + float2(step_uv.x, 0.0)), weight.x),
+                lerp(coarse_image.Sample(point_clamp, a + float2(0.0, step_uv.y)), coarse_image.Sample(point_clamp, a + step_uv), weight.x), weight.y);
+}
+
+// Truncated windows: edge pixels are counted once, without replicated padding.
+float4 Solve(Vertex v) : TARGET
+{
+    // A local origin keeps FP32 moments accurate on nearly constant guides.
+    float3 origin = saturate(safe4(guide_image.Sample(point_clamp, v.uv))).rgb;
+    float3 mean = float3(0.0, 0.0, 0.0), cross_alpha = mean, diagonal = mean, off = mean;
+    float mean_alpha = 0.0, count = 0.0;
+    for (int y = -radius; y <= radius; ++y) {
+        for (int x = -radius; x <= radius; ++x) {
+            float2 uv = v.uv + float2(x, y) * texel;
+            if (uv.x >= 0.0 && uv.y >= 0.0 && uv.x < 1.0 && uv.y < 1.0) {
+                float3 rgb = saturate(safe4(guide_image.Sample(point_clamp, uv))).rgb - origin;
+                float alpha = saturate(clean(model_image.Sample(point_clamp, uv).a));
+                mean += rgb; mean_alpha += alpha; cross_alpha += rgb * alpha;
+                diagonal += rgb * rgb; off += rgb.xxy * rgb.yzz; count += 1.0;
+            }
+        }
+    }
+    mean /= count; mean_alpha /= count;
+    diagonal = diagonal / count - mean * mean + reconstruction_params.x;
+    off = off / count - mean.xxy * mean.yzz;
+    float3 cov = cross_alpha / count - mean * mean_alpha;
+    float3 row0 = float3(diagonal.y * diagonal.z - off.z * off.z, off.y * off.z - off.x * diagonal.z, off.x * off.z - off.y * diagonal.y);
+    float3 row1 = float3(row0.y, diagonal.x * diagonal.z - off.y * off.y, off.x * off.y - diagonal.x * off.z);
+    float3 row2 = float3(row0.z, row1.z, diagonal.x * diagonal.y - off.x * off.x);
+    float determinant = dot(float3(diagonal.x, off.x, off.y), row0);
+    float3 a = float3(0.0, 0.0, 0.0);
+    if (determinant > 0.000000000000000001)
+        a = float3(dot(row0, cov), dot(row1, cov), dot(row2, cov)) / determinant;
+    return safe4(float4(a, mean_alpha - dot(a, mean + origin)));
+}
+float4 Box(Vertex v) : TARGET
+{
+    float4 sum = float4(0.0, 0.0, 0.0, 0.0); float count = 0.0;
+    for (int y = -radius; y <= radius; ++y) {
+        for (int x = -radius; x <= radius; ++x) {
+            float2 uv = v.uv + float2(x, y) * texel;
+            if (uv.x >= 0.0 && uv.y >= 0.0 && uv.x < 1.0 && uv.y < 1.0) { sum += image.Sample(point_clamp, uv); count += 1.0; }
+        }
+    }
+    return sum / count;
+}
+float4 Delta(Vertex v) : TARGET
+{
+    return float4(saturate(safe4(model_image.Sample(point_clamp, v.uv))).rgb - saturate(safe4(guide_image.Sample(point_clamp, v.uv))).rgb, 0.0);
+}
+float4 Band(Vertex v) : TARGET
+{
+    float uncertain = 0.0, near_alpha = 0.0;
+    for (int y = -2; y <= 2; ++y) {
+        for (int x = -2; x <= 2; ++x) {
+            float a = saturate(clean(model_image.Sample(point_clamp, v.uv + float2(x, y) * texel).a));
+            uncertain = max(uncertain, (a > band_low && a < 1.0 - band_low) ? 1.0 : 0.0);
+            near_alpha = max(near_alpha, a);
+        }
+    }
+    float weight = uncertain * (reconstruction_params.w > 0.0 ? saturate(near_alpha * reconstruction_params.w) : 1.0);
+    return float4(weight, weight, weight, 1.0);
+}
+float4 BackgroundSeed(Vertex v) : TARGET
+{
+    float a = saturate(clean(model_image.Sample(point_clamp, v.uv).a));
+    float weight = (1.0 - a) * (1.0 - a); weight *= weight;
+    return float4(decode(guide_image.Sample(point_clamp, v.uv).rgb) * weight, weight);
+}
+float4 Reduce(Vertex v) : TARGET
+{
+    float2 cell = floor(v.uv * 32.0);
+    float2 first = floor(cell * grid_size / 32.0);
+    float2 end = max(first + 1.0, floor((cell + 1.0) * grid_size / 32.0));
+    float3 sum = float3(0.0, 0.0, 0.0); float count = 0.0, alpha = 0.0;
+    for (int y = int(first.y); y < int(end.y); ++y) for (int x = int(first.x); x < int(end.x); ++x) {
+        float2 uv = (float2(x, y) + 0.5) / grid_size;
+        sum += saturate(safe4(guide_image.SampleLevel(point_clamp, uv, 0.0))).rgb;
+        alpha = max(alpha, saturate(clean(model_image.SampleLevel(point_clamp, uv, 0.0).a))); count += 1.0;
+    }
+    return float4(sum / max(count, 1.0), alpha);
+}
+float4 Pull(Vertex v) : TARGET
+{
+    // Explicit 2x2 footprints also cover odd sizes without stretching the last column.
+    float2 base = floor(v.uv * ceil(input_size * 0.5)) * 2.0;
+    float4 sum = float4(0.0, 0.0, 0.0, 0.0); float count = 0.0;
+    for (int y = 0; y < 2; ++y) for (int x = 0; x < 2; ++x) {
+        float2 p = base + float2(x, y);
+        if (p.x < input_size.x && p.y < input_size.y) { sum += image.Sample(point_clamp, (p + 0.5) / input_size); count += 1.0; }
+    }
+    return sum / max(count, 1.0);
+}
+float4 Push(Vertex v) : TARGET
+{
+    float4 p = image.Sample(point_clamp, v.uv);
+    float3 estimate = sample_Coarse(v.uv).rgb;
+    return float4(p.rgb + (1.0 - saturate(p.a)) * estimate, 1.0);
+}
+float4 SeedTop(Vertex v) : TARGET
+{
+    float4 p = image.Sample(point_clamp, v.uv);
+    return float4(p.a > 0.000001 ? p.rgb / p.a : float3(0.0, 0.0, 0.0), 1.0);
+}
+float4 EncodeBackground(Vertex v) : TARGET
+{
+    return float4(encode(image.Sample(point_clamp, v.uv).rgb), 1.0);
+}
+float4 Reconstruct(Vertex v) : TARGET
+{
+    float2 uv = (v.uv - roi.xy) / max(roi.zw - roi.xy, float2(0.000001, 0.000001));
+    float3 rgb = straight(image.Sample(point_clamp, v.uv));
+    float4 coef = sample_Coefficients(uv);
+    float alpha = saturate(clean(dot(coef.rgb, rgb) + coef.a));
+    if (bilinear_alpha) alpha = saturate(clean(sample_Network(uv).a));
+    float inner = saturate((alpha - 0.90) / 0.09);
+    float amount = lerp(1.0, reconstruction_params.y, inner);
+    float3 foreground = rgb + sample_Correction(uv).rgb * amount;
+    if (equation_unmix) {
+        float3 bg = sample_Background(uv).rgb;
+        foreground = lerp(rgb, (rgb - (1.0 - alpha) * bg) / max(alpha, 0.0001), amount);
+    }
+    return float4(saturate(safe4(float4(foreground, 0.0))).rgb, alpha);
+}
+float4 Finish(Vertex v) : TARGET
+{
+    float4 raw = safe4(image.Sample(point_clamp, v.uv));
+    if (use_refined) raw = safe4(refined_image.Sample(point_clamp, v.uv));
+    float alpha = saturate((raw.a - 0.5) * finish_params.x + 0.5 + finish_params.y);
+    alpha = saturate((alpha - finish_params.z) / max(finish_params.w - finish_params.z, 0.000001));
+    float3 fg = saturate(raw.rgb);
+    float excess = max(fg.g - (fg.r + fg.b) / 2.0, 0.0) * reconstruction_params.z;
+    fg = saturate(fg + float3(excess / 2.0, -excess, excess / 2.0));
+    alpha *= saturate(clean(guide_image.Sample(point_clamp, v.uv).a)) * inside(v.uv, roi) * inside(v.uv, user_cut);
+    float2 uv = (v.uv - roi.xy) / max(roi.zw - roi.xy, float2(0.000001, 0.000001));
+    if (view == 1) { fg = float3(alpha, alpha, alpha); alpha = 1.0; }
+    if (view == 2) { alpha = 1.0; }
+    if (view == 3) { fg = saturate(sample_Coefficients(uv).rgb * 0.5 + 0.5); alpha = 1.0; }
+    if (view == 4) { fg = band_image.Sample(linear_clamp, uv).rgb; alpha = 1.0; }
+    if (view == 5) { fg = float3(inside(v.uv, user_cut), inside(v.uv, roi), 0.0); alpha = 1.0; }
+    if (view == 6) { fg = straight(guide_image.Sample(point_clamp, v.uv)); alpha = 1.0; }
+    if (view == 7) { fg = sample_Background(uv).rgb; alpha = 1.0; }
+    return float4(decode(fg) * alpha, alpha);
+}
+float4 Present(Vertex v) : TARGET
+{
+    float4 p = image.Sample(linear_clamp, v.uv);
+    if (!linear_output) p.rgb = p.a > 0.000001 ? encode(p.rgb / p.a) * p.a : float3(0.0, 0.0, 0.0);
+    return p;
+}
+technique Solve { pass { vertex_shader = VS(v); pixel_shader = Solve(v); } }
+technique Box { pass { vertex_shader = VS(v); pixel_shader = Box(v); } }
+technique Delta { pass { vertex_shader = VS(v); pixel_shader = Delta(v); } }
+technique Band { pass { vertex_shader = VS(v); pixel_shader = Band(v); } }
+technique BackgroundSeed { pass { vertex_shader = VS(v); pixel_shader = BackgroundSeed(v); } }
+technique Reduce { pass { vertex_shader = VS(v); pixel_shader = Reduce(v); } }
+technique Pull { pass { vertex_shader = VS(v); pixel_shader = Pull(v); } }
+technique Push { pass { vertex_shader = VS(v); pixel_shader = Push(v); } }
+technique SeedTop { pass { vertex_shader = VS(v); pixel_shader = SeedTop(v); } }
+technique EncodeBackground { pass { vertex_shader = VS(v); pixel_shader = EncodeBackground(v); } }
+technique Reconstruct { pass { vertex_shader = VS(v); pixel_shader = Reconstruct(v); } }
+technique Finish { pass { vertex_shader = VS(v); pixel_shader = Finish(v); } }
+technique Present { pass { vertex_shader = VS(v); pixel_shader = Present(v); } }

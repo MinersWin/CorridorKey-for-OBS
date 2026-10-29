@@ -175,7 +175,7 @@ void register_filter()
 	obs_source_info info{};
 	info.id = "corridorkey";
 	info.type = OBS_SOURCE_TYPE_FILTER;
-	info.output_flags = OBS_SOURCE_VIDEO;
+	info.output_flags = OBS_SOURCE_VIDEO | OBS_SOURCE_SRGB;
 	info.get_name = filter_name;
 	info.create = create_filter;
 	info.destroy = destroy_filter;

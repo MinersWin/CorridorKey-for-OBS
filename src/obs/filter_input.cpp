@@ -6,6 +6,7 @@
 #include "runtime/scheduler.hpp"
 #include "telemetry/frame_timing.hpp"
 #include "telemetry/obs_clock.hpp"
+#include "runtime/capture_pacer.hpp"
 #include <obs-module.h>
 #include <algorithm>
 #include <atomic>
@@ -50,15 +51,15 @@ struct CallbackTimes {
 		return 20.01;
 	}
 };
-std::vector<std::uint8_t> pack(const FrameResult &result)
+std::vector<float> pack(const FrameResult &result)
 {
 	const auto rgb = result.foreground.storage->host_floats();
 	const auto alpha = result.alpha.storage->host_floats();
-	std::vector<std::uint8_t> rgba(alpha.size() * 4);
+	std::vector<float> rgba(alpha.size() * 4);
 	for (std::size_t p = 0; p < alpha.size(); ++p) {
 		for (unsigned c = 0; c < 3; ++c)
-			rgba[p * 4 + c] = static_cast<std::uint8_t>(std::lround(rgb[p * 3 + c] * 255));
-		rgba[p * 4 + 3] = static_cast<std::uint8_t>(std::lround(alpha[p] * 255));
+			rgba[p * 4 + c] = rgb[p * 3 + c];
+		rgba[p * 4 + 3] = alpha[p];
 	}
 	return rgba;
 }
@@ -67,17 +68,20 @@ struct FilterInput::Impl {
 	obs_source_t *source;
 	const InstanceId instance = next_instance.fetch_add(1);
 	mutable std::mutex mutex;
-	FramePool pool;
+	FramePool pool{FramePool::maximum_capacity};
 	FakePipeline pipeline{{}, FakeExecution::manual};
 	Scheduler scheduler{admission}; // Worker only; render deduplication is separate.
 	SettingsSnapshot settings;
 	FakeOptions options;
 	std::unique_ptr<StagedTransport> transport;
 	std::optional<FrameResult> presented;
-	std::array<std::optional<FrameResult>, FramePool::capacity> retired;
+	std::array<std::optional<FrameResult>, FramePool::maximum_capacity> retired;
 	Extent size;
+	gs_color_space color_space = GS_CS_SRGB;
 	obs_weak_source_t *target = nullptr;
 	bool enabled = false, host_enabled = true;
+	int debug_view = 0;
+	std::atomic<bool> unsupported_hdr{false};
 	std::uint64_t last_capture_tick = 0;
 	bool has_capture_tick = false;
 	Sequence sequence = 0, last_presented = 0;
@@ -87,9 +91,9 @@ struct FilterInput::Impl {
 	std::thread worker;
 	CallbackTimes timings, graphics_timings;
 	FrameTiming frame_timing;
-	std::array<Duration, FramePool::capacity> input_transfers{};
+	std::array<Duration, FramePool::maximum_capacity> input_transfers{};
 	TimePoint last_render{}, last_log = obs_now();
-	TimePoint next_capture{};
+	CapturePacer pacer;
 	Error preparation_error;
 	Generation resource_attempt = 0;
 	std::uint64_t logged_count = 0;
@@ -136,7 +140,7 @@ struct FilterInput::Impl {
 		pool.advance_generation();
 		frame_timing.reset();
 		last_presented = 0;
-		next_capture = {};
+		pacer.reset();
 		failure = ErrorCode::busy;
 	}
 	void retire_presented()
@@ -220,7 +224,7 @@ struct FilterInput::Impl {
 		}
 		pipeline.advance(obs_now());
 		auto result = pipeline.poll_result();
-		std::vector<std::uint8_t> rgba;
+		std::vector<float> rgba;
 		bool result_failed = false;
 		if (result) {
 			scheduler.completed();
@@ -248,7 +252,8 @@ struct FilterInput::Impl {
 			std::lock_guard lock(mutex);
 			if (presented && (!presented->input.lease.current() || !active || result_failed))
 				retire_presented();
-			if (result && result->input.lease.current() && transport && transport->upload(*result, rgba)) {
+			if (result && result->input.lease.current() && transport &&
+			    transport->upload(*result, rgba, debug_view)) {
 				result->timings.output_transfer += obs_now() - upload_start;
 				retire_presented();
 				result->input.lease.transition(FrameState::presenting);
@@ -331,6 +336,7 @@ void FilterInput::update(obs_data_t *data, SettingsSnapshot settings)
 	std::lock_guard lock(impl_->mutex);
 	impl_->settings = std::move(settings);
 	impl_->enabled = obs_data_get_bool(data, "w03_fake_enabled");
+	impl_->debug_view = static_cast<int>(std::clamp<long long>(obs_data_get_int(data, "w08_debug_view"), 0, 7));
 	impl_->options.delay =
 		std::chrono::milliseconds(std::clamp<long long>(obs_data_get_int(data, "w03_fake_delay"), 0, 2000));
 	impl_->options.reorder_delay = obs_data_get_bool(data, "w03_fake_reorder") ? std::chrono::milliseconds(100)
@@ -354,6 +360,8 @@ void FilterInput::tick() noexcept
 	const Extent size{target ? obs_source_get_base_width(target) : 0,
 			  target ? obs_source_get_base_height(target) : 0};
 	const bool enabled = obs_source_enabled(s.source);
+	const gs_color_space preferred[] = {GS_CS_SRGB, GS_CS_SRGB_16F};
+	const auto color_space = target ? obs_source_get_color_space(target, 2, preferred) : GS_CS_SRGB;
 	const bool changed = target ? !s.target || !obs_weak_source_references_source(s.target, target)
 				    : s.target != nullptr;
 	if (changed) {
@@ -361,8 +369,10 @@ void FilterInput::tick() noexcept
 			obs_weak_source_release(s.target);
 		s.target = target ? obs_source_get_weak_source(target) : nullptr;
 	}
-	if (changed || size != s.size || enabled != s.host_enabled || s.reset_requested.exchange(false)) {
+	if (changed || size != s.size || color_space != s.color_space || enabled != s.host_enabled ||
+	    s.reset_requested.exchange(false)) {
 		s.size = size;
+		s.color_space = color_space;
 		s.host_enabled = enabled;
 		s.invalidate();
 		if (!size.width || !size.height)
@@ -403,7 +413,9 @@ bool FilterInput::render() noexcept
 			return false;
 		}
 		const gs_color_space spaces[] = {GS_CS_SRGB, GS_CS_SRGB_16F};
-		if (!target || obs_source_get_color_space(target, 2, spaces) != GS_CS_SRGB) {
+		const auto color_space = obs_source_get_color_space(target, 2, spaces);
+		s.unsupported_hdr = color_space != GS_CS_SRGB && color_space != GS_CS_SRGB_16F;
+		if (s.unsupported_hdr) {
 			s.failure = ErrorCode::unsupported;
 			return false;
 		}
@@ -417,7 +429,7 @@ bool FilterInput::render() noexcept
 		if (!s.has_capture_tick || s.last_capture_tick != tick) {
 			s.has_capture_tick = true;
 			s.last_capture_tick = tick;
-			auto lease = now >= s.next_capture ? s.pool.try_acquire() : std::nullopt;
+			auto lease = s.pacer.due(tick) ? s.pool.try_acquire() : std::nullopt;
 			if (lease) {
 				InputFrame input;
 				input.lease = std::move(*lease);
@@ -434,7 +446,7 @@ bool FilterInput::render() noexcept
 				}
 				++s.captures;
 				const auto fps = s.settings->quality.target_fps;
-				s.next_capture = fps ? now + std::chrono::nanoseconds(1000000000 / fps) : now;
+				s.pacer.captured(tick, fps);
 			} else {
 				++s.dropped;
 			}
@@ -458,6 +470,10 @@ bool FilterInput::render() noexcept
 		return !problem;
 	}();
 	if (!keyed) {
+		if (s.unsupported_hdr) {
+			obs_source_skip_video_filter(s.source);
+			return true;
+		}
 		const auto before_host = obs_now();
 		const bool began = obs_source_process_filter_begin(s.source, GS_RGBA, OBS_NO_DIRECT_RENDERING);
 		host += obs_now() - before_host;
@@ -494,6 +510,8 @@ StatusSnapshot FilterInput::status() const
 		status->keyed_fps = timing.keyed_fps;
 	}
 	status->repeated = timing.repeated;
+	if (s.unsupported_hdr)
+		status->diagnostic_detail = "HDR input is not supported by this model; passthrough.";
 	status->submitted = s.submitted.load();
 	status->completed = s.completed.load();
 	status->dropped = s.dropped.load();
@@ -503,6 +521,12 @@ void FilterInput::add_properties(obs_properties_t *properties)
 {
 	auto *group = obs_properties_create();
 	obs_properties_add_bool(group, "w03_fake_enabled", "Key source with diagnostic fake");
+	auto *view = obs_properties_add_list(group, "w08_debug_view", "Reconstruction view", OBS_COMBO_TYPE_LIST,
+					     OBS_COMBO_FORMAT_INT);
+	const char *views[] = {"Output", "Alpha",      "Foreground", "Coefficients",
+			       "Band",   "Crop / ROI", "Input",      "Background fill"};
+	for (int i = 0; i < 8; ++i)
+		obs_property_list_add_int(view, views[i], i);
 	obs_properties_add_int(group, "w03_fake_delay", "Fake delay (ms)", 0, 2000, 1);
 	obs_properties_add_bool(group, "w03_fake_reorder", "Extra delay on odd frames");
 	auto *fault = obs_properties_add_list(group, "w03_fake_fault", "Injected failure", OBS_COMBO_TYPE_LIST,
