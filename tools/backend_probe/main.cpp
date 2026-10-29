@@ -179,7 +179,8 @@ int run(const fs::path &request, const fs::path &response)
 			throw std::runtime_error("Probe request too large");
 		std::ifstream file(request);
 		auto job = json::parse(file);
-		backend = backend_name(read_bundle(corridorkey::utf8_path(job.at("bundle").get<std::string>())).backend);
+		backend =
+			backend_name(read_bundle(corridorkey::utf8_path(job.at("bundle").get<std::string>())).backend);
 		result = execute(job);
 	} catch (const std::exception &e) {
 		result = {{"schema", 1}, {"ok", false}, {"backend", backend}, {"detail", redact(e.what())}};
