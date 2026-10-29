@@ -8,6 +8,10 @@ halo-free visual acceptance is not met:** the matched `rgb3` research output als
 has magenta fringes on the 4K dance frame. The screenshots below retain those
 fringes so the remaining problem is visible.
 
+The later [W13 refiner evaluation](refiner.md) adds native-tile inference and
+compares it with the research engine's `refiner` mode. This page records the Q1
+`rgb3` baseline.
+
 ## Root causes and fixes
 
 Facecam inference uses a 512 x 256 analysis image, but Stage 1 returns 256 x 128

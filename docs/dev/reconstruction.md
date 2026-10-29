@@ -290,6 +290,7 @@ model output. Live screenshots require the dedicated CorridorKey Test
 collection. Installed-OBS testing must acquire the shared lock first.
 
 The later [quality-parity evaluation](quality-parity.md) compares real CK2
-reconstruction with the research engine. Learned refinement, Linux runtime/fence
+reconstruction with the research engine. [W13](refiner.md) adds learned
+refinement and measures the staged atlas path. Linux runtime/fence
 behaviour, AMD/Intel hardware, HDR reconstruction and GPU execution-time
 measurements remain unverified.

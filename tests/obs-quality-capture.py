@@ -15,6 +15,9 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--view", default="key", choices=["key", "input", "foreground", "alpha"])
     parser.add_argument("--inner", type=float)
+    parser.add_argument("--refiner", choices=["on", "off"])
+    parser.add_argument("--budget", type=int, choices=[256, 384, 512, 768])
+    parser.add_argument("--wait", type=float, default=3, help="Seconds to settle after changing settings")
     args = parser.parse_args()
     ws = websocket.create_connection(f"ws://127.0.0.1:{args.port}", timeout=30)
     hello = json.loads(ws.recv())
@@ -33,8 +36,13 @@ def main():
     settings = {"obs_view": args.view}
     if args.inner is not None:
         settings["unmix_inner"] = args.inner
+    if args.refiner is not None:
+        settings["refiner_enabled"] = args.refiner == "on"
+        settings["edge_refiner"] = args.refiner == "on"
+    if args.budget is not None:
+        settings["refiner_max_tiles"] = args.budget
     request("SetSourceFilterSettings", {"sourceName": args.source, "filterName": "CorridorKey", "filterSettings": settings})
-    time.sleep(3)
+    time.sleep(max(0, args.wait))
     request("SaveSourceScreenshot", {"sourceName": args.source, "imageFormat": "png",
                                      "imageFilePath": str(args.output.resolve()), "imageCompressionQuality": -1})
     ws.close()
