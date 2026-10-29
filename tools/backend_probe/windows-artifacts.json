@@ -1,0 +1,38 @@
+{
+  "_spdx": "SPDX-License-Identifier: GPL-3.0-or-later",
+  "schema": 1,
+  "artifacts": [
+    {
+      "id": "ort",
+      "filename": "ort-1.31.1.zip",
+      "url": "https://github.com/microsoft/onnxruntime/releases/download/v1.31.1/onnxruntime-win-x64-gpu_cuda13-1.31.1.zip",
+      "sha256": "6c64508de9c04f9d938297287e9d81fa47a2fbbb30cc04e6fac0db88f6cb68c1",
+      "bytes": 309101542,
+      "license": "MIT plus archive ThirdPartyNotices.txt"
+    },
+    {
+      "id": "rtx",
+      "filename": "onnxruntime_ep_nv_tensorrt_rtx_cu13-0.5.0-py3-none-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/ef/64/6a704b972f2c6806b3a13abce3e0d827deb0e4192e7f4240ffdafa8d099c/onnxruntime_ep_nv_tensorrt_rtx_cu13-0.5.0-py3-none-win_amd64.whl",
+      "sha256": "609b19f7236c8522ef005a9f763003a78f492e5d871afad39fe1b247760eb3c7",
+      "bytes": 110875664,
+      "license": "EP Apache-2.0; bundled TensorRT-RTX and CUDA libraries have separate NVIDIA terms"
+    },
+    {
+      "id": "cublas",
+      "filename": "nvidia_cublas-13.0.2.14-py3-none-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/f3/91/bda39230b7a4c102bb724c21b50823efc63544490a885fea0b604911c0ab/nvidia_cublas-13.0.2.14-py3-none-win_amd64.whl",
+      "sha256": "5f7a90456b1392db60e28719547ba6e00696bfa81304b6887cf287f9edf2c1d7",
+      "bytes": 401887280,
+      "license": "NVIDIA CUDA SDK EULA; licenses/License.txt in wheel"
+    },
+    {
+      "id": "dml",
+      "filename": "onnxruntime_directml-1.24.4-cp312-cp312-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/88/ea/33814eb0ec96775eda4c1d30b0d86e91d7d2cd0d84c66d3915aef0e06fa3/onnxruntime_directml-1.24.4-cp312-cp312-win_amd64.whl",
+      "sha256": "f2ecb68b7b7b259d2ef3112ae760149f9b5a1e7c0fbb73d539da6250a648a614",
+      "bytes": 25111930,
+      "license": "ORT MIT; DirectML.dll 1.15.4 Microsoft DirectML redistribution terms"
+    }
+  ]
+}
