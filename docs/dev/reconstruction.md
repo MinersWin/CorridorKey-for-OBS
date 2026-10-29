@@ -238,7 +238,7 @@ captures were superseded before submission during the run; at 4K none were
 dropped. Render self-time p95 was 0.05 ms at both sizes, including capture and
 presentation. Pre-draw post submission p95 was 0.91 / 0.83 ms, pre-draw readback
 0.42 / 0.38 ms, and after-draw transfer tasks 1.32 / 1.09 ms (1080p / 4K).
-Fake synthesis and validation alone took about 5?6 ms median. A 20 ms artificial
+Fake synthesis and validation alone took about 5 to 6 ms median. A 20 ms artificial
 wait therefore cannot produce 50 FPS in this CPU fake.
 
 The selected log excerpts and numeric maxima are in
