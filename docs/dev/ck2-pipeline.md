@@ -86,7 +86,8 @@ texture size; Stage 1 first reduces guide RGB to its half grid. See
 [quality parity](quality-parity.md) for the correction and measured differences.
 Guided coefficients, colour deltas, push-pull,
 finishing/despill and crop mapping run through W08. There is no CPU upsample in
-this handoff. W13 can insert learned native-tile refinement before reconstruction.
+this handoff. [W13](refiner.md) refines native tiles between raw reconstruction
+and final despill/levels.
 
 The asynchronous capture/publication mailboxes and W15 timing hooks survive the
 integration. The CK2 worker receives OBS's monotonic clock so capture, submission,
@@ -324,7 +325,8 @@ Footage provenance is recorded in [the image notes](../images/dev/w09-provenance
 
 - Connect the signed catalogue/model-manager lifecycle to `prepare_ort` in normal
   builds. The local override is development-only.
-- Add W13 learned edge refinement. W08 native reconstruction is integrated.
+- Resolve the staged refiner's latency and remaining 4K edge coverage limits;
+  see [W13 measurements](refiner.md). W08 native reconstruction is integrated.
 - Reduce preparation cost and avoid repeated runtime hashing/private cache copies.
   Recreating captured sessions on changing ROI is correct for capture lifetime,
   but is too expensive for a continuously moving ROI; this needs a measured
