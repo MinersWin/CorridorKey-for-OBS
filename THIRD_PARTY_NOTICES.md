@@ -15,6 +15,10 @@ relinking obligations.
 | doctest 2.4.11 | MIT | Test-only framework, fetched by SHA-256; copyright Viktor Kirilov; [licence](https://github.com/doctest/doctest/blob/v2.4.11/LICENSE.txt). Not linked into the plugin. |
 | ONNX 1.17.0 | Apache-2.0 | Development/CI graph fixture generator and checker; [licence](https://github.com/onnx/onnx/blob/v1.17.0/LICENSE). Not shipped with the plugin. Its Python dependencies retain their package notices. |
 | FFmpeg | LGPL-2.1-or-later by default; builds with GPL components have additional GPL requirements | Linux SDK dependency: distribution libraries for OBS 30.2, minimal 8.0 build for the optional OBS 33 check; not bundled in plugin packages; [FFmpeg licensing](https://ffmpeg.org/legal.html) |
+| nlohmann/json | MIT | Strict model metadata parser; system headers or a SHA-256-pinned 3.11.3 fallback. Copyright Niels Lohmann; [licence](https://github.com/nlohmann/json/blob/v3.11.3/LICENSE.MIT). The licence is included in `data/licenses/nlohmann-json.txt`. |
+| zlib | Zlib | Bounded ZIP deflate import. Prefer the system/OBS SDK library; Windows without one builds pinned 1.3.2 statically. Copyright Jean-loup Gailly and Mark Adler; [licence](https://zlib.net/zlib_license.html). Notices for SDK 1.3.1 and fallback 1.3.2 are included under `data/licenses/`. |
+| libcurl | curl (MIT-inspired) | Linux anonymous HTTPS transport, from the distribution; [copyright and licence](https://curl.se/docs/copyright.html). No curl binary is bundled. |
+| OpenSSL 3 | Apache-2.0 | Linux SHA-256 and P-256 catalogue verification, from the distribution; [licence](https://github.com/openssl/openssl/blob/openssl-3.0/LICENSE.txt). No OpenSSL binary is bundled. Windows uses the OS WinHTTP and CNG APIs. |
 
 The default packages do not bundle Qt, OBS or ONNX Runtime. Optional future
 runtime packages must carry ONNX Runtime's LICENSE and ThirdPartyNotices.txt,
@@ -25,8 +29,8 @@ rights to those libraries.
 ## Separately downloaded models
 
 **CorridorKey models are NOT part of this repository or its release packages.**
-The planned model manager will download them only at the user's request and
-after showing the applicable licence and recording explicit acceptance.
+The model service permits payload downloads only after explicit acceptance of
+the exact licence texts. The model-manager UI is a separate work package.
 They are not GPL-licensed by this project.
 
 - CorridorKey 2.0 and CorridorKey 1.0: credit Corridor Digital LLC /
@@ -39,16 +43,27 @@ They are not GPL-licensed by this project.
   those separate terms. No upstream CorridorKey implementation code is copied.
 - MoGe-2: MIT; credit the MoGe authors and Microsoft.
   [Source and licence](https://github.com/microsoft/MoGe). The planned ViT-B
-  checkpoint is `Ruicheng/moge-2-vitb-normal` at revision
-  `ca5f0e07ff01d3e5a364c1d954ed12ee1814b368`.
+  encoder source is the safetensors format conversion at
+  [mantelmoritz/MoGe-2-ViT-B-Encoder-safetensors](https://huggingface.co/mantelmoritz/MoGe-2-ViT-B-Encoder-safetensors/tree/3090937b74a09929079cf6c77ad1edd40a0a9aaf),
+  derived from `Ruicheng/moge-2-vitb-normal` at revision
+  `ca5f0e07ff01d3e5a364c1d954ed12ee1814b368`. Its bundled DINOv2
+  Apache-2.0 notice is retained in the full licence registry.
 - RVM (Recurrent Video MAE): CC BY 4.0; credit Google DeepMind and the
   Recurrent Video MAE authors. This is not Robust Video Matting.
   [Source and attribution](https://github.com/google-deepmind/representations4d).
   Planned checkpoint: `pretrain_rvm_small16_256_204031069.npz`.
 - CorridorKey Realtime Edge Refiner: planned optional download from
   [mantelmoritz/CorridorKey-Realtime-EdgeRefiner](https://huggingface.co/mantelmoritz/CorridorKey-Realtime-EdgeRefiner).
-  Its checkpoint licence and attribution must be verified and included in the
-  model manifest before enabling downloads. No checkpoint is included here.
+  Its pinned v12 licence matches the CK2 Corridor Key Licence v2.0 text;
+  the registry retains the CorridorKey attribution. No checkpoint is included here.
+- MODNet: Apache-2.0 for code, models and demos, excluding the upstream GIF files.
+  [Published statement at the reviewed revision](https://github.com/ZHKKKe/MODNet/tree/28165a451e4610c9d77cfdf925a94610bb2810fb#license).
+  No exact hint checkpoint or model package is enabled yet.
+
+Full model texts, hashes and attribution are in `data/models/licenses-v1.json`.
+The production catalogue remains empty until graph releases and their signatures
+are available. CK1's GitHub v1 terms and HF metadata need reconciliation before
+admitting a CK1 package.
 
 Attribution here is informational and grants no model rights. Verify each
 model's exact revision, licence and required notices before adding it to a
