@@ -519,9 +519,24 @@ obs_properties_t *create_filter_properties(FilterControl *control, PropertyCapab
 	for (const auto &[key, label, help] : {std::tuple{"reset_memory", "ResetMemory.Label", "ResetMemory.Help"},
 					       std::tuple{"reset_quality", "ResetQuality.Label", "ResetQuality.Help"},
 					       std::tuple{"diagnostics", "Diagnostics.Label", "Diagnostics.Help"}}) {
+		// reset_quality needs the source that OBS passes to plain button callbacks, and
+		// obs_properties_add_button2 replaces that argument with priv. OBS 33 deprecates
+		// obs_properties_add_button, but it still works across the supported 30.2+ range.
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 		auto *action = std::string_view(key) == "reset_quality"
 				       ? obs_properties_add_button(p, key, tr(label), reset_quality)
 				       : obs_properties_add_button2(p, key, tr(label), button, state);
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 		obs_property_set_long_description(action, tr(help));
 	}
 	auto *initial = obs_data_create();
