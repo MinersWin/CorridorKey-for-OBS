@@ -250,6 +250,26 @@ int run_post_tests(const char *directory)
 						  reference.output, 0.0005) &&
 					  success;
 				gs_texrender_destroy(half_output);
+				auto *half_native = gs_texrender_create(GS_RGBA16F, GS_ZS_NONE);
+				auto *narrowed = gs_texrender_create(GS_RGBA16F, GS_ZS_NONE);
+				gs_texrender_begin(half_native, nw, nh);
+				gs_ortho(0, static_cast<float>(nw), 0, static_cast<float>(nh), -100, 100);
+				gs_blend_state_push();
+				gs_blend_function(GS_BLEND_ONE, GS_BLEND_ZERO);
+				auto *copy = obs_get_base_effect(OBS_EFFECT_DEFAULT);
+				gs_effect_set_texture(gs_effect_get_param_by_name(copy, "image"), native_texture);
+				while (gs_effect_loop(copy, "Draw"))
+					gs_draw_sprite(native_texture, 0, nw, nh);
+				gs_blend_state_pop();
+				gs_texrender_end(half_native);
+				auto *stored = gs_texrender_get_texture(half_native);
+				post.prepare(stored, guide_texture, model_texture, settings, roi);
+				post.finish(narrowed, stored, settings, roi);
+				success = compare("half-native-and-output", gs_texrender_get_texture(narrowed),
+						  reference.output, 0.002) &&
+					  success;
+				gs_texrender_destroy(half_native);
+				gs_texrender_destroy(narrowed);
 				for (bool linear : {false, true}) {
 					auto *composite = gs_texrender_create(GS_RGBA32F, GS_ZS_NONE);
 					gs_texrender_begin(composite, nw, nh);

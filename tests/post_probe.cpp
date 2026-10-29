@@ -232,10 +232,16 @@ int main(int argc, char **argv)
 	obs_source_filter_add(source, filter);
 	obs_set_output_source(0, source);
 	const bool stress = argc > 6 && std::strcmp(argv[6], "stress") == 0;
+	const bool canvas = argc > 6 && std::strcmp(argv[6], "canvas") == 0;
 	for (int half = 0; half < std::atoi(argv[4]) * 2; ++half) {
 		for (int poll = 0; poll < 50; ++poll) {
 			pump_ui();
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+		if (canvas && half >= 8 && half % 4 == 0) {
+			video.base_width = video.output_width = video.base_width == 1280 ? 1920 : 1280;
+			video.base_height = video.output_height = video.base_width * 9 / 16;
+			std::printf("CANVAS reset: %d\n", obs_reset_video(&video));
 		}
 		if (!stress)
 			continue;
