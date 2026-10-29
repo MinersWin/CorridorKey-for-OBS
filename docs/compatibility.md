@@ -43,16 +43,16 @@ its own plugin paths. [Foundation layout checks](VALIDATION.md).
 | NVIDIA TensorRT-RTX | hardware-tested: RTX 5070 Ti, Windows 11, driver 616.92, ORT 1.31.1, RTX EP 0.5.0 | [W06](dev/validation-w06.md): synthetic FP32/FP16 Add through host tensors; refiner session compilation. Native video interop and full CK2 are separate checks. |
 | NVIDIA conventional TensorRT | hardware-tested: RTX 5070 Ti, ORT 1.31.1, exporter-side TRT 10 | [W06 export evidence](dev/validation-w06.md#real-graph-compilation-and-export-side-evidence): graph timings from the exporter, not the native OBS pipeline. W06 did not execute a conventional TRT runtime. |
 | NVIDIA CUDA | hardware-tested: RTX 5070 Ti, Windows 11, CUDA 13 ORT 1.31.1 | [W06](dev/validation-w06.md): FP32/FP16 synthetic fixture. CUDA is a slower graph fallback in the recorded export tests. |
-| NVIDIA DirectML | hardware-tested: RTX 5070 Ti, ORT DML 1.24.4, DirectML 1.15.4 | [W06](dev/validation-w06.md): synthetic FP32/FP16 Add, host tensors. This is not AMD or Intel evidence. |
+| NVIDIA DirectML | hardware-tested: RTX 5070 Ti, ORT DML 1.24.4, DirectML 1.15.4 | [W11](dev/dml.md): CK2 and refiner D3D11/D3D12 transport, twelve-case live matrix, 30-frame FP32 parity and multiple instances. This is not AMD or Intel evidence. |
 | DirectML BF16 fixture | known-broken: W06 Add graph | [W06](dev/validation-w06.md#native-fixture-measurements): session assignment failed. Live preparation excludes BF16; use FP32/FP16 after graph validation. |
-| AMD DirectML, Windows | expected | No AMD hardware run. Probe the actual graph and adapter; on failure keep passthrough. |
+| AMD DirectML, Windows | expected; awaiting community-tested evidence | [DML transport](dev/dml.md) checks the same-adapter D3D11/D3D12 bridge and resource bindings. Failed sharing retains staged DML. No AMD hardware result yet. |
 | AMD MIGraphX, Linux | build-only: x86-64 ORT 1.31.1 session/probe objects, Zig 0.15.2 Clang | [W17 object compilation](dev/validation-w17.md#linux-compilation-scope). No vendor EP binary was linked or loaded; no AMD hardware run or full Linux plugin link. |
-| Intel DirectML, Windows | expected | No Intel GPU run. Probe first; failed acceleration keeps passthrough. |
+| Intel DirectML, Windows | expected; awaiting community-tested evidence | Same vendor-independent [DML checks and staged fallback](dev/dml.md). No Intel hardware result yet. |
 
 The earlier W06 export snapshot records DirectML stage-graph initialization
-failures. The coordination handoff later reports successful FP32 stage graphs,
-but W17 has not repeated those runs. Use the actual per-graph probe result for
-your package; the tiny Add fixture cannot authorize a complete model.
+failures. W11 ran all twelve FP32 CK2/refiner release graphs with native DML
+resource bindings on the RTX 5070 Ti. Use the actual per-graph probe result for
+your package; that result does not qualify a different GPU driver.
 
 No community report has qualified a matrix cell yet. A community result needs
 the exact host, driver, runtime bundle, graph revision, transport and outcome.
