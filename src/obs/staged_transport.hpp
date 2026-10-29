@@ -5,6 +5,7 @@
 #include "gpu_fence.hpp"
 #include "gpu/post/reconstruction.hpp"
 #include "gpu/post/refiner.hpp"
+#include "gpu/d3d12_dml.hpp"
 #include <obs.h>
 #include <array>
 #include <optional>
@@ -28,8 +29,9 @@ public:
 	bool read_finished(const FrameResult &result) const;
 	// No graphics access; the input lease pins the byte buffer during conversion.
 	Image analysis(const InputFrame &input, nvidia::TextureTransfers *transfers = nullptr,
-		       std::shared_ptr<nvidia::Context> context = {});
-	bool upload_device(FrameResult &, nvidia::TextureTransfers &);
+		       std::shared_ptr<nvidia::Context> context = {}, dml::TextureTransfers *dml_transfers = nullptr,
+		       std::shared_ptr<dml::Context> dml_context = {});
+	bool upload_device(FrameResult &, nvidia::TextureTransfers &, dml::TextureTransfers *dml_transfers = nullptr);
 	void release_analysis(FrameResult &);
 	TransportKind transport_kind() const noexcept
 	{

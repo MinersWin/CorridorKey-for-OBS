@@ -3,6 +3,7 @@
 #include "ck2_graph.hpp"
 #include "contracts/models.hpp"
 #include "gpu/d3d11_cuda.hpp"
+#include "gpu/d3d12_dml.hpp"
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -54,6 +55,7 @@ private:
 	DeviceJob registered_;
 	std::unique_ptr<nvidia::D3D11Texture> input_texture_, output_texture_;
 	std::shared_ptr<nvidia::Buffer> device_input_, device_centres_;
+	dml::TextureTransfers dml_transfers_;
 	bool device_ = false;
 	std::optional<Result> result_;
 	bool busy_ = false;

@@ -64,6 +64,7 @@ struct Session::Impl {
 	std::shared_ptr<Runtime> runtime;
 	std::unique_ptr<CacheLease> cache;
 	std::shared_ptr<nvidia::Context> cuda_context;
+	std::shared_ptr<dml::Context> dml_context;
 	OrtSession *session = nullptr;
 	OrtIoBinding *binding = nullptr;
 	OrtRunOptions *run_options = nullptr;
@@ -248,6 +249,26 @@ Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 								   arrays.keys.data(), arrays.values.data(),
 								   arrays.keys.size()));
 	} else if (config.bundle.backend == Backend::directml) {
+		state.dml_context = config.dml_context;
+		if (config.dml_shared) {
+			if (!*config.dml_shared) {
+				std::filesystem::path library;
+				for (const auto &path : config.bundle.preload)
+					if (path.filename() == "DirectML.dll")
+						library = path;
+				if (library.empty())
+					throw std::runtime_error(
+						"DML device transport requires a verified DirectML preload");
+				auto candidate = std::make_shared<dml::Context>(config.obs_adapter.stable_id, library);
+				candidate->probe();
+				*config.dml_shared = std::move(candidate);
+			}
+			state.dml_context = *config.dml_shared;
+		}
+		if (state.dml_context) {
+			config.dml_device = state.dml_context->dml_device();
+			config.dml_queue = state.dml_context->queue();
+		}
 		const void *extension = nullptr;
 		check(api.GetExecutionProviderApi("DML", runtime.api_version(), &extension));
 		if (!extension)
@@ -339,6 +360,10 @@ Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 	check(api.CreateRunOptions(&state.run_options));
 }
 Session::~Session() = default;
+std::shared_ptr<dml::Context> Session::dml_context() const
+{
+	return impl_->dml_context;
+}
 std::shared_ptr<nvidia::Context> Session::device_context() const
 {
 	return impl_->cuda_context;

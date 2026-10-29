@@ -13,6 +13,7 @@ public:
 	void set(std::string_view, const Tensor &);
 	Tensor device_output(std::string_view);
 	std::shared_ptr<nvidia::Context> context() const;
+	std::shared_ptr<dml::Context> dml_context() const;
 	double gpu_ms() const { return gpu_ms_; }
 	void run(std::stop_token = {});
 	void read(std::string_view, std::span<float>);

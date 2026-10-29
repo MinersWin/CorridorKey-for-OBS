@@ -297,12 +297,36 @@ void StagedTransport::discard_stale()
 			slot->pending.reset();
 }
 Image StagedTransport::analysis(const InputFrame &input, nvidia::TextureTransfers *transfers,
-				std::shared_ptr<nvidia::Context> context)
+				std::shared_ptr<nvidia::Context> context, dml::TextureTransfers *dml_transfers,
+				std::shared_ptr<dml::Context> dml_context)
 {
-	if (!context)
+	if (!context && !dml_context)
 		interop_ = false;
-	interop_requested_ = bool(context);
+	interop_requested_ = bool(context) || bool(dml_context);
 	auto &slot = *slots_[input.lease.id().index];
+	if (dml_context && dml_transfers && slot.shared_capture && slot.grid_handle && slot.model_handle &&
+	    slot.model_half_handle && !interop_failed_) {
+		try {
+			if (slot.interop_capture && slot.captured.can_wait() && !slot.captured.wait_ready())
+				throw std::runtime_error("DML capture completion timed out");
+			auto &texture = dml_transfers->get(dml_context, slot.grid_handle);
+			ck2::Tensor tensor({1, 3, grid_.height, grid_.width}, 0, false);
+			tensor.directml =
+				texture.conversion_buffer(static_cast<std::size_t>(grid_.width) * grid_.height * 3 * 4);
+			auto rgba = texture.read();
+			const unsigned params[]{grid_.width, grid_.height, 0, 0, 0, texture.pitch(), texture.format()};
+			dml_context->compute("rgba_to_planar", grid_.width * grid_.height * 3, *rgba, nullptr,
+					     *tensor.directml, params);
+			interop_ = true;
+			return ck2::packed_image(tensor, PixelFormat::rgb_f32);
+		} catch (const std::exception &e) {
+			interop_ = false;
+			interop_failed_ = true;
+			blog(LOG_WARNING, "[corridorkey:w11] Input sharing failed; staged fallback: %s", e.what());
+			if (slot.interop_capture)
+				throw;
+		}
+	}
 	if (context && transfers && slot.shared_capture && slot.grid_handle && slot.model_handle &&
 	    slot.model_half_handle && !interop_failed_) {
 		try {
@@ -343,17 +367,40 @@ void StagedTransport::release_analysis(FrameResult &result)
 	// Release conversion allocations on the coordinator worker before graphics publication.
 	result.input.analysis.storage = slots_[result.input.lease.id().index]->grid_view;
 }
-bool StagedTransport::upload_device(FrameResult &result, nvidia::TextureTransfers &transfers)
+bool StagedTransport::upload_device(FrameResult &result, nvidia::TextureTransfers &transfers,
+				    dml::TextureTransfers *dml_transfers)
 {
 	const auto alpha = std::dynamic_pointer_cast<const ck2::DeviceImage>(result.alpha.storage);
 	const auto rgb = std::dynamic_pointer_cast<const ck2::DeviceImage>(result.foreground.storage);
-	if (!alpha || !rgb || interop_failed_)
+	if (!alpha || !rgb || interop_failed_) {
+		if (interop_) {
+			interop_ = false;
+			interop_failed_ = true;
+		}
 		return false;
+	}
 	auto &slot = *slots_[result.input.lease.id().index];
 	auto *handle = result.alpha.size == grid_ ? slot.model_handle : slot.model_half_handle;
 	if (!handle)
 		return false;
 	try {
+		if (alpha->tensor.directml && rgb->tensor.directml && dml_transfers) {
+			auto context = alpha->tensor.directml->context();
+			auto &texture = dml_transfers->get(context, handle);
+			const auto size = result.alpha.size;
+			if (texture.pitch() != size.width * 16)
+				throw std::runtime_error("DML output pitch mismatch");
+			auto rgba = texture.conversion_buffer(static_cast<std::size_t>(size.width) * size.height * 16);
+			const unsigned params[]{size.width, size.height, 0, 0, 0, 0, 0};
+			context->compute("planar_to_rgba", size.width * size.height * 4, *rgb->tensor.directml,
+					 alpha->tensor.directml.get(), *rgba, params);
+			texture.write(*rgba);
+			result.alpha.storage = result.foreground.storage =
+				result.alpha.size == grid_ ? slot.model_view : slot.model_half_view;
+			return true;
+		}
+		if (!alpha->tensor.device || !rgb->tensor.device)
+			return false;
 		auto context = alpha->tensor.device->context();
 		unsigned pixels = result.alpha.size.width * result.alpha.size.height;
 		auto &texture = transfers.get(context, handle);

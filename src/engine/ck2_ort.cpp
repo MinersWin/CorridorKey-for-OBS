@@ -106,9 +106,12 @@ Tensors OrtGraph::run(const Inputs &inputs, std::stop_token stop)
 		bindings_->run(stop);
 		Tensors outputs;
 		for (const auto &[name, spec] : outputs_) {
-			if (resident_)
-				outputs.emplace(name, bindings_->device_output(name));
-			else {
+			if (resident_) {
+				auto value = bindings_->device_output(name);
+				if (value.directml)
+					check_tensor(value, spec, name == "alpha" || name == "fg");
+				outputs.emplace(name, std::move(value));
+			} else {
 				auto tensor = spec;
 				bindings_->read(name, tensor.values);
 				outputs.emplace(name, std::move(tensor));
@@ -137,6 +140,7 @@ Tensors OrtGraph::run(const Inputs &inputs, std::stop_token stop)
 		recreate_ = {};
 		session_ = fallback(e.what(), stop);
 		bindings_ = std::make_unique<PersistentBindings>(*session_, device_);
+		resident_ = resident_ && (device_ || bindings_->dml_context());
 		recapture_ = false;
 		return execute();
 	}
@@ -160,6 +164,7 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 	Ck2Prepared result;
 	result.model = request.model;
 	std::filesystem::path selected_core;
+	auto dml_shared = std::make_shared<std::shared_ptr<dml::Context>>();
 	std::ostringstream description;
 	// Stage graphs decide whether the pipeline can run before loading foundations.
 	for (auto stage : {Stage::stage1, Stage::stage2, Stage::rvm, Stage::moge, Stage::refiner}) {
@@ -223,6 +228,14 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 			}
 			if (backend == Backend::tensorrt)
 				config.options["trt_cuda_graph_enable"] = "0";
+			if (backend == Backend::directml && runtime.interop &&
+			    (request.settings->backend.transport == TransportKind::automatic ||
+			     request.settings->backend.transport == TransportKind::interop)) {
+				auto resident = config;
+				resident.dml_shared = dml_shared;
+				resident.persistent_io = true;
+				alternatives.push_back(std::move(resident));
+			}
 			alternatives.push_back(std::move(config));
 		}
 		auto prepared = ort::prepare_graph(alternatives, probe, runtime.compiler, request.cancellation);
@@ -275,9 +288,30 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 				return std::move(prepared.session);
 			};
 		}
-		auto graph = std::make_unique<OrtGraph>(std::move(prepared.session), stage, grid, device,
-							std::move(recreate), std::move(fallback));
-		graph->device_resident(runtime.interop && device &&
+		if (selected.dml_shared) {
+			fallback = [selected, runtime, name](const std::string &reason, std::stop_token stop) {
+				if (stop.stop_requested())
+					throw std::runtime_error("DML recovery cancelled");
+				if (runtime.info)
+					runtime.info(name + ": DML device tensors failed; staged fallback: " + reason);
+				auto staged = selected;
+				staged.dml_shared.reset();
+				staged.dml_context.reset();
+				staged.persistent_io = false;
+				return std::make_unique<ort::Session>(staged);
+			};
+		}
+		std::unique_ptr<OrtGraph> graph;
+		try {
+			graph = std::make_unique<OrtGraph>(std::move(prepared.session), stage, grid, device,
+							   std::move(recreate), fallback);
+		} catch (const std::exception &e) {
+			if (!selected.dml_shared || !fallback)
+				throw;
+			graph = std::make_unique<OrtGraph>(fallback(e.what(), request.cancellation), stage, grid,
+							   false);
+		}
+		graph->device_resident(runtime.interop && (device || selected.dml_shared) &&
 				       (request.settings->backend.transport == TransportKind::automatic ||
 					request.settings->backend.transport == TransportKind::interop));
 		if (auto context = graph->device_context()) {
@@ -290,7 +324,7 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 						     e.what());
 			}
 		}
-		if (captured) {
+		if (captured || graph->dml_context()) {
 			// Helper capture belongs to another process. Warm these fixed bindings before
 			// live graphics transfers can overlap the first TensorRT capture in OBS.
 			auto zeros = input_contract(stage, grid);
@@ -300,6 +334,8 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 			graph->run(warm, request.cancellation);
 			graph->run(warm, request.cancellation);
 		}
+		if (prepared.provider.backend == Backend::directml)
+			description << (graph->dml_context() ? "D3D12 device tensors; " : "staged DML tensors; ");
 		if (runtime.info)
 			runtime.info(
 				name + " ready in " +
