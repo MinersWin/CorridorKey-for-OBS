@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
+#include "runtime/gpu_activity.hpp"
 #include <cstdint>
 #include <memory>
 #include <span>
@@ -51,6 +52,7 @@ public:
 		~Scope();
 
 	private:
+		GpuActivity activity_;
 		const Context &context_;
 	};
 	static void check(int code, std::string_view operation);

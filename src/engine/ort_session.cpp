@@ -7,6 +7,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <atomic>
+#include <thread>
 #ifdef _WIN32
 #define NOMINMAX
 #include <d3d12.h>
@@ -69,11 +71,14 @@ struct Session::Impl {
 	Device device;
 	bool profiling = false, cache_ready = false;
 	bool persistent_io = false, capture = false;
+	std::mutex capture_mutex;
+	std::map<std::uint64_t, unsigned> capture_runs;
 	std::map<std::string, std::size_t> profile_result;
 	std::vector<std::pair<std::string, const OrtValue *>> bound_inputs, bound_outputs;
 	std::mutex mutex;
 	void close()
 	{
+		GpuActivity activity;
 		if (!runtime)
 			return;
 		const auto &api = runtime->api();
@@ -112,6 +117,7 @@ Session::Session(SessionConfig config) : impl_(std::make_unique<Impl>())
 		throw std::runtime_error("BF16 is diagnostic-only; use this graph's validated FP16 or FP32 policy");
 	// EP registration and device enumeration share the process-wide environment.
 	std::lock_guard loader_guard(runtime_control_mutex());
+	GpuActivity activity(GpuActivity::Mode::preparation);
 	auto &state = *impl_;
 	state.persistent_io = config.persistent_io;
 	state.capture = config.bundle.backend == Backend::tensorrt &&
@@ -389,12 +395,23 @@ void Session::finish_build()
 }
 void Session::close()
 {
+	GpuActivity activity;
 	std::lock_guard lock(impl_->mutex);
 	impl_->close();
 }
 void Session::run_bound(std::span<const std::pair<std::string, const OrtValue *>> inputs,
 			std::span<const std::pair<std::string, const OrtValue *>> outputs, std::stop_token stop)
 {
+	// Cover startup on every calling thread, including provider implementations
+	// with per-thread capture state. Tokens cannot alias reused thread IDs.
+	static std::atomic<std::uint64_t> next_thread{0};
+	static thread_local const auto thread = ++next_thread;
+	bool may_capture = false;
+	if (impl_->capture) {
+		std::lock_guard lock(impl_->capture_mutex);
+		may_capture = impl_->capture_runs[thread] < 3;
+	}
+	GpuActivity activity(may_capture ? GpuActivity::Mode::capture : GpuActivity::Mode::shared);
 	std::lock_guard lock(impl_->mutex);
 	if (!impl_->session)
 		throw std::runtime_error("Session is closed");
@@ -450,10 +467,15 @@ void Session::run_bound(std::span<const std::pair<std::string, const OrtValue *>
 	rt.check(api.SynchronizeBoundInputs(impl_->binding));
 	rt.check(api.RunWithBinding(impl_->session, impl_->run_options, impl_->binding));
 	rt.check(api.SynchronizeBoundOutputs(impl_->binding));
+	if (impl_->capture) {
+		std::lock_guard lock(impl_->capture_mutex);
+		++impl_->capture_runs[thread];
+	}
 	impl_->cache_ready = true;
 }
 std::map<std::string, std::size_t> Session::finish_profile()
 {
+	GpuActivity activity;
 	std::lock_guard lock(impl_->mutex);
 	return finish_profile_unlocked();
 }

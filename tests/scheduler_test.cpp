@@ -3,6 +3,7 @@
 #include <doctest/doctest.h>
 #include "runtime/scheduler.hpp"
 #include "runtime/preparation_gate.hpp"
+#include "runtime/gpu_activity.hpp"
 #include "engine/fake_pipeline.hpp"
 #include <barrier>
 #include <thread>
@@ -282,4 +283,61 @@ TEST_CASE("shared frame pool never reuses a pinned slot during concurrent resets
 		worker.join();
 	CHECK(collisions == 0);
 	CHECK(pool.in_use() == 0);
+}
+
+TEST_CASE("CUDA capture excludes other workers while nested activity stays safe")
+{
+	std::atomic<unsigned> readers{0}, writers{0}, violations{0};
+	std::vector<std::thread> workers;
+	for (unsigned i = 0; i < 8; ++i)
+		workers.emplace_back([&, i] {
+			for (unsigned n = 0; n < 200; ++n) {
+				const bool capture = (n + i) % 7 == 0;
+				GpuActivity activity(capture ? GpuActivity::Mode::capture : GpuActivity::Mode::shared);
+				GpuActivity nested;
+				if (capture) {
+					if (writers.fetch_add(1) != 0 || readers != 0)
+						++violations;
+					std::this_thread::yield();
+					--writers;
+				} else {
+					++readers;
+					if (writers != 0)
+						++violations;
+					std::this_thread::yield();
+					--readers;
+				}
+			}
+		});
+	for (auto &worker : workers)
+		worker.join();
+	CHECK(violations == 0);
+	GpuActivity activity;
+	CHECK_THROWS_AS((GpuActivity{GpuActivity::Mode::capture}), std::logic_error);
+}
+
+TEST_CASE("waiting capture does not pause live CUDA calls throughout slow session construction")
+{
+	auto preparing = std::make_unique<GpuActivity>(GpuActivity::Mode::preparation);
+	std::atomic<bool> started{false}, captured{false}, read{false};
+	std::thread capture([&] {
+		started = true;
+		GpuActivity activity(GpuActivity::Mode::capture);
+		captured = true;
+	});
+	while (!started)
+		std::this_thread::yield();
+	std::thread reader([&] {
+		GpuActivity activity;
+		read = true;
+	});
+	const auto deadline = Clock::now() + std::chrono::seconds(2);
+	while (!read && Clock::now() < deadline)
+		std::this_thread::yield();
+	CHECK(read);
+	CHECK_FALSE(captured);
+	preparing.reset();
+	reader.join();
+	capture.join();
+	CHECK(captured);
 }
