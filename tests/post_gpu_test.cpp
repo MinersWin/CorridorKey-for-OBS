@@ -25,7 +25,8 @@ post_reference::Image download(gs_texture_t *texture)
 {
 	const auto w = gs_texture_get_width(texture), h = gs_texture_get_height(texture);
 	post_reference::Image result(w, h);
-	auto *stage = gs_stagesurface_create(w, h, GS_RGBA32F);
+	const bool half = gs_texture_get_color_format(texture) == GS_RGBA16F;
+	auto *stage = gs_stagesurface_create(w, h, half ? GS_RGBA16F : GS_RGBA32F);
 	gs_stage_texture(stage, texture);
 	gs_flush();
 	std::uint8_t *bytes = nullptr;
@@ -35,7 +36,23 @@ post_reference::Image download(gs_texture_t *texture)
 	for (unsigned y = 0; y < h; ++y)
 		for (unsigned x = 0; x < w; ++x) {
 			float pixel[4];
-			std::memcpy(pixel, bytes + y * pitch + x * sizeof(pixel), sizeof(pixel));
+			if (half) {
+				std::uint16_t bits[4];
+				std::memcpy(bits, bytes + y * pitch + x * sizeof(bits), sizeof(bits));
+				for (unsigned c = 0; c < 4; ++c) {
+					const unsigned exponent = (bits[c] >> 10) & 31, fraction = bits[c] & 1023;
+					pixel[c] =
+						exponent == 31
+							? std::numeric_limits<float>::infinity()
+							: std::ldexp(
+								  static_cast<float>(fraction + (exponent ? 1024 : 0)),
+								  exponent ? static_cast<int>(exponent) - 25 : -24);
+					if (bits[c] & 0x8000)
+						pixel[c] = -pixel[c];
+				}
+			} else {
+				std::memcpy(pixel, bytes + y * pitch + x * sizeof(pixel), sizeof(pixel));
+			}
 			for (unsigned c = 0; c < 4; ++c)
 				result.at(x, y)[c] = pixel[c];
 		}
@@ -167,6 +184,12 @@ int run_post_tests(const char *directory)
 				success = compare("refined-seam", gs_texrender_get_texture(output), reference.output,
 						  0.0001) &&
 					  success;
+				auto *half_output = gs_texrender_create(GS_RGBA16F, GS_ZS_NONE);
+				post.finish(half_output, native_texture, settings, roi);
+				success = compare("half-storage", gs_texrender_get_texture(half_output),
+						  reference.output, 0.0005) &&
+					  success;
+				gs_texrender_destroy(half_output);
 				for (bool linear : {false, true}) {
 					auto *composite = gs_texrender_create(GS_RGBA32F, GS_ZS_NONE);
 					gs_texrender_begin(composite, nw, nh);
