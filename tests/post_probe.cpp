@@ -12,6 +12,7 @@
 #include <functional>
 #include <future>
 #include <mutex>
+#include "obs/gpu_fence.hpp"
 
 int run_post_tests(const char *directory);
 int run_post_offline(const char *directory, const char *manifest);
@@ -96,6 +97,43 @@ void render(void *data, gs_effect_t *)
 	while (gs_effect_loop(effect, "Solid"))
 		gs_draw_sprite(nullptr, 0, width(data), height(data));
 }
+int run_fence_tests()
+{
+	obs_enter_graphics();
+	auto fence = std::make_unique<corridorkey::GpuFence>();
+	const bool event_wait = fence->can_wait();
+	bool success = fence->supported();
+	obs_leave_graphics();
+	for (unsigned cycle = 0; cycle < 64 && success; ++cycle) {
+		obs_enter_graphics();
+		success = fence->signal();
+		gs_flush();
+		obs_leave_graphics();
+		if (event_wait) {
+			// No graphics ownership on this thread: exercise the live handoff contract.
+			auto ready = std::async(std::launch::async, [&] { return fence->wait_ready(); });
+			success = ready.get() && success;
+		} else {
+			const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+			bool ready = false;
+			do {
+				obs_enter_graphics();
+				ready = fence->ready();
+				obs_leave_graphics();
+				if (!ready)
+					std::this_thread::yield();
+			} while (!ready && std::chrono::steady_clock::now() < deadline);
+			success = ready && success;
+		}
+	}
+	obs_enter_graphics();
+	success = success && !fence->failed();
+	fence.reset();
+	obs_leave_graphics();
+	std::printf("Repeated graphics completion (%s): %s\n", event_wait ? "worker event" : "query fallback",
+		    success ? "PASS" : "FAIL");
+	return success ? 0 : 7;
+}
 } // namespace
 int main(int argc, char **argv)
 {
@@ -146,6 +184,11 @@ int main(int argc, char **argv)
 	video.scale_type = OBS_SCALE_BILINEAR;
 	if (obs_reset_video(&video) != OBS_VIDEO_SUCCESS)
 		return 4;
+	if (std::strcmp(argv[4], "fence") == 0) {
+		const int result = run_fence_tests();
+		obs_shutdown();
+		return result;
+	}
 	if (std::strcmp(argv[4], "numeric") == 0) {
 		const int result = run_post_tests(argv[2]);
 		obs_shutdown();
