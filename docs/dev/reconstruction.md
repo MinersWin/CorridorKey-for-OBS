@@ -218,7 +218,7 @@ the separate `fake_cpu_ms` counter measures synthesis and numeric validation.
 
 The original three-slot baseline completed 301/601 canvas frames at 1080p
 (30.05 FPS) and 286/601 at 4K (28.55 FPS). Five slots alone restored intervals at
-59.7?60 FPS. Before the asynchronous publication change, W08 plus W15 measured
+59.7 to 60 FPS. Before the asynchronous publication change, W08 plus W15 measured
 50.06/66.75 ms displayed age (median/p95) at zero delay, with 19.64 ms input and
 6.28 ms output transfer. At 20 ms configured delay it measured 100.05/116.73 ms,
 with 33.70 ms inference timing: the task wait rounded the delay up to a canvas
