@@ -160,6 +160,11 @@ void render_filter(void *data, gs_effect_t *)
 		return;
 	obs_source_process_filter_end(filter->source, obs_get_base_effect(OBS_EFFECT_DEFAULT), 0, 0);
 }
+gs_color_space filter_color_space(void *data, size_t count, const gs_color_space *preferred)
+{
+	auto *target = obs_filter_get_target(static_cast<Filter *>(data)->source);
+	return target ? obs_source_get_color_space(target, count, preferred) : GS_CS_SRGB;
+}
 void tick_filter(void *data, float)
 {
 	static_cast<Filter *>(data)->sync->tick();
@@ -184,6 +189,7 @@ void register_filter()
 	info.get_properties = filter_properties;
 	info.video_render = render_filter;
 	info.video_tick = tick_filter;
+	info.video_get_color_space = filter_color_space;
 	obs_register_source(&info);
 }
 } // namespace corridorkey

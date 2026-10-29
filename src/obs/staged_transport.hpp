@@ -18,13 +18,14 @@ public:
 	bool capture_ready(const InputFrame &input) noexcept override;
 	Error try_present(const FrameResult &result,
 			  std::shared_ptr<const Completion> &read_complete) noexcept override;
-	// Graphics task only. Mapping requires a later tick and a ready capture fence.
-	std::optional<InputFrame> take_ready(std::uint64_t tick);
+	// Graphics task only. Mapping requires a ready capture fence.
+	std::optional<InputFrame> take_ready();
 	void discard_stale();
 	bool upload(const FrameResult &result, const std::vector<float> &rgba, int debug_view = 0);
 	bool read_finished(const FrameResult &result) const;
 	// No graphics access; the input lease pins the byte buffer during conversion.
 	Image analysis(const InputFrame &input) const;
+	std::uint64_t discarded() const noexcept { return discarded_; }
 	bool available() const noexcept { return available_; }
 	Error failure() const noexcept { return failure_; }
 	Extent native_size() const noexcept { return native_; }
@@ -42,5 +43,6 @@ private:
 	bool available_ = false;
 	Error failure_;
 	Duration host_draw_time_{};
+	std::uint64_t discarded_ = 0;
 };
 } // namespace corridorkey
