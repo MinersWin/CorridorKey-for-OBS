@@ -83,6 +83,7 @@ Context::Scope::~Scope()
 }
 Context::Context(int ordinal) : impl_(std::make_unique<Impl>())
 {
+	GpuActivity activity;
 	impl_->ordinal = ordinal;
 	check(impl_->init(0), "Initialize CUDA");
 	check(impl_->retain(&impl_->context, ordinal), "Retain CUDA context");
@@ -112,6 +113,7 @@ void Context::ensure_kernels()
 }
 Context::~Context()
 {
+	GpuActivity activity;
 	try {
 		Scope scope(*this);
 		impl_->sync(impl_->stream);
