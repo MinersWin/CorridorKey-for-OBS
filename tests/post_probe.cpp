@@ -120,8 +120,21 @@ int main(int argc, char **argv)
 #endif
 	if (const auto *graphics = std::getenv("OBS_TEST_GRAPHICS"))
 		video.graphics_module = graphics;
+	// OBS 33 deprecates obs_add_data_path, but this test host must also run against 30.2.
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	if (const auto *data = std::getenv("OBS_TEST_DATA"))
 		obs_add_data_path(data);
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 	video.fps_num = 60;
 	video.fps_den = 1;
 	video.base_width = video.output_width = w;
