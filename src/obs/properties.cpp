@@ -136,6 +136,10 @@ void status(obs_properties_t *p, Form &form, const Settings &s)
 			}
 			first += " · ";
 			first += tr(std::string("Choice.") + backend);
+			if (state->transport == TransportKind::interop)
+				first += " \u00b7 " + std::string(tr("Status.DeviceTransport"));
+			else if (state->transport == TransportKind::staged_grid)
+				first += " \u00b7 " + std::string(tr("Status.StagedTransport"));
 			if (state->inference_median_ms && state->age_median_ms && state->keyed_fps) {
 				char metrics[256];
 				std::snprintf(metrics, sizeof(metrics), tr("Status.Metrics"), *state->keyed_fps,
