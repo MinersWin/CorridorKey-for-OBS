@@ -1,0 +1,146 @@
+[
+  {
+    "profile": "facecam",
+    "transport": "auto",
+    "refiner": true,
+    "size": "4k"
+  },
+  {
+    "profile": "facecam",
+    "transport": "auto",
+    "refiner": true,
+    "size": "1080"
+  },
+  {
+    "profile": "facecam",
+    "transport": "auto",
+    "refiner": false,
+    "size": "4k"
+  },
+  {
+    "profile": "facecam",
+    "transport": "auto",
+    "refiner": false,
+    "size": "1080"
+  },
+  {
+    "profile": "facecam",
+    "transport": "staged",
+    "refiner": true,
+    "size": "4k"
+  },
+  {
+    "profile": "facecam",
+    "transport": "staged",
+    "refiner": true,
+    "size": "1080"
+  },
+  {
+    "profile": "facecam",
+    "transport": "staged",
+    "refiner": false,
+    "size": "4k"
+  },
+  {
+    "profile": "facecam",
+    "transport": "staged",
+    "refiner": false,
+    "size": "1080"
+  },
+  {
+    "profile": "balanced",
+    "transport": "auto",
+    "refiner": true,
+    "size": "4k"
+  },
+  {
+    "profile": "balanced",
+    "transport": "auto",
+    "refiner": true,
+    "size": "1080"
+  },
+  {
+    "profile": "balanced",
+    "transport": "auto",
+    "refiner": false,
+    "size": "4k"
+  },
+  {
+    "profile": "balanced",
+    "transport": "auto",
+    "refiner": false,
+    "size": "1080"
+  },
+  {
+    "profile": "balanced",
+    "transport": "staged",
+    "refiner": true,
+    "size": "4k"
+  },
+  {
+    "profile": "balanced",
+    "transport": "staged",
+    "refiner": true,
+    "size": "1080"
+  },
+  {
+    "profile": "balanced",
+    "transport": "staged",
+    "refiner": false,
+    "size": "4k"
+  },
+  {
+    "profile": "balanced",
+    "transport": "staged",
+    "refiner": false,
+    "size": "1080"
+  },
+  {
+    "profile": "quality",
+    "transport": "auto",
+    "refiner": true,
+    "size": "4k"
+  },
+  {
+    "profile": "quality",
+    "transport": "auto",
+    "refiner": true,
+    "size": "1080"
+  },
+  {
+    "profile": "quality",
+    "transport": "auto",
+    "refiner": false,
+    "size": "4k"
+  },
+  {
+    "profile": "quality",
+    "transport": "auto",
+    "refiner": false,
+    "size": "1080"
+  },
+  {
+    "profile": "quality",
+    "transport": "staged",
+    "refiner": true,
+    "size": "4k"
+  },
+  {
+    "profile": "quality",
+    "transport": "staged",
+    "refiner": true,
+    "size": "1080"
+  },
+  {
+    "profile": "quality",
+    "transport": "staged",
+    "refiner": false,
+    "size": "4k"
+  },
+  {
+    "profile": "quality",
+    "transport": "staged",
+    "refiner": false,
+    "size": "1080"
+  }
+]

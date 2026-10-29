@@ -57,8 +57,8 @@ SequenceState::SequenceState(Extent grid, bool quality, Graphs graphs)
 }
 void SequenceState::reset()
 {
-	// Temporal resets overwrite state at the same device addresses. Only a changed
-	// sampling transform needs recapture; recapturing after a slow frame loops forever.
+	// Temporal resets overwrite state at the same device addresses. A reset or
+	// changed crop does not require recapturing a fixed-shape graph.
 	zero_tensor(recurrent_);
 	moge_valid_ = false;
 	key_.reset();
