@@ -215,7 +215,9 @@ float4 Reconstruct(Vertex v) : TARGET
     float3 foreground = rgb + sample_Correction(uv).rgb * amount;
     if (equation_unmix) {
         float3 bg = sample_Background(uv).rgb;
-        foreground = lerp(rgb, (rgb - (1.0 - alpha) * bg) / max(alpha, 0.0001), amount);
+        // I = alpha * F + (1 - alpha) * B is a linear-light equation.
+        float3 solved = (decode(rgb) - (1.0 - alpha) * decode(bg)) / max(alpha, 0.0001);
+        foreground = lerp(rgb, encode(solved), amount);
     }
     return float4(saturate(safe4(float4(foreground, 0.0))).rgb, alpha);
 }

@@ -208,7 +208,8 @@ Fields reconstruct(const Image &native, const Image &input_guide, const Image &i
 				p[c] = unit(q.unmix_mode == corridorkey::UnmixMode::delta
 						    ? rgb[c] + correction[c] * amount
 						    : std::lerp(rgb[c],
-								(rgb[c] - (1 - a) * bg[c]) / std::max(a, 0.0001),
+								encode((decode(rgb[c]) - (1 - a) * decode(bg[c])) /
+								       std::max(a, 0.0001)),
 								amount));
 			raw.at(x, y) = p;
 			a = unit((a - 0.5) * q.alpha_contrast + 0.5 + q.alpha_offset);

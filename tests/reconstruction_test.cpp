@@ -74,3 +74,19 @@ TEST_CASE("Reference tiny alpha and singular guide remain finite")
 	for (double value : result.output.pixels[0])
 		CHECK(std::isfinite(value));
 }
+TEST_CASE("Compositing equation recovers a linear-light mixture")
+{
+	post_reference::Image native(1, 1), guide(1, 1), model(1, 1);
+	const double mixed = post_reference::encode(0.2);
+	native.pixels[0] = {mixed, mixed, mixed, 1};
+	guide.pixels[0] = {0, 0, 0, 1};
+	model.pixels[0] = {0, 0, 0, 0.5};
+	Settings settings;
+	settings.quality.alpha_contrast = 1;
+	settings.quality.despill_strength = 0;
+	settings.quality.unmix_mode = UnmixMode::compositing_equation;
+	const auto result = post_reference::reconstruct(native, guide, model, settings, {});
+	CHECK(result.raw.pixels[0][0] == doctest::Approx(post_reference::encode(0.4)));
+	CHECK(result.output.pixels[0][0] == doctest::Approx(0.2));
+	CHECK(result.output.pixels[0][3] == doctest::Approx(0.5));
+}
