@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "manager_model.hpp"
+#include "telemetry/diagnostics.hpp"
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
@@ -176,21 +177,11 @@ bool ViewModel::first_run() const
 std::string diagnostics(const ManagerSnapshot &s, std::string_view plugin, std::string_view obs, std::string_view qt,
 			std::string_view os)
 {
-	auto safe = [](std::string_view value) {
-		std::string out;
-		for (char c : value)
-			if (std::isalnum(static_cast<unsigned char>(c)) || c == '.' || c == '-' || c == ' ')
-				out += c;
-		return out.substr(0, 128);
-	};
-	std::string out = "CorridorKey diagnostics\nPlugin: " + safe(plugin) + "\nOBS: " + safe(obs) +
-			  "\nQt: " + safe(qt) + "\nOS: " + safe(os) +
-			  "\nCache: <model-cache>\nCache bytes: " + std::to_string(s.total_bytes) +
-			  "\nBackend: untested; use Test backend for a synthetic fixture check\n";
-	for (const auto &r : s.rows)
-		out += "Model: " + safe(r.key.id) + " / " + safe(r.key.revision) + " / " + state_name(r.status.state) +
-		       " / " + std::string(error_id(r.status.failure.code)) + "\n";
-	out += "No media, logs, scene names, device identifiers or personal paths are included.\n";
-	return out;
+	corridorkey::diagnostics::Environment environment;
+	environment.plugin = plugin;
+	environment.obs = obs;
+	environment.qt = qt;
+	environment.os = os;
+	return corridorkey::diagnostics::report(s, environment);
 }
 } // namespace corridorkey::ui

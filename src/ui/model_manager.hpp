@@ -42,5 +42,6 @@ void open_model_manager();
 void shutdown_model_manager();
 #ifdef CORRIDORKEY_MANAGER_FIXTURES
 void start_manager_fixture();
+void start_diagnostics_capture();
 #endif
 } // namespace corridorkey::ui

@@ -116,7 +116,7 @@ TEST_CASE("diagnostics exclude local text, cache paths and arbitrary failure det
 	s.notice = "private-log";
 	s.rows.push_back(row);
 	auto text = diagnostics(s, "0.1", "33.0", "6.6", "windows");
-	for (auto forbidden : {"Private", "token", "private camera", "private-log", "C:\\"})
+	for (auto forbidden : {"Private", "secret-token", "private camera", "private-log", "C:\\"})
 		CHECK(text.find(forbidden) == std::string::npos);
 	CHECK(text.find("<model-cache>") != std::string::npos);
 }

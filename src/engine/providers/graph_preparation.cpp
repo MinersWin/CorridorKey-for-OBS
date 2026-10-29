@@ -8,7 +8,9 @@
 namespace corridorkey::ort {
 GraphAttempt compile_in_helper(const SessionConfig &config, const CompilerConfig &compiler, std::stop_token stop)
 {
-	GraphAttempt result{config.bundle.backend, config.precision};
+	GraphAttempt result{};
+	result.backend = config.bundle.backend;
+	result.precision = config.precision;
 	try {
 		if (stop.stop_requested()) {
 			result.failure = error(ErrorCode::cancelled);
@@ -101,7 +103,9 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 	for (const auto &config : alternatives) {
 		if (stop.stop_requested())
 			break;
-		GraphAttempt attempt{config.bundle.backend, config.precision};
+		GraphAttempt attempt{};
+		attempt.backend = config.bundle.backend;
+		attempt.precision = config.precision;
 		if (config.diagnostic_only || config.precision == Precision::bf16 ||
 		    config.bundle.backend == Backend::cpu_diagnostic) {
 			attempt.failure = error(ErrorCode::unsupported);

@@ -2,6 +2,7 @@
 #include "model_manager.hpp"
 #include "backend_test.hpp"
 #include "license_dialog.hpp"
+#include "telemetry/diagnostics_obs.hpp"
 #include "util/utf8_path.hpp"
 #include <obs-module.h>
 #include <obs-frontend-api.h>
@@ -12,6 +13,7 @@
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFileDialog>
+#include <QFontDatabase>
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
@@ -447,15 +449,17 @@ void ModelManager::diagnostics_preview()
 	auto *dialog = new QDialog(this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 	dialog->setWindowTitle(tr("Review diagnostics"));
-	dialog->resize(640, 480);
+	dialog->resize(780, 620);
 	auto *layout = new QVBoxLayout(dialog);
 	layout->setContentsMargins(16, 16, 16, 16);
 	layout->setSpacing(8);
 	layout->addWidget(label(dialog, tr("Review this report before copying. Nothing is uploaded.")));
-	auto *text = new QPlainTextEdit(q(diagnostics(snapshot_, CORRIDORKEY_VERSION, obs_get_version_string(),
-						      qVersion(), QSysInfo::productType().toStdString())),
-					dialog);
+	auto *text = new QPlainTextEdit(
+		q(corridorkey::diagnostics::report(snapshot_, corridorkey::diagnostics::collect_environment(probe_))),
+		dialog);
 	text->setReadOnly(true);
+	text->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+	text->setLineWrapMode(QPlainTextEdit::NoWrap);
 	text->setAccessibleName(tr("Redacted diagnostics preview"));
 	layout->addWidget(text, 1);
 	auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, dialog);
