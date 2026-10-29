@@ -3,6 +3,7 @@
 #include "filter.hpp"
 #include "obs/filter_control.hpp"
 #include "obs/properties.hpp"
+#include "obs/audio_sync_obs.hpp"
 #include "settings/obs_settings.hpp"
 #ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
 #include "obs/filter_input.hpp"
@@ -20,8 +21,12 @@ struct Filter final : FilterControl {
 		  input(owner)
 #endif
 	{
+		sync = std::make_unique<AudioSyncRuntime>(
+			source, [this] { return settings_snapshot(); }, [this] { return pipeline_status(); });
 	}
 	obs_source_t *source;
+	std::unique_ptr<AudioSyncRuntime> sync;
+	obs_source_t *property_source() const override { return source; }
 	mutable std::mutex control;
 	SettingsSnapshot settings;
 	SettingsSnapshot settings_snapshot() const override
@@ -29,7 +34,7 @@ struct Filter final : FilterControl {
 		std::lock_guard lock(control);
 		return settings;
 	}
-	StatusSnapshot status_snapshot() const override
+	StatusSnapshot pipeline_status() const
 	{
 #ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
 		return input.status();
@@ -39,6 +44,18 @@ struct Filter final : FilterControl {
 		status->failure = error(ErrorCode::model_missing);
 		return status;
 #endif
+	}
+	StatusSnapshot status_snapshot() const override
+	{
+		auto status = std::make_shared<Status>(*pipeline_status());
+		const auto value = sync->snapshot();
+		const char *states[] = {"off", "waiting", "active", "shared", "manual", "missing", "paused"};
+		status->audio_sync_state = states[static_cast<unsigned>(value.state)];
+		if (value.applied_ns)
+			status->audio_sync_offset_ms = static_cast<double>(*value.applied_ns) / 1000000.0;
+		if (value.baseline_ns)
+			status->audio_sync_baseline_ms = static_cast<double>(*value.baseline_ns) / 1000000.0;
+		return status;
 	}
 	void request_reset() noexcept override
 	{
@@ -62,8 +79,11 @@ void update_filter(void *data, obs_data_t *settings)
 #ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
 		filter->input.update(settings, snapshot);
 #endif
-		std::lock_guard lock(filter->control);
-		filter->settings = std::move(snapshot);
+		{
+			std::lock_guard lock(filter->control);
+			filter->settings = std::move(snapshot);
+		}
+		filter->sync->tick(true);
 	} catch (...) {
 		blog(LOG_ERROR, "[corridorkey] settings update failed; retaining previous settings");
 	}
@@ -71,6 +91,7 @@ void update_filter(void *data, obs_data_t *settings)
 void enable_filter(void *data, calldata_t *)
 {
 	static_cast<Filter *>(data)->request_reset();
+	static_cast<Filter *>(data)->sync->tick(true);
 }
 void *create_filter(obs_data_t *settings, obs_source_t *source)
 {
@@ -87,6 +108,7 @@ void *create_filter(obs_data_t *settings, obs_source_t *source)
 void destroy_filter(void *data)
 {
 	auto *filter = static_cast<Filter *>(data);
+	filter->sync->stop();
 	signal_handler_disconnect(obs_source_get_signal_handler(filter->source), "enable", enable_filter, filter);
 	// OBS_TASK_DESTROY is present at the 30.2 floor. It also handles callers
 	// releasing a source from a graphics callback without joining that thread.
@@ -103,14 +125,11 @@ void filter_defaults(obs_data_t *settings)
 obs_properties_t *filter_properties(void *data)
 {
 	try {
-		auto *properties = create_filter_properties(static_cast<Filter *>(data));
+		PropertyCapabilities capabilities;
+		capabilities.audio_sync = true;
+		auto *properties = create_filter_properties(static_cast<Filter *>(data), capabilities);
 #ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
 		FilterInput::add_properties(properties);
-		if (data) {
-			const auto status = static_cast<Filter *>(data)->status_snapshot();
-			obs_property_set_description(obs_properties_get(properties, "status"),
-						     status->diagnostic_detail.c_str());
-		}
 #endif
 		return properties;
 	} catch (...) {
@@ -131,6 +150,7 @@ void render_filter(void *data, gs_effect_t *)
 }
 void tick_filter(void *data, float)
 {
+	static_cast<Filter *>(data)->sync->tick();
 #ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
 	static_cast<Filter *>(data)->input.tick();
 #else

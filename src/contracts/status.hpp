@@ -35,6 +35,9 @@ struct Status {
 	std::string diagnostic_detail;
 	std::string model_id, model_revision;
 	std::optional<double> inference_median_ms, age_median_ms, age_p95_ms, keyed_fps;
+	std::optional<double> input_transfer_median_ms, output_transfer_median_ms, queue_median_ms;
+	std::optional<double> audio_sync_offset_ms, audio_sync_baseline_ms;
+	std::string audio_sync_state;
 	std::uint64_t submitted = 0, completed = 0, dropped = 0, repeated = 0;
 	bool untested_combination = false;
 };

@@ -4,6 +4,8 @@
 #include "staged_transport.hpp"
 #include "engine/fake_pipeline.hpp"
 #include "runtime/scheduler.hpp"
+#include "telemetry/frame_timing.hpp"
+#include "telemetry/obs_clock.hpp"
 #include <obs-module.h>
 #include <algorithm>
 #include <atomic>
@@ -84,7 +86,9 @@ struct FilterInput::Impl {
 	std::atomic<bool> stopping{false}, reset_requested{false};
 	std::thread worker;
 	CallbackTimes timings, graphics_timings;
-	TimePoint last_render{}, last_log = Clock::now();
+	FrameTiming frame_timing;
+	std::array<Duration, FramePool::capacity> input_transfers{};
+	TimePoint last_render{}, last_log = obs_now();
 	TimePoint next_capture{};
 	Error preparation_error;
 	Generation resource_attempt = 0;
@@ -114,14 +118,14 @@ struct FilterInput::Impl {
 			OBS_TASK_GRAPHICS,
 			[](void *parameter) {
 				auto &task = *static_cast<Task *>(parameter);
-				const auto start = Clock::now();
+				const auto start = obs_now();
 				try {
 					GraphicsScope graphics;
 					task.function();
 				} catch (...) {
 					task.exception = std::current_exception();
 				}
-				task.timings.record(Clock::now() - start, {});
+				task.timings.record(obs_now() - start, {});
 			},
 			&task, true);
 		if (task.exception)
@@ -130,6 +134,7 @@ struct FilterInput::Impl {
 	void invalidate()
 	{
 		pool.advance_generation();
+		frame_timing.reset();
 		last_presented = 0;
 		next_capture = {};
 		failure = ErrorCode::busy;
@@ -155,7 +160,7 @@ struct FilterInput::Impl {
 	}
 	void log_timings()
 	{
-		const auto now = Clock::now();
+		const auto now = obs_now();
 		const auto count = timings.count.load();
 		if (now - last_log < std::chrono::seconds(10) || count == logged_count)
 			return;
@@ -213,7 +218,7 @@ struct FilterInput::Impl {
 			log_timings();
 			return;
 		}
-		pipeline.advance(Clock::now());
+		pipeline.advance(obs_now());
 		auto result = pipeline.poll_result();
 		std::vector<std::uint8_t> rgba;
 		bool result_failed = false;
@@ -226,20 +231,25 @@ struct FilterInput::Impl {
 				failure = result->failure.code;
 				result_failed = true;
 				result.reset();
-			} else if (presentable(*result, instance, generation, 0, Clock::now(),
+			} else if (presentable(*result, instance, generation, 0, obs_now(),
 					       std::chrono::milliseconds(snapshot->context.stale_timeout_ms))) {
+				const auto pack_start = obs_now();
+				result->timings.input_transfer = input_transfers[result->input.lease.id().index];
 				rgba = pack(*result);
+				result->timings.output_transfer = obs_now() - pack_start;
 			} else {
 				failure = ErrorCode::timeout;
 				result.reset();
 			}
 		}
 		std::optional<InputFrame> input;
+		const auto upload_start = obs_now();
 		graphics_task([&] {
 			std::lock_guard lock(mutex);
 			if (presented && (!presented->input.lease.current() || !active || result_failed))
 				retire_presented();
 			if (result && result->input.lease.current() && transport && transport->upload(*result, rgba)) {
+				result->timings.output_transfer += obs_now() - upload_start;
 				retire_presented();
 				result->input.lease.transition(FrameState::presenting);
 				last_presented = result->identity.sequence;
@@ -268,12 +278,13 @@ struct FilterInput::Impl {
 		});
 		if (input && input->lease.current()) {
 			input->analysis = transport->analysis(*input);
+			input_transfers[input->lease.id().index] = obs_now() - input->identity.captured_at;
 			const auto previous_dropped = scheduler.dropped();
 			scheduler.offer(std::move(*input));
 			dropped += scheduler.dropped() - previous_dropped;
 		}
 		if (active && !preparation_error && generation == pool.generation()) {
-			const auto problem = scheduler.submit(pipeline, tick.load(), Clock::now());
+			const auto problem = scheduler.submit(pipeline, tick.load(), obs_now());
 			if (!problem)
 				++submitted;
 			else if (problem.code != ErrorCode::busy)
@@ -361,13 +372,13 @@ void FilterInput::tick() noexcept
 bool FilterInput::render() noexcept
 {
 	auto &s = *impl_;
-	const auto start = Clock::now();
+	const auto start = obs_now();
 	Duration host{};
 	struct Record {
 		Impl &s;
 		TimePoint start;
 		Duration &host;
-		~Record() { s.timings.record(Clock::now() - start, host); }
+		~Record() { s.timings.record(obs_now() - start, host); }
 	} record{s, start, host};
 	const bool keyed = [&]() noexcept {
 		std::unique_lock lock(s.mutex, std::try_to_lock);
@@ -383,7 +394,7 @@ bool FilterInput::render() noexcept
 			s.failure = ErrorCode::invalid_input;
 			return false;
 		}
-		const auto now = Clock::now();
+		const auto now = obs_now();
 		auto *target = obs_filter_get_target(s.source);
 		if (!target || !s.target || !obs_weak_source_references_source(s.target, target) ||
 		    obs_source_get_base_width(target) != s.size.width ||
@@ -440,14 +451,16 @@ bool FilterInput::render() noexcept
 		const auto problem = s.transport->try_present(*s.presented, completion);
 		if (problem)
 			s.failure = problem.code;
-		else
+		else {
 			s.failure = ErrorCode::none;
+			s.frame_timing.record(*s.presented, obs_now(), tick);
+		}
 		return !problem;
 	}();
 	if (!keyed) {
-		const auto before_host = Clock::now();
+		const auto before_host = obs_now();
 		const bool began = obs_source_process_filter_begin(s.source, GS_RGBA, OBS_NO_DIRECT_RENDERING);
-		host += Clock::now() - before_host;
+		host += obs_now() - before_host;
 		if (began)
 			obs_source_process_filter_end(s.source, obs_get_base_effect(OBS_EFFECT_DEFAULT), 0, 0);
 	}
@@ -470,10 +483,20 @@ StatusSnapshot FilterInput::status() const
 		status->diagnostic_detail = "No valid source frame; passthrough.";
 	else if (status->failure.code == ErrorCode::timeout)
 		status->diagnostic_detail = "Result exceeds the maximum frame age; passthrough.";
+	const auto timing = s.frame_timing.snapshot(obs_now());
+	if (timing.presentations && obs_now() - timing.last_presented < std::chrono::milliseconds(250)) {
+		status->age_median_ms = timing.age_median_ms;
+		status->age_p95_ms = timing.age_p95_ms;
+		status->inference_median_ms = timing.inference_median_ms;
+		status->input_transfer_median_ms = timing.input_transfer_median_ms;
+		status->output_transfer_median_ms = timing.output_transfer_median_ms;
+		status->queue_median_ms = timing.queue_median_ms;
+		status->keyed_fps = timing.keyed_fps;
+	}
+	status->repeated = timing.repeated;
 	status->submitted = s.submitted.load();
 	status->completed = s.completed.load();
 	status->dropped = s.dropped.load();
-	status->repeated = s.repeated.load();
 	return status;
 }
 void FilterInput::add_properties(obs_properties_t *properties)

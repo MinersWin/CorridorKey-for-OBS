@@ -82,10 +82,10 @@ Populate `PropertyCapabilities::choices` with string values from the schema:
 | `hint_mask` | Validated aligned mask IDs after cycle checks |
 
 The `ck1_refiner`, `head_pass`, `stagger`, `external_mask`, `guided_scale` and
-`audio_sync` flags enable their dependent controls. The default caller does not
-provide these capabilities yet. W04/W06/W07 must populate them from verified
-catalogue and probe results, then request a properties refresh on the control
-thread. Unsupported saved values remain in the snapshot; preparation must select
+`audio_sync` flags enable their dependent controls. W15 enables `audio_sync` in
+the filter caller. Other capabilities must come from verified catalogue and probe
+results; callers then request a properties refresh on the control thread.
+Unsupported saved values remain in the snapshot; preparation must select
 and explain a valid fallback or keep passthrough.
 
 The model manager and diagnostics buttons currently display localized inline
@@ -99,9 +99,11 @@ execution, ownership and restoration.
 Status uses the current `StatusSnapshot`, localized stable error IDs and actual
 optional timing values. Information text has an empty label and a separate tooltip
 so it cannot widen the form's label column. Missing timings show words instead of
-zeroes. There is no periodic status timer in W02: W15 must coalesce control-thread
-refreshes to at most 2 Hz and defer them during interaction. Opening properties or
-editing a control already refreshes the displayed snapshot.
+zeroes. W15 refreshes the three status labels on the Qt UI thread at most twice
+a second,
+using a weak source reference. It pauses during mouse interaction and popups, and
+for 750 ms after a property edit. It updates existing labels without rebuilding
+properties. Opening properties or editing a control also refreshes the snapshot.
 
 ## Prototype dispositions
 
