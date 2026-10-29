@@ -4,7 +4,8 @@
 #include <memory>
 
 namespace corridorkey {
-// All operations require the OBS graphics thread with graphics ownership.
+// Creation, signaling and query polling require graphics ownership.
+// A supported event wait belongs to a worker; the caller pins the fence until it returns.
 class GpuFence {
 public:
 	GpuFence();
@@ -15,6 +16,8 @@ public:
 	bool signal() noexcept;
 	bool ready() const noexcept;
 	bool failed() const noexcept;
+	bool can_wait() const noexcept;
+	bool wait_ready(unsigned timeout_ms = 1000) const noexcept;
 
 private:
 	struct Impl;

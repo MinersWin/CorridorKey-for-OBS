@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <functional>
 
 namespace corridorkey::refiner {
 inline constexpr unsigned tile = 32, halo = 10, patch = 52, channels = 11, atlas_columns = 16;
@@ -21,6 +22,7 @@ struct Result {
 	double inference_ms = 0;
 	double cuda_interval_ms = -1;
 	double unpack_ms = 0, pack_ms = 0;
+	double wait_ms = 0;
 	bool device = false;
 };
 // One outstanding atlas, including an unconsumed result. The graph and device addresses stay fixed.
@@ -31,7 +33,7 @@ public:
 	Stage(const Stage &) = delete;
 	Stage &operator=(const Stage &) = delete;
 	bool submit(std::vector<float> &atlas);
-	bool submit_device(ID3D11Texture2D *atlas, ID3D11Texture2D *centres);
+	bool submit_device(ID3D11Texture2D *atlas, ID3D11Texture2D *centres, std::function<bool()> wait = {});
 	bool supports_device() const noexcept { return device_; }
 	std::optional<Result> poll();
 	unsigned budget() const noexcept { return budget_; }
@@ -46,6 +48,7 @@ private:
 	std::optional<std::vector<float>> pending_;
 	struct DeviceJob {
 		ID3D11Texture2D *atlas = nullptr, *centres = nullptr;
+		std::function<bool()> wait;
 	};
 	std::optional<DeviceJob> pending_device_;
 	DeviceJob registered_;

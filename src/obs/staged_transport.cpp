@@ -208,6 +208,8 @@ Error StagedTransport::try_capture(InputFrame &input) noexcept
 		available_ = false;
 		return error(ErrorCode::device_lost);
 	}
+	if (slot.interop_capture && slot.captured.can_wait())
+		gs_flush();
 	input.original = {native_,
 			  PixelFormat::rgba_f32,
 			  ColorSpace::srgb,
@@ -229,7 +231,7 @@ std::optional<InputFrame> StagedTransport::take_ready()
 		if (!entry || !entry->pending)
 			continue;
 		auto &slot = *entry;
-		if (!slot.captured.ready()) {
+		if (!(slot.interop_capture && slot.captured.can_wait()) && !slot.captured.ready()) {
 			if (slot.captured.failed()) {
 				failure_ = error(ErrorCode::device_lost);
 				available_ = false;
@@ -304,6 +306,8 @@ Image StagedTransport::analysis(const InputFrame &input, nvidia::TextureTransfer
 	if (context && transfers && slot.shared_capture && slot.grid_handle && slot.model_handle &&
 	    slot.model_half_handle && !interop_failed_) {
 		try {
+			if (slot.interop_capture && slot.captured.can_wait() && !slot.captured.wait_ready())
+				throw std::runtime_error("Shared capture completion timed out");
 			auto &texture = transfers->get(context, slot.grid_handle);
 			auto tensor = ck2::device_rgb(texture.read(), grid_, texture.format());
 			context->synchronize();
@@ -440,8 +444,9 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 		if (refine_frames_++ % 60 == 0)
 			blog(LOG_INFO,
 			     "[corridorkey:w13] tiles=%u inference_ms=%.3f cuda_interval_ms=%.3f gather_wait_ms=%.3f read_ms=%.3f unpack_ms=%.3f pack_ms=%.3f total_ms=%.3f readback_bytes=%llu upload_bytes=%llu",
-			     refine_budget_, refined->inference_ms, refined->cuda_interval_ms, refine_gather_ms_,
-			     refine_read_ms_, refined->unpack_ms, refined->pack_ms,
+			     refine_budget_, refined->inference_ms, refined->cuda_interval_ms,
+			     refine_gather_ms_ + refined->wait_ms, refine_read_ms_, refined->unpack_ms,
+			     refined->pack_ms,
 			     std::chrono::duration<double, std::milli>(obs_now() - refine_started_).count(),
 			     static_cast<unsigned long long>(refined->device ? 0 : tiles_->readback_bytes()),
 			     static_cast<unsigned long long>(refined->rgba.size() * sizeof(float)));
@@ -483,6 +488,17 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 			available_ = false;
 			failure_ = error(ErrorCode::device_lost);
 			refine_phase_ = 0;
+		}
+		if (refine_phase_ && tiles_->interop() && tiles_->can_wait()) {
+			gs_flush();
+			if (refine_stage_->submit_device(
+				    static_cast<ID3D11Texture2D *>(gs_texture_get_obj(tiles_->atlas())),
+				    static_cast<ID3D11Texture2D *>(gs_texture_get_obj(tiles_->centres())),
+				    [tiles = tiles_.get()] { return tiles->wait_ready(); })) {
+				refine_gather_ms_ =
+					std::chrono::duration<double, std::milli>(obs_now() - refine_started_).count();
+				refine_phase_ = 3;
+			}
 		}
 		return false;
 	}

@@ -3,8 +3,9 @@
 #include "gpu_fence.hpp"
 #include <graphics/graphics.h>
 #include <cstdint>
+#include <atomic>
 #ifdef _WIN32
-#include <d3d11.h>
+#include <d3d11_4.h>
 #include <wrl/client.h>
 #else
 #include <dlfcn.h>
@@ -13,10 +14,14 @@
 namespace corridorkey {
 struct GpuFence::Impl {
 	bool armed = false;
-	mutable bool failed = false;
+	mutable std::atomic<bool> failed{false};
 #ifdef _WIN32
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context;
 	Microsoft::WRL::ComPtr<ID3D11Query> query;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext4> timeline_context;
+	Microsoft::WRL::ComPtr<ID3D11Fence> timeline;
+	HANDLE event = nullptr;
+	UINT64 value = 0;
 	Impl()
 	{
 		if (gs_get_device_type() != GS_DEVICE_DIRECT3D_11)
@@ -28,12 +33,34 @@ struct GpuFence::Impl {
 		D3D11_QUERY_DESC desc{D3D11_QUERY_EVENT, 0};
 		if (FAILED(device->CreateQuery(&desc, &query)))
 			failed = true;
+		Microsoft::WRL::ComPtr<ID3D11Device5> modern;
+		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&modern))) &&
+		    SUCCEEDED(context.As(&timeline_context)) &&
+		    SUCCEEDED(modern->CreateFence(0, D3D11_FENCE_FLAG_NONE, IID_PPV_ARGS(&timeline))))
+			event = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+		if (!event) {
+			timeline.Reset();
+			timeline_context.Reset();
+		}
+	}
+	~Impl()
+	{
+		if (event)
+			CloseHandle(event);
 	}
 	bool supported() const { return context && query && !failed; }
 	bool signal()
 	{
 		if (!supported())
 			return false;
+		if (timeline) {
+			ResetEvent(event);
+			++value;
+			failed = FAILED(timeline_context->Signal(timeline.Get(), value)) ||
+				 FAILED(timeline->SetEventOnCompletion(value, event));
+			armed = true;
+			return !failed;
+		}
 		context->End(query.Get());
 		armed = true;
 		return true;
@@ -42,6 +69,12 @@ struct GpuFence::Impl {
 	{
 		if (!armed)
 			return true;
+		if (timeline) {
+			const auto completed = timeline->GetCompletedValue();
+			if (completed == UINT64_MAX)
+				failed = true;
+			return !failed && completed >= value;
+		}
 		BOOL complete = FALSE;
 		const auto hr =
 			context->GetData(query.Get(), &complete, sizeof(complete), D3D11_ASYNC_GETDATA_DONOTFLUSH);
@@ -119,5 +152,22 @@ bool GpuFence::ready() const noexcept
 bool GpuFence::failed() const noexcept
 {
 	return impl_->failed;
+}
+bool GpuFence::can_wait() const noexcept
+{
+#ifdef _WIN32
+	return impl_->timeline && impl_->event;
+#else
+	return false;
+#endif
+}
+bool GpuFence::wait_ready(unsigned timeout_ms) const noexcept
+{
+#ifdef _WIN32
+	if (can_wait())
+		return ready() || (WaitForSingleObject(impl_->event, timeout_ms) == WAIT_OBJECT_0 && ready());
+#endif
+	(void)timeout_ms;
+	return false;
 }
 } // namespace corridorkey

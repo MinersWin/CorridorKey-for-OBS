@@ -614,7 +614,7 @@ struct FilterInput::Impl {
 						std::to_string(snapshot->quality.refiner_enabled) + ":" +
 						std::to_string(snapshot->quality.refiner_max_tiles) + ":" +
 						snapshot->quality.model_revision;
-					runtime.info = [this](const std::string &message) {
+					runtime.info = [](const std::string &message) {
 						blog(LOG_INFO, "[corridorkey] %s",
 						     diagnostics::redact(message).c_str());
 					};
@@ -906,6 +906,8 @@ void FilterInput::tick() noexcept
 	}
 	try {
 		s.publish();
+		// Finishing a refined frame can start the next gather in this same video tick.
+		s.publish();
 		const auto start = obs_now();
 		GraphicsScope graphics;
 		s.poll_input();
@@ -989,6 +991,8 @@ bool FilterInput::render() noexcept
 					return false;
 				}
 				++s.captures;
+				if (s.transport->transport_kind() == TransportKind::interop)
+					s.poll_input();
 				const auto fps = s.settings->quality.target_fps;
 				s.pacer.captured(tick, fps);
 			} else {

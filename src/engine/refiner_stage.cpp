@@ -158,12 +158,12 @@ bool Stage::submit(std::vector<float> &atlas)
 	wake_.notify_one();
 	return true;
 }
-bool Stage::submit_device(ID3D11Texture2D *atlas, ID3D11Texture2D *centres)
+bool Stage::submit_device(ID3D11Texture2D *atlas, ID3D11Texture2D *centres, std::function<bool()> wait)
 {
 	std::unique_lock lock(mutex_, std::try_to_lock);
 	if (!lock.owns_lock() || busy_ || !device_ || !atlas || !centres)
 		return false;
-	pending_device_ = DeviceJob{atlas, centres};
+	pending_device_ = DeviceJob{atlas, centres, std::move(wait)};
 	busy_ = true;
 	wake_.notify_one();
 	return true;
@@ -197,6 +197,13 @@ void Stage::work(std::stop_token stop)
 		}
 		Result output;
 		try {
+			if (device_job && device_job->wait) {
+				const auto started = Clock::now();
+				if (!device_job->wait())
+					throw std::runtime_error("Shared atlas completion timed out");
+				output.wait_ms =
+					std::chrono::duration<double, std::milli>(Clock::now() - started).count();
+			}
 			const auto unpack_start = Clock::now();
 			ck2::Tensor x;
 			if (device_job) {
@@ -209,7 +216,7 @@ void Stage::work(std::stop_token stop)
 						std::make_unique<nvidia::D3D11Texture>(context, device_job->atlas);
 					output_texture_ =
 						std::make_unique<nvidia::D3D11Texture>(context, device_job->centres);
-					registered_ = *device_job;
+					registered_ = DeviceJob{device_job->atlas, device_job->centres, {}};
 				}
 				x.shape = {budget_, channels, patch, patch};
 				if (!device_input_)

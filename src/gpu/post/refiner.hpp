@@ -14,6 +14,8 @@ public:
 	bool begin(Reconstruction &, gs_texture_t *native, gs_texture_t *model, const Crop &roi);
 	// The fence must be ready before mapping. No wait or inference occurs here.
 	bool read_ready() const { return fence_.ready(); }
+	bool can_wait() const noexcept { return fence_.can_wait(); }
+	bool wait_ready() const noexcept { return fence_.wait_ready(); }
 	bool failed() const { return fence_.failed(); }
 	std::vector<float> read_atlas();
 	bool blend(std::span<const float> centres);
