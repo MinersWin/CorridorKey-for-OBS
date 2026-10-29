@@ -44,7 +44,8 @@ private:
 class FramePool {
 public:
 	static constexpr std::size_t capacity = 3;
-	FramePool();
+	static constexpr std::size_t maximum_capacity = 5;
+	explicit FramePool(std::size_t slots = capacity);
 	FramePool(const FramePool &) = delete;
 	FramePool &operator=(const FramePool &) = delete;
 	std::optional<FrameLease> try_acquire() noexcept;

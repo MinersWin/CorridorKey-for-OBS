@@ -259,3 +259,10 @@ streaming, and real model transports remain unverified. There is no native refin
 guided reconstruction or sensor-to-output latency measurement in this package.
 The fake exercises ownership and scheduling; it does not establish the cost of
 a neural model or a production upload path.
+
+## Reconstruction and pacing follow-up
+
+W08 replaces the coarse composite with native reconstruction and extends the OBS
+retained-frame pool to five slots. See [reconstruction](reconstruction.md) for
+colour checks, throughput measurements and the W15 displayed-age follow-up. The
+measurements above describe the original three-slot implementation.

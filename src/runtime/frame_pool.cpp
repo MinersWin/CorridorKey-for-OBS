@@ -4,6 +4,7 @@
 #include <array>
 #include <atomic>
 #include <utility>
+#include <stdexcept>
 
 namespace corridorkey {
 static_assert(std::atomic<std::uint64_t>::is_always_lock_free);
@@ -13,7 +14,8 @@ struct PoolState {
 		std::atomic<FrameState> state{FrameState::free};
 		std::atomic<std::uint64_t> reuse{0};
 	};
-	std::array<Slot, FramePool::capacity> slots;
+	std::array<Slot, FramePool::maximum_capacity> slots;
+	std::size_t count = FramePool::capacity;
 	std::atomic<Generation> generation{1};
 };
 
@@ -70,11 +72,16 @@ void FrameLease::release() noexcept
 		pool_.reset();
 	}
 }
-FramePool::FramePool() : state_(std::make_shared<PoolState>()) {}
+FramePool::FramePool(std::size_t slots) : state_(std::make_shared<PoolState>())
+{
+	if (!slots || slots > maximum_capacity)
+		throw std::invalid_argument("Frame pool capacity must be between one and five");
+	state_->count = slots;
+}
 std::optional<FrameLease> FramePool::try_acquire() noexcept
 {
 	const auto generation = this->generation();
-	for (std::uint32_t i = 0; i < capacity; ++i) {
+	for (std::uint32_t i = 0; i < state_->count; ++i) {
 		auto expected = FrameState::free;
 		auto &slot = state_->slots[i];
 		if (slot.state.compare_exchange_strong(expected, FrameState::capturing)) {

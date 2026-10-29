@@ -3,6 +3,7 @@
 #pragma once
 #include "contracts/capabilities.hpp"
 #include "gpu_fence.hpp"
+#include "gpu/post/reconstruction.hpp"
 #include <obs.h>
 #include <array>
 #include <optional>
@@ -20,7 +21,7 @@ public:
 	// Graphics task only. Mapping requires a later tick and a ready capture fence.
 	std::optional<InputFrame> take_ready(std::uint64_t tick);
 	void discard_stale();
-	bool upload(const FrameResult &result, const std::vector<std::uint8_t> &rgba);
+	bool upload(const FrameResult &result, const std::vector<float> &rgba, int debug_view = 0);
 	bool read_finished(const FrameResult &result) const;
 	// No graphics access; the input lease pins the byte buffer during conversion.
 	Image analysis(const InputFrame &input) const;
@@ -36,7 +37,8 @@ private:
 	Extent native_, grid_;
 	gs_effect_t *effect_ = nullptr;
 	gs_eparam_t *image_ = nullptr, *original_ = nullptr, *result_ = nullptr, *crop_ = nullptr;
-	std::array<std::unique_ptr<Slot>, FramePool::capacity> slots_;
+	std::array<std::unique_ptr<Slot>, FramePool::maximum_capacity> slots_;
+	std::unique_ptr<Reconstruction> reconstruction_;
 	bool available_ = false;
 	Error failure_;
 	Duration host_draw_time_{};

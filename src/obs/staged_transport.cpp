@@ -49,7 +49,8 @@ void set_crop(gs_eparam_t *parameter, const Crop &crop)
 struct StagedTransport::Slot {
 	gs_texrender_t *native = nullptr, *grid = nullptr;
 	gs_stagesurf_t *stage = nullptr;
-	gs_texture_t *output = nullptr;
+	gs_texture_t *model = nullptr;
+	gs_texrender_t *output = nullptr;
 	GpuFence captured, drawn;
 	std::shared_ptr<const ImageStorage> original;
 	std::shared_ptr<const Completion> read_complete = std::make_shared<ReadCompletion>(drawn);
@@ -60,7 +61,8 @@ struct StagedTransport::Slot {
 		gs_texrender_destroy(native);
 		gs_texrender_destroy(grid);
 		gs_stagesurface_destroy(stage);
-		gs_texture_destroy(output);
+		gs_texture_destroy(model);
+		gs_texrender_destroy(output);
 	}
 };
 StagedTransport::StagedTransport(obs_source_t *source, Extent native, Extent grid)
@@ -81,17 +83,26 @@ StagedTransport::StagedTransport(obs_source_t *source, Extent native, Extent gri
 	crop_ = gs_effect_get_param_by_name(effect_, "crop_bounds");
 	if (!image_ || !original_ || !result_ || !crop_)
 		return;
+	path = obs_module_file("effects/post.effect");
+	if (path) {
+		reconstruction_ = std::make_unique<Reconstruction>(native, grid, path);
+		bfree(path);
+	}
+	if (!reconstruction_ || !reconstruction_->available())
+		return;
 	for (auto &entry : slots_) {
 		entry = std::make_unique<Slot>();
 		auto &slot = *entry;
 		if (!slot.captured.supported() || !slot.drawn.supported())
 			return;
-		slot.native = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
+		slot.native = gs_texrender_create(GS_RGBA32F, GS_ZS_NONE);
 		slot.grid = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
 		slot.stage = gs_stagesurface_create(grid.width, grid.height, GS_RGBA);
-		slot.output = gs_texture_create(grid.width, grid.height, GS_RGBA, 1, nullptr, GS_DYNAMIC);
+		slot.model = gs_texture_create(grid.width, grid.height, GS_RGBA32F, 1, nullptr, GS_DYNAMIC);
+		slot.output = gs_texrender_create(GS_RGBA16F, GS_ZS_NONE);
 		slot.bytes.resize(static_cast<std::size_t>(grid.width) * grid.height * 4);
-		if (!prime(slot.native, native) || !prime(slot.grid, grid) || !slot.stage || !slot.output)
+		if (!prime(slot.native, native) || !prime(slot.grid, grid) || !slot.stage || !slot.model ||
+		    !prime(slot.output, native))
 			return;
 		slot.original = std::make_shared<TextureView>(gs_texrender_get_texture(slot.native));
 	}
@@ -120,6 +131,12 @@ Error StagedTransport::try_capture(InputFrame &input) noexcept
 	auto &slot = *slots_[input.lease.id().index];
 	if (slot.pending || !slot.captured.ready() || !slot.drawn.ready())
 		return error(ErrorCode::busy);
+	const bool previous_srgb = gs_framebuffer_srgb_enabled();
+	struct RestoreSrgb {
+		bool previous;
+		~RestoreSrgb() { gs_enable_framebuffer_srgb(previous); }
+	} restore{previous_srgb};
+	gs_enable_framebuffer_srgb(false);
 	gs_texrender_reset(slot.native);
 	if (!gs_texrender_begin(slot.native, native_.width, native_.height))
 		return error(ErrorCode::device_lost);
@@ -127,7 +144,8 @@ Error StagedTransport::try_capture(InputFrame &input) noexcept
 	gs_blend_state_push();
 	gs_blend_function(GS_BLEND_ONE, GS_BLEND_ZERO);
 	const auto before_host = obs_now();
-	const bool began = obs_source_process_filter_begin(source_, GS_RGBA, OBS_NO_DIRECT_RENDERING);
+	const bool began = obs_source_process_filter_begin_with_color_space(source_, GS_RGBA16F, GS_CS_SRGB_16F,
+									    OBS_NO_DIRECT_RENDERING);
 	host_draw_time_ = obs_now() - before_host;
 	if (began)
 		obs_source_process_filter_tech_end(source_, effect_, native_.width, native_.height, "Capture");
@@ -153,10 +171,10 @@ Error StagedTransport::try_capture(InputFrame &input) noexcept
 		return error(ErrorCode::device_lost);
 	}
 	input.original = {native_,
-			  PixelFormat::rgba8,
+			  PixelFormat::rgba_f32,
 			  ColorSpace::srgb,
 			  AlphaMode::premultiplied,
-			  static_cast<std::size_t>(native_.width) * 4,
+			  static_cast<std::size_t>(native_.width) * 4 * sizeof(float),
 			  slot.original};
 	slot.pending = std::move(input);
 	return {};
@@ -235,27 +253,23 @@ Image StagedTransport::analysis(const InputFrame &input) const
 		static_cast<std::size_t>(grid_.width) * 3 * sizeof(float),
 		std::make_shared<HostFloats>(std::move(rgb))};
 }
-bool StagedTransport::upload(const FrameResult &result, const std::vector<std::uint8_t> &rgba)
+bool StagedTransport::upload(const FrameResult &result, const std::vector<float> &rgba, int debug_view)
 {
 	if (rgba.size() != static_cast<std::size_t>(grid_.width) * grid_.height * 4)
 		return false;
-	gs_texture_set_image(slots_[result.input.lease.id().index]->output, rgba.data(), grid_.width * 4, false);
-	return true;
+	auto &slot = *slots_[result.input.lease.id().index];
+	gs_texture_set_image(slot.model, reinterpret_cast<const std::uint8_t *>(rgba.data()),
+			     grid_.width * 4 * sizeof(float), false);
+	return result.input.settings &&
+	       reconstruction_->prepare(gs_texrender_get_texture(slot.native), gs_texrender_get_texture(slot.grid),
+					slot.model, *result.input.settings, result.transform.sampled_roi) &&
+	       reconstruction_->finish(slot.output, gs_texrender_get_texture(slot.native), *result.input.settings,
+				       result.transform.sampled_roi, debug_view);
 }
 Error StagedTransport::try_present(const FrameResult &result, std::shared_ptr<const Completion> &read_complete) noexcept
 {
 	auto &slot = *slots_[result.input.lease.id().index];
-	gs_effect_set_texture(original_, gs_texrender_get_texture(slot.native));
-	gs_effect_set_texture(result_, slot.output);
-	set_crop(crop_, result.transform.sampled_roi);
-	gs_blend_state_push();
-	gs_blend_function(GS_BLEND_ONE, GS_BLEND_INVSRCALPHA);
-	const bool srgb = gs_framebuffer_srgb_enabled();
-	gs_enable_framebuffer_srgb(false);
-	while (gs_effect_loop(effect_, "Composite"))
-		gs_draw_sprite(slot.output, 0, native_.width, native_.height);
-	gs_enable_framebuffer_srgb(srgb);
-	gs_blend_state_pop();
+	reconstruction_->present(gs_texrender_get_texture(slot.output));
 	read_complete = slot.read_complete;
 	if (!slot.drawn.signal()) {
 		available_ = false;

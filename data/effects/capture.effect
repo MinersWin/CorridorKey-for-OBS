@@ -21,7 +21,18 @@ Vertex vertex_shader(Vertex v)
 }
 float4 capture_pixel(Vertex v) : TARGET
 {
-    return image.Sample(linear_clamp, v.uv);
+    // The SRGB-aware OBS filter supplies linear premultiplied pixels from its
+    // floating-point intermediate. Store canonical sRGB-domain premultiplication.
+    float4 p = image.Sample(linear_clamp, v.uv);
+    p = float4(p.r >= 0.0 && p.r <= 65504.0 ? p.r : 0.0,
+               p.g >= 0.0 && p.g <= 65504.0 ? p.g : 0.0,
+               p.b >= 0.0 && p.b <= 65504.0 ? p.b : 0.0,
+               p.a >= 0.0 && p.a <= 1.0 ? p.a : 0.0);
+    float3 rgb = p.a > 0.000001 ? saturate(p.rgb / p.a) : float3(0.0, 0.0, 0.0);
+    float3 low = rgb * 12.92;
+    float3 high = 1.055 * pow(rgb, float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) - 0.055;
+    rgb = float3(rgb.r <= 0.0031308 ? low.r : high.r, rgb.g <= 0.0031308 ? low.g : high.g, rgb.b <= 0.0031308 ? low.b : high.b);
+    return float4(rgb * p.a, p.a);
 }
 float4 downscale_pixel(Vertex v) : TARGET
 {
