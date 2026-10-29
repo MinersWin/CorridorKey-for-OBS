@@ -72,7 +72,8 @@ jobs:
       - name: Stage
         run: DESTDIR="$PWD/stage" cmake --install build_x86_64 --prefix /usr
       - name: Test
-        run: ctest --test-dir build_x86_64 --output-on-failure -LE local-models
+        # libobs needs an X display to start, even for headless tests.
+        run: xvfb-run -a ctest --test-dir build_x86_64 --output-on-failure -LE local-models
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: inputs.package_stages
         with:
