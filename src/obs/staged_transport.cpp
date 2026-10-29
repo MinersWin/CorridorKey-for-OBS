@@ -50,9 +50,13 @@ struct StagedTransport::Slot {
 	gs_texrender_t *native = nullptr, *grid = nullptr;
 	gs_stagesurf_t *stage = nullptr;
 	gs_texture_t *model = nullptr, *model_half = nullptr;
+	gs_texture_t *device_model = nullptr, *device_model_half = nullptr;
+	ID3D11Texture2D *grid_handle = nullptr, *model_handle = nullptr, *model_half_handle = nullptr;
+	bool interop_capture = false;
 	gs_texrender_t *output = nullptr;
 	GpuFence captured, drawn;
 	std::shared_ptr<const ImageStorage> original;
+	std::shared_ptr<const ImageStorage> grid_view, model_view, model_half_view;
 	std::shared_ptr<const Completion> read_complete = std::make_shared<ReadCompletion>(drawn);
 	std::optional<InputFrame> pending;
 	std::vector<std::uint8_t> bytes;
@@ -63,6 +67,8 @@ struct StagedTransport::Slot {
 		gs_stagesurface_destroy(stage);
 		gs_texture_destroy(model);
 		gs_texture_destroy(model_half);
+		gs_texture_destroy(device_model);
+		gs_texture_destroy(device_model_half);
 		gs_texrender_destroy(output);
 	}
 };
@@ -111,6 +117,22 @@ StagedTransport::StagedTransport(obs_source_t *source, Extent native, Extent gri
 		    !slot.model_half || !prime(slot.output, native))
 			return;
 		slot.original = std::make_shared<TextureView>(gs_texrender_get_texture(slot.native));
+		slot.grid_view = std::make_shared<TextureView>(gs_texrender_get_texture(slot.grid));
+		if (gs_get_device_type() == GS_DEVICE_DIRECT3D_11) {
+			slot.device_model = gs_texture_create(grid.width, grid.height, GS_RGBA32F, 1, nullptr, 0);
+			slot.device_model_half =
+				gs_texture_create(grid.width / 2, grid.height / 2, GS_RGBA32F, 1, nullptr, 0);
+			slot.grid_handle =
+				static_cast<ID3D11Texture2D *>(gs_texture_get_obj(gs_texrender_get_texture(slot.grid)));
+			if (slot.device_model && slot.device_model_half) {
+				slot.model_handle =
+					static_cast<ID3D11Texture2D *>(gs_texture_get_obj(slot.device_model));
+				slot.model_half_handle =
+					static_cast<ID3D11Texture2D *>(gs_texture_get_obj(slot.device_model_half));
+				slot.model_view = std::make_shared<TextureView>(slot.device_model);
+				slot.model_half_view = std::make_shared<TextureView>(slot.device_model_half);
+			}
+		}
 	}
 	available_ = true;
 }
@@ -123,7 +145,7 @@ StagedTransport::~StagedTransport()
 TransportCapabilities StagedTransport::capabilities() const
 {
 	TransportCapabilities result;
-	result.kind = TransportKind::staged_grid;
+	result.kind = transport_kind();
 	result.available = result.nonblocking_capture = result.native_rgb = available_;
 	if (!available_)
 		result.unavailable_reason = error(ErrorCode::unsupported);
@@ -171,7 +193,9 @@ Error StagedTransport::try_capture(InputFrame &input) noexcept
 		gs_draw_sprite(gs_texrender_get_texture(slot.native), 0, grid_.width, grid_.height);
 	gs_blend_state_pop();
 	gs_texrender_end(slot.grid);
-	gs_stage_texture(slot.stage, gs_texrender_get_texture(slot.grid));
+	slot.interop_capture = interop_.load();
+	if (!slot.interop_capture)
+		gs_stage_texture(slot.stage, gs_texrender_get_texture(slot.grid));
 	if (!slot.captured.signal()) {
 		available_ = false;
 		return error(ErrorCode::device_lost);
@@ -223,6 +247,12 @@ std::optional<InputFrame> StagedTransport::take_ready()
 	if (!selected)
 		return std::nullopt;
 	auto &slot = *selected;
+	if (slot.interop_capture) {
+		auto input = std::move(slot.pending);
+		slot.pending.reset();
+		input->lease.transition(FrameState::ready);
+		return input;
+	}
 	std::uint8_t *data = nullptr;
 	std::uint32_t pitch = 0;
 	if (!gs_stagesurface_map(slot.stage, &data, &pitch)) {
@@ -256,8 +286,28 @@ void StagedTransport::discard_stale()
 		    (slot->captured.ready() || slot->captured.failed()))
 			slot->pending.reset();
 }
-Image StagedTransport::analysis(const InputFrame &input) const
+Image StagedTransport::analysis(const InputFrame &input, nvidia::TextureTransfers *transfers,
+				std::shared_ptr<nvidia::Context> context)
 {
+	auto &slot = *slots_[input.lease.id().index];
+	if (context && transfers && slot.grid_handle && !interop_failed_) {
+		try {
+			auto &texture = transfers->get(context, slot.grid_handle);
+			auto tensor = ck2::device_rgb(texture.read(), grid_, texture.format());
+			context->synchronize();
+			interop_ = true;
+			return ck2::packed_image(tensor, PixelFormat::rgb_f32);
+		} catch (const std::exception &e) {
+			interop_ = false;
+			interop_failed_ = true;
+			blog(LOG_WARNING, "[corridorkey:w10] Input interop unavailable; using staged capture: %s",
+			     e.what());
+			if (slot.interop_capture)
+				throw;
+		}
+	}
+	if (slot.interop_capture)
+		throw std::runtime_error("Discard interop capture after backend change");
 	const auto &bytes = slots_[input.lease.id().index]->bytes;
 	std::vector<float> rgb(bytes.size() / 4 * 3);
 	for (std::size_t p = 0; p < bytes.size() / 4; ++p)
@@ -270,16 +320,53 @@ Image StagedTransport::analysis(const InputFrame &input) const
 		static_cast<std::size_t>(grid_.width) * 3 * sizeof(float),
 		std::make_shared<HostFloats>(std::move(rgb))};
 }
+void StagedTransport::release_analysis(FrameResult &result)
+{
+	// Release conversion allocations on the coordinator worker before graphics publication.
+	result.input.analysis.storage = slots_[result.input.lease.id().index]->grid_view;
+}
+bool StagedTransport::upload_device(FrameResult &result, nvidia::TextureTransfers &transfers)
+{
+	const auto alpha = std::dynamic_pointer_cast<const ck2::DeviceImage>(result.alpha.storage);
+	const auto rgb = std::dynamic_pointer_cast<const ck2::DeviceImage>(result.foreground.storage);
+	if (!alpha || !rgb || interop_failed_)
+		return false;
+	auto &slot = *slots_[result.input.lease.id().index];
+	auto *handle = result.alpha.size == grid_ ? slot.model_handle : slot.model_half_handle;
+	if (!handle)
+		return false;
+	try {
+		auto context = alpha->tensor.device->context();
+		unsigned pixels = result.alpha.size.width * result.alpha.size.height;
+		auto rgba = context->allocate(static_cast<std::size_t>(pixels) * 4 * sizeof(float));
+		auto a = alpha->tensor.device->pointer(), f = rgb->tensor.device->pointer(), dst = rgba->pointer();
+		void *args[]{&f, &a, &dst, &pixels};
+		context->launch("planar_to_rgba", pixels * 4, args);
+		context->synchronize();
+		transfers.get(context, handle).write(*rgba);
+		result.alpha.storage = result.foreground.storage = result.alpha.size == grid_ ? slot.model_view
+											      : slot.model_half_view;
+		return true;
+	} catch (const std::exception &e) {
+		interop_ = false;
+		interop_failed_ = true;
+		blog(LOG_WARNING, "[corridorkey:w10] Output interop unavailable; using staged upload: %s", e.what());
+		return false;
+	}
+}
 bool StagedTransport::upload(const FrameResult &result, const std::vector<float> &rgba, int debug_view,
 			     std::shared_ptr<refiner::Stage> refinement)
 {
 	const auto extent = result.alpha.size;
 	const Extent half{grid_.width / 2, grid_.height / 2};
 	if ((extent != grid_ && extent != half) || result.foreground.size != extent ||
-	    rgba.size() != static_cast<std::size_t>(extent.width) * extent.height * 4)
+	    (!rgba.empty() && rgba.size() != static_cast<std::size_t>(extent.width) * extent.height * 4))
 		return false;
 	auto &slot = *slots_[result.input.lease.id().index];
-	auto *model = extent == grid_ ? slot.model : slot.model_half;
+	auto *model = rgba.empty() ? (extent == grid_ ? slot.device_model : slot.device_model_half)
+				   : (extent == grid_ ? slot.model : slot.model_half);
+	if (!model)
+		return false;
 	auto &post = extent == grid_ ? *reconstruction_ : *reconstruction_half_;
 	struct ProtectReads {
 		GpuFence &fence;
@@ -303,12 +390,21 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 			}
 			if (!tiles_->read_ready())
 				return false;
-			const auto read_start = obs_now();
-			refine_gather_ms_ =
-				std::chrono::duration<double, std::milli>(read_start - refine_started_).count();
-			atlas_pixels_ = tiles_->read_atlas();
-			refine_read_ms_ = std::chrono::duration<double, std::milli>(obs_now() - read_start).count();
-			refine_phase_ = 2;
+			if (tiles_->interop()) {
+				if (!refine_stage_->submit_device(
+					    static_cast<ID3D11Texture2D *>(gs_texture_get_obj(tiles_->atlas())),
+					    static_cast<ID3D11Texture2D *>(gs_texture_get_obj(tiles_->centres()))))
+					return false;
+				refine_phase_ = 3;
+			} else {
+				const auto read_start = obs_now();
+				refine_gather_ms_ =
+					std::chrono::duration<double, std::milli>(read_start - refine_started_).count();
+				atlas_pixels_ = tiles_->read_atlas();
+				refine_read_ms_ =
+					std::chrono::duration<double, std::milli>(obs_now() - read_start).count();
+				refine_phase_ = 2;
+			}
 		}
 		if (refine_phase_ == 2) {
 			if (!refine_stage_->submit(atlas_pixels_))
@@ -320,20 +416,22 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 			return false;
 		refine_phase_ = 0;
 		if (!refined->failure.empty()) {
+			if (tiles_->interop())
+				refiner_interop_failed_ = true;
 			blog(LOG_WARNING, "[corridorkey:w13] Refiner inference failed: %s", refined->failure.c_str());
 			return false;
 		}
-		const bool finished = tiles_->blend(refined->rgba) &&
+		const bool finished = (refined->device ? tiles_->blend_device() : tiles_->blend(refined->rgba)) &&
 				      post.finish(slot.output, gs_texrender_get_texture(slot.native),
 						  *result.input.settings, result.transform.sampled_roi, debug_view,
 						  tiles_->raw());
 		if (refine_frames_++ % 60 == 0)
 			blog(LOG_INFO,
-			     "[corridorkey:w13] tiles=%u inference_ms=%.3f gather_wait_ms=%.3f read_ms=%.3f unpack_ms=%.3f pack_ms=%.3f staged_ms=%.3f readback_bytes=%llu upload_bytes=%llu",
+			     "[corridorkey:w13] tiles=%u inference_ms=%.3f gather_wait_ms=%.3f read_ms=%.3f unpack_ms=%.3f pack_ms=%.3f total_ms=%.3f readback_bytes=%llu upload_bytes=%llu",
 			     refine_budget_, refined->inference_ms, refine_gather_ms_, refine_read_ms_,
 			     refined->unpack_ms, refined->pack_ms,
 			     std::chrono::duration<double, std::milli>(obs_now() - refine_started_).count(),
-			     static_cast<unsigned long long>(tiles_->readback_bytes()),
+			     static_cast<unsigned long long>(refined->device ? 0 : tiles_->readback_bytes()),
 			     static_cast<unsigned long long>(refined->rgba.size() * sizeof(float)));
 		refine_stage_.reset();
 		if (!slot.drawn.signal()) {
@@ -342,14 +440,17 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 		}
 		return finished && available_;
 	}
-	gs_texture_set_image(model, reinterpret_cast<const std::uint8_t *>(rgba.data()),
-			     extent.width * 4 * sizeof(float), false);
+	if (!rgba.empty())
+		gs_texture_set_image(model, reinterpret_cast<const std::uint8_t *>(rgba.data()),
+				     extent.width * 4 * sizeof(float), false);
 	if (refinement && result.input.settings && result.input.settings->quality.refiner_enabled) {
-		if (!tiles_ || refine_budget_ != refinement->budget()) {
+		const bool device_refiner = refinement->supports_device() && !refiner_interop_failed_ &&
+					    gs_get_device_type() == GS_DEVICE_DIRECT3D_11;
+		if (!tiles_ || refine_budget_ != refinement->budget() || tiles_->interop() != device_refiner) {
 			char *path = obs_module_file("effects/refiner.effect");
 			if (!path)
 				return false;
-			tiles_ = std::make_unique<TileRefiner>(native_, refinement->budget(), path);
+			tiles_ = std::make_unique<TileRefiner>(native_, refinement->budget(), path, device_refiner);
 			bfree(path);
 			refine_budget_ = refinement->budget();
 		}

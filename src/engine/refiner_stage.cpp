@@ -136,6 +136,7 @@ Stage::Stage(std::unique_ptr<ck2::Graph> graph, unsigned n, std::shared_ptr<cons
 	input_atlas(n);
 	if (!graph_)
 		throw std::invalid_argument("Missing refiner graph");
+	device_ = static_cast<bool>(graph_->device_context());
 	worker_ = std::jthread([this](std::stop_token stop) { work(stop); });
 }
 Stage::~Stage()
@@ -157,6 +158,16 @@ bool Stage::submit(std::vector<float> &atlas)
 	wake_.notify_one();
 	return true;
 }
+bool Stage::submit_device(ID3D11Texture2D *atlas, ID3D11Texture2D *centres)
+{
+	std::unique_lock lock(mutex_, std::try_to_lock);
+	if (!lock.owns_lock() || busy_ || !device_ || !atlas || !centres)
+		return false;
+	pending_device_ = DeviceJob{atlas, centres};
+	busy_ = true;
+	wake_.notify_one();
+	return true;
+}
 std::optional<Result> Stage::poll()
 {
 	std::unique_lock lock(mutex_, std::try_to_lock);
@@ -171,24 +182,74 @@ void Stage::work(std::stop_token stop)
 {
 	for (;;) {
 		std::vector<float> atlas;
+		std::optional<DeviceJob> device_job;
 		{
 			std::unique_lock lock(mutex_);
-			wake_.wait(lock, [this, stop] { return stop.stop_requested() || pending_.has_value(); });
+			wake_.wait(lock, [this, stop] {
+				return stop.stop_requested() || pending_.has_value() || pending_device_.has_value();
+			});
 			if (stop.stop_requested())
 				return;
-			atlas = std::move(*pending_);
+			if (pending_)
+				atlas = std::move(*pending_);
 			pending_.reset();
+			device_job = std::exchange(pending_device_, {});
 		}
 		Result output;
 		try {
 			const auto unpack_start = Clock::now();
-			auto x = unpack_atlas(atlas, budget_);
+			ck2::Tensor x;
+			if (device_job) {
+				auto context = graph_->device_context();
+				if (!input_texture_ || registered_.atlas != device_job->atlas ||
+				    registered_.centres != device_job->centres) {
+					input_texture_.reset();
+					output_texture_.reset();
+					input_texture_ =
+						std::make_unique<nvidia::D3D11Texture>(context, device_job->atlas);
+					output_texture_ =
+						std::make_unique<nvidia::D3D11Texture>(context, device_job->centres);
+					registered_ = *device_job;
+				}
+				x.shape = {budget_, channels, patch, patch};
+				if (!device_input_)
+					device_input_ = context->allocate(static_cast<std::size_t>(budget_) * channels *
+									  patch * patch * sizeof(float));
+				x.device = device_input_;
+				auto rgba = input_texture_->read();
+				auto src = rgba->pointer(), dst = x.device->pointer();
+				void *args[]{&src, &dst, &budget_};
+				context->launch("unpack_atlas", budget_ * channels * patch * patch, args);
+				context->synchronize();
+			} else
+				x = unpack_atlas(atlas, budget_);
 			const auto start = Clock::now();
 			output.unpack_ms = std::chrono::duration<double, std::milli>(start - unpack_start).count();
 			auto tensors = graph_->run({{"x", &x}}, stop);
 			const auto pack_start = Clock::now();
 			output.inference_ms = std::chrono::duration<double, std::milli>(pack_start - start).count();
-			output.rgba = pack_centres(tensors, budget_);
+			if (device_job) {
+				const auto &a = tensors.at("alpha"), &f = tensors.at("fg");
+				ck2::check_tensor(a, ck2::Tensor({budget_, 1, patch, patch}, 0, false), true);
+				ck2::check_tensor(f, ck2::Tensor({budget_, 3, patch, patch}, 0, false), true);
+				auto context = a.device->context();
+				if (!device_centres_)
+					device_centres_ = context->allocate(static_cast<std::size_t>(budget_) * tile *
+									    tile * 4 * sizeof(float));
+				auto rgba = device_centres_;
+				auto rgb = f.device->pointer(), alpha = a.device->pointer(), dst = rgba->pointer();
+				void *args[]{&rgb, &alpha, &dst, &budget_};
+				context->launch("pack_centres", budget_ * tile * tile * 4, args);
+				context->synchronize();
+				output_texture_->write(*rgba);
+				output.device = true;
+			} else {
+				for (auto &[name, tensor] : tensors) {
+					(void)name;
+					tensor = ck2::download_tensor(tensor);
+				}
+				output.rgba = pack_centres(tensors, budget_);
+			}
 			output.pack_ms = std::chrono::duration<double, std::milli>(Clock::now() - pack_start).count();
 		} catch (const std::exception &e) {
 			output.failure = e.what();

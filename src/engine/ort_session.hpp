@@ -2,6 +2,7 @@
 #pragma once
 #include "providers/loader.hpp"
 #include "contracts/models.hpp"
+#include "providers/nvidia.hpp"
 #include <functional>
 #include <mutex>
 
@@ -26,6 +27,7 @@ struct SessionConfig {
 	bool diagnostic_only = false;  // BF16 fixture exploration, never live preparation.
 	bool prebuilt_context = false; // EPContext graph + engine hashes supplied by the binder.
 	bool persistent_io = false;
+	bool rebuild_cache = false;
 	// W11 may supply its matched DML device/queue; both must be provided together.
 	IDMLDevice *dml_device = nullptr;
 	ID3D12CommandQueue *dml_queue = nullptr;
@@ -40,6 +42,7 @@ public:
 	const std::vector<TensorSpec> &outputs() const;
 	const Device &device() const;
 	const Runtime &runtime() const;
+	std::shared_ptr<nvidia::Context> device_context() const;
 	// Caller retains values, buffers and device allocations until run_bound returns.
 	// Calls serialize per session (required by DirectML). No render-thread calls.
 	void run_bound(std::span<const std::pair<std::string, const OrtValue *>> inputs,

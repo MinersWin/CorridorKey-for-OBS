@@ -59,7 +59,7 @@ void SequenceState::reset()
 {
 	// Temporal resets overwrite state at the same device addresses. Only a changed
 	// sampling transform needs recapture; recapturing after a slow frame loops forever.
-	std::fill(recurrent_.values.begin(), recurrent_.values.end(), 0.f);
+	zero_tensor(recurrent_);
 	moge_valid_ = false;
 	key_.reset();
 	processed_ = since_moge_ = 0;
@@ -72,6 +72,8 @@ Tensors SequenceState::run(Stage stage, const Inputs &inputs, std::stop_token st
 	const auto start = Clock::now();
 	auto outputs = graphs_.at(stage)->run(inputs, stop);
 	milliseconds = std::chrono::duration<double, std::milli>(Clock::now() - start).count();
+	if (graphs_.at(stage)->gpu_ms() >= 0)
+		milliseconds = graphs_.at(stage)->gpu_ms();
 	const auto expected = output_contract(stage, grid_);
 	if (outputs.size() != expected.size())
 		throw std::runtime_error("CK2 output count mismatch");
@@ -105,13 +107,13 @@ LowResolutionResult SequenceState::process(const InputFrame &input, std::stop_to
 			(void)stage;
 			graph->reset_transform();
 		}
-		std::fill(recurrent_.values.begin(), recurrent_.values.end(), 0.f);
+		zero_tensor(recurrent_);
 		moge_valid_ = false;
 	}
 	captured_transform_ = input.transform;
 	try {
 		auto rgb = planar_rgb(input.analysis);
-		auto thumb = resize_area(rgb, {32, 32});
+		auto thumb = download_tensor(resize_area(rgb, {32, 32}));
 		float motion = 0;
 		if (moge_valid_)
 			for (std::size_t i = 0; i < thumb.values.size(); ++i)
@@ -132,7 +134,7 @@ LowResolutionResult SequenceState::process(const InputFrame &input, std::stop_to
 		}
 		result.timings.moge_refreshed = refresh;
 		if (!q.use_rvm_temporal)
-			std::fill(recurrent_.values.begin(), recurrent_.values.end(), 0.f);
+			zero_tensor(recurrent_);
 		auto rvm_rgb = resize_area(rgb, {grid_.width / 4, grid_.height / 4});
 		auto rvm =
 			run(Stage::rvm, {{"rgb_rvm", &rvm_rgb}, {"state", &recurrent_}}, stop, result.timings.rvm_ms);

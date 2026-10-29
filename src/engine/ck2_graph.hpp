@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 #include "contracts/frame.hpp"
+#include "providers/nvidia.hpp"
 #include <map>
 #include <string>
 
@@ -8,9 +9,24 @@ namespace corridorkey::ck2 {
 struct Tensor {
 	std::vector<std::int64_t> shape;
 	std::vector<float> values;
+	std::shared_ptr<nvidia::Buffer> device;
 	Tensor() = default;
-	explicit Tensor(std::vector<std::int64_t> dimensions, float fill = 0);
+	explicit Tensor(std::vector<std::int64_t> dimensions, float fill = 0, bool host_storage = true);
 };
+// Device images contain planar model tensors. Their memory is never interpreted as a texture.
+class DeviceImage final : public ImageStorage {
+public:
+	explicit DeviceImage(Tensor tensor) : tensor(std::move(tensor)) {}
+	MemoryDomain domain() const noexcept override { return MemoryDomain::cuda; }
+	std::uintptr_t native_handle() const noexcept override
+	{
+		return static_cast<std::uintptr_t>(tensor.device->pointer());
+	}
+	Tensor tensor;
+};
+Tensor download_tensor(const Tensor &);
+void zero_tensor(Tensor &);
+Tensor device_rgb(const std::shared_ptr<nvidia::Buffer> &rgba, Extent, unsigned format);
 using Tensors = std::map<std::string, Tensor>;
 using Inputs = std::map<std::string, const Tensor *>;
 enum class Stage { moge, rvm, stage1, stage2, refiner };
@@ -23,6 +39,8 @@ public:
 	virtual ~Graph() = default;
 	virtual Tensors run(const Inputs &, std::stop_token) = 0;
 	virtual void reset_transform() {}
+	virtual std::shared_ptr<nvidia::Context> device_context() const { return {}; }
+	virtual double gpu_ms() const { return -1; }
 };
 using Graphs = std::map<Stage, std::unique_ptr<Graph>>;
 Tensor planar_rgb(const Image &);

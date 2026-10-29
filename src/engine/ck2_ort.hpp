@@ -13,6 +13,12 @@ public:
 	Tensors run(const Inputs &, std::stop_token) override;
 	std::map<std::string, std::size_t> finish_profile();
 	void reset_transform() override;
+	std::shared_ptr<nvidia::Context> device_context() const override
+	{
+		return resident_ ? bindings_->context() : nullptr;
+	}
+	void device_resident(bool enabled) { resident_ = enabled && device_; }
+	double gpu_ms() const override { return bindings_->gpu_ms(); }
 
 private:
 	std::unique_ptr<ort::Session> session_;
@@ -21,6 +27,7 @@ private:
 	std::function<std::unique_ptr<ort::Session>(const std::string &, std::stop_token)> fallback_;
 	bool device_ = false;
 	bool recapture_ = false;
+	bool resident_ = false;
 	Tensors inputs_, outputs_;
 };
 void verify_manifest(const std::filesystem::path &, Stage, Extent);
@@ -29,6 +36,7 @@ struct RuntimeConfig {
 	ort::CompilerConfig compiler;
 	std::filesystem::path cache, profiles;
 	bool capture = true;
+	bool interop = true;
 	std::function<void(const std::string &)> info;
 	std::function<void(const ProbeResult &)> record_probe;
 };

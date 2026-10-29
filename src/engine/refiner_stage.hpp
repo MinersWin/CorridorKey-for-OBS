@@ -2,6 +2,7 @@
 #pragma once
 #include "ck2_graph.hpp"
 #include "contracts/models.hpp"
+#include "gpu/d3d11_cuda.hpp"
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -19,6 +20,7 @@ struct Result {
 	std::string failure;
 	double inference_ms = 0;
 	double unpack_ms = 0, pack_ms = 0;
+	bool device = false;
 };
 // One outstanding atlas, including an unconsumed result. The graph and device addresses stay fixed.
 class Stage {
@@ -28,6 +30,8 @@ public:
 	Stage(const Stage &) = delete;
 	Stage &operator=(const Stage &) = delete;
 	bool submit(std::vector<float> &atlas);
+	bool submit_device(ID3D11Texture2D *atlas, ID3D11Texture2D *centres);
+	bool supports_device() const noexcept { return device_; }
 	std::optional<Result> poll();
 	unsigned budget() const noexcept { return budget_; }
 
@@ -39,6 +43,14 @@ private:
 	std::mutex mutex_;
 	std::condition_variable wake_;
 	std::optional<std::vector<float>> pending_;
+	struct DeviceJob {
+		ID3D11Texture2D *atlas = nullptr, *centres = nullptr;
+	};
+	std::optional<DeviceJob> pending_device_;
+	DeviceJob registered_;
+	std::unique_ptr<nvidia::D3D11Texture> input_texture_, output_texture_;
+	std::shared_ptr<nvidia::Buffer> device_input_, device_centres_;
+	bool device_ = false;
 	std::optional<Result> result_;
 	bool busy_ = false;
 	std::jthread worker_;

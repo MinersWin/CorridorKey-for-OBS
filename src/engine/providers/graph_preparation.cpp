@@ -52,6 +52,7 @@ GraphAttempt compile_in_helper(const SessionConfig &config, const CompilerConfig
 			{"require_adapter_match", config.require_adapter_match},
 			{"prebuilt_context", config.prebuilt_context},
 			{"persistent_io", config.persistent_io},
+			{"rebuild_cache", config.rebuild_cache},
 			{"precision", static_cast<int>(config.precision == Precision::automatic ? Precision::fp32
 												: config.precision)},
 			{"options", config.options},
@@ -144,6 +145,16 @@ PreparedGraph prepare_graph(std::span<const SessionConfig> alternatives, Provide
 							       ? ModelState::building
 							       : ModelState::warming);
 				attempt = compile_in_helper(config, compiler, stop);
+				if (attempt.failure && !stop.stop_requested() && !config.cache_root.empty() &&
+				    (config.bundle.backend == Backend::tensorrt ||
+				     config.bundle.backend == Backend::tensorrt_rtx)) {
+					auto fresh = config;
+					fresh.rebuild_cache = true;
+					const auto first = attempt.detail;
+					attempt = compile_in_helper(fresh, compiler, stop);
+					attempt.detail =
+						"Cache rebuild attempted once after: " + first + "; " + attempt.detail;
+				}
 				if (!attempt.failure && !stop.stop_requested()) {
 					try {
 						if (compiler.state)

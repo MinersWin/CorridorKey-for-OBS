@@ -27,7 +27,14 @@ public:
 	bool refining() const noexcept { return refine_phase_ != 0; }
 	bool read_finished(const FrameResult &result) const;
 	// No graphics access; the input lease pins the byte buffer during conversion.
-	Image analysis(const InputFrame &input) const;
+	Image analysis(const InputFrame &input, nvidia::TextureTransfers *transfers = nullptr,
+		       std::shared_ptr<nvidia::Context> context = {});
+	bool upload_device(FrameResult &, nvidia::TextureTransfers &);
+	void release_analysis(FrameResult &);
+	TransportKind transport_kind() const noexcept
+	{
+		return interop_ ? TransportKind::interop : TransportKind::staged_grid;
+	}
 	std::uint64_t discarded() const noexcept { return discarded_; }
 	bool available() const noexcept { return available_; }
 	Error failure() const noexcept { return failure_; }
@@ -56,5 +63,7 @@ private:
 	Error failure_;
 	Duration host_draw_time_{};
 	std::uint64_t discarded_ = 0;
+	std::atomic<bool> interop_{false}, interop_failed_{false};
+	bool refiner_interop_failed_ = false;
 };
 } // namespace corridorkey

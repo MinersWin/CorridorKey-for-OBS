@@ -95,11 +95,18 @@ Tensors OrtGraph::run(const Inputs &inputs, std::stop_token stop)
 	}
 	auto execute = [&] {
 		for (const auto &[name, tensor] : inputs)
-			bindings_->set(name, tensor->values);
+			bindings_->set(name, *tensor);
 		bindings_->run(stop);
-		Tensors outputs = outputs_;
-		for (auto &[name, tensor] : outputs)
-			bindings_->read(name, tensor.values);
+		Tensors outputs;
+		for (const auto &[name, spec] : outputs_) {
+			if (resident_)
+				outputs.emplace(name, bindings_->device_output(name));
+			else {
+				auto tensor = spec;
+				bindings_->read(name, tensor.values);
+				outputs.emplace(name, std::move(tensor));
+			}
+		}
 		return outputs;
 	};
 	try {
@@ -129,7 +136,8 @@ Tensors OrtGraph::run(const Inputs &inputs, std::stop_token stop)
 }
 void OrtGraph::reset_transform()
 {
-	recapture_ = static_cast<bool>(recreate_);
+	// Capture contains fixed tensor addresses and static graph shapes, not crop coordinates.
+	// Overwriting inputs for a different sampled ROI does not require session recreation.
 }
 std::map<std::string, std::size_t> OrtGraph::finish_profile()
 {
@@ -266,9 +274,22 @@ Ck2Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 				return std::move(prepared.session);
 			};
 		}
-		result.graphs.emplace(stage,
-				      std::make_unique<OrtGraph>(std::move(prepared.session), stage, grid, device,
-								 std::move(recreate), std::move(fallback)));
+		auto graph = std::make_unique<OrtGraph>(std::move(prepared.session), stage, grid, device,
+							std::move(recreate), std::move(fallback));
+		graph->device_resident(runtime.interop && device &&
+				       (request.settings->backend.transport == TransportKind::automatic ||
+					request.settings->backend.transport == TransportKind::interop));
+		if (auto context = graph->device_context()) {
+			try {
+				context->ensure_kernels();
+			} catch (const std::exception &e) {
+				graph->device_resident(false);
+				if (runtime.info)
+					runtime.info(std::string("Device conversion unavailable; staged tensors: ") +
+						     e.what());
+			}
+		}
+		result.graphs.emplace(stage, std::move(graph));
 	}
 	result.detail = description.str() + (request.settings->quality.refiner_enabled
 						     ? "Native edge refinement; staged tile atlas."
@@ -283,6 +304,7 @@ DevelopmentConfig read_development_config(const std::filesystem::path &path)
 	DevelopmentConfig result;
 	result.models = utf8_path(j.at("models").get<std::string>());
 	result.runtime.capture = j.value("capture", true);
+	result.runtime.interop = j.value("interop", true);
 	if (j.contains("release_fixture"))
 		result.release_fixture = utf8_path(j.at("release_fixture").get<std::string>());
 	result.runtime.cache = utf8_path(j.at("cache").get<std::string>());
