@@ -486,25 +486,31 @@ TEST_CASE("Concurrent instances share one authenticated payload and failed hashe
 	CHECK_THROWS_AS(a_engine.fetch(t.manifest, a, t.licenses, accepted), Failure);
 	CHECK_FALSE(fs::exists(cache.blob(a.sha256)));
 }
-TEST_CASE("ModelCatalog queues copies and stops at binding without W05")
+TEST_CASE("ModelCatalog binds accepted downloads and publishes a verified revision")
 {
 	Temp tmp;
 	Cache cache(tmp.path);
-	Tiny t;
+	std::string header = R"({"bias":{"dtype":"F32","shape":[1],"data_offsets":[0,4]}})";
+	header.append((8 - header.size() % 8) % 8, ' ');
+	std::string source(8, '\0');
+	for (unsigned i = 0; i < 8; ++i)
+		source[i] = static_cast<char>((std::uint64_t(header.size()) >> (8 * i)) & 255);
+	source += header + "1234";
+	Tiny t(source);
 	auto http = std::make_shared<MemoryHttp>();
 	http->files = {{"https://example.invalid/graph", t.graph},
 		       {"https://example.invalid/metadata", t.metadata},
-		       {"https://example.invalid/source", t.weights}};
+		       {"https://example.invalid/source", source}};
 	CatalogueService service(cache, t.licenses, {t.manifest}, {}, http, fast_options());
 	CHECK(service.request_install(t.manifest.key, {}, {}).code == ErrorCode::licence_required);
 	CHECK(http->calls == 0);
 	CHECK_FALSE(service.request_install(t.manifest.key, t.manifest.licences, {}));
 	auto deadline = Clock::now() + std::chrono::seconds(5);
-	while (Clock::now() < deadline && service.snapshot()[0].state != ModelState::binding &&
+	while (Clock::now() < deadline && service.snapshot()[0].state != ModelState::ready &&
 	       service.snapshot()[0].state != ModelState::failed)
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
-	CHECK(service.snapshot()[0].state == ModelState::binding);
-	CHECK_FALSE(service.acquire(t.manifest.key));
+	CHECK(service.snapshot()[0].state == ModelState::ready);
+	CHECK(service.acquire(t.manifest.key));
 	CHECK(http->calls == 3);
 }
 TEST_CASE("W05 handoff verifies all staged outputs before publishing")

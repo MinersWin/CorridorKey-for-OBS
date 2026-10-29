@@ -3,7 +3,7 @@
 
 A package pins a set of weight-free ONNX graphs, their exporter JSON files and
 all publisher checkpoints needed to bind them locally. The installer verifies
-those downloads. W05 supplies the weight binder; the inference loader must still
+those downloads and runs the [native weight binder](binder.md); the inference loader must still
 probe the resulting graphs before using them for video.
 
 The shipped [catalogue](../../data/models/catalogue-v1.json) has no packages.
@@ -243,12 +243,14 @@ blobs; it favors a clear refusal over filling the disk. Space is checked again
 before binding and during writes. W05/W06 must check their actual workspace and
 engine-build requirements before those operations.
 
-The optional `BindWeights` callback runs on the worker while holding the revision
+The binder runs on the worker while holding the revision
 lock. It reads authenticated blobs through `cache.blob(digest)` and writes only
-the declared `.weights` outputs under `cache.staging(key)`. The cache copies the
+the declared `.weights` outputs, binding receipts and lock files under
+`cache.staging(key)`. The cache copies the
 ONNX/JSON pair there first. On return it validates source metadata, byte counts
 and every output digest, writes the ready receipt and renames the directory.
-Without W05, the status stops at `binding`; there is no ready revision.
+An empty `BindWeights` callback selects the native implementation and reports
+byte progress through `ModelStatus`. A supplied callback overrides it.
 
 Installing an update never changes `current`. `select_current` is an explicit
 operation after preparation; `clear_current` permits removal of the selected
