@@ -284,6 +284,9 @@ struct FilterInput::Impl {
 			     stage_total[2] / static_cast<double>(model_frames),
 			     stage_total[3] / static_cast<double>(model_frames),
 			     inference_total / static_cast<double>(model_frames));
+			stage_total = {};
+			model_frames = moge_runs = 0;
+			inference_total = 0;
 		}
 		last_published = published.load();
 		logged_count = count;

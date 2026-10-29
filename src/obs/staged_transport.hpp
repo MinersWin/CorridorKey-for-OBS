@@ -64,6 +64,7 @@ private:
 	Duration host_draw_time_{};
 	std::uint64_t discarded_ = 0;
 	std::atomic<bool> interop_{false}, interop_failed_{false};
+	std::atomic<bool> interop_requested_{true};
 	bool refiner_interop_failed_ = false;
 };
 } // namespace corridorkey

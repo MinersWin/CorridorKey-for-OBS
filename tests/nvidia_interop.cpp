@@ -9,6 +9,7 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <future>
 
 using namespace corridorkey;
 using Microsoft::WRL::ComPtr;
@@ -72,12 +73,14 @@ int main()
 				desc.SampleDesc.Count = 1;
 				desc.Usage = D3D11_USAGE_DEFAULT;
 				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+				desc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
 				D3D11_SUBRESOURCE_DATA initial{bytes.data(), size.width * 4, 0};
 				ComPtr<ID3D11Texture2D> input, output, stage;
 				check(device->CreateTexture2D(&desc, &initial, &input));
 				desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				check(device->CreateTexture2D(&desc, nullptr, &output));
 				desc.Usage = D3D11_USAGE_STAGING;
+				desc.MiscFlags = 0;
 				desc.BindFlags = 0;
 				desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 				check(device->CreateTexture2D(&desc, nullptr, &stage));
@@ -147,6 +150,39 @@ int main()
 			require(actual == oracle.values, "CUDA atlas unpack differs from production CPU reference");
 			std::cout << "atlas b" << budget << " exact\n";
 		}
+		{
+			std::vector<std::future<void>> workers;
+			for (unsigned index = 0; index < 3; ++index) {
+				D3D11_TEXTURE2D_DESC desc{};
+				desc.Width = 512;
+				desc.Height = 256;
+				desc.MipLevels = desc.ArraySize = desc.SampleDesc.Count = 1;
+				desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				desc.Usage = D3D11_USAGE_DEFAULT;
+				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+				desc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+				ComPtr<ID3D11Texture2D> texture;
+				check(device->CreateTexture2D(&desc, nullptr, &texture));
+				workers.push_back(std::async(std::launch::async, [texture, index] {
+					auto context = std::make_shared<nvidia::Context>(0);
+					nvidia::D3D11Texture shared(context, texture.Get());
+					std::vector<float> expected(512 * 256 * 4, static_cast<float>(index) / 4);
+					auto buffer = context->allocate(expected.size() * sizeof(float));
+					buffer->upload(expected.data(), buffer->bytes());
+					for (unsigned iteration = 0; iteration < 100; ++iteration) {
+						shared.write(*buffer);
+						auto readback = shared.read();
+						std::vector<float> actual(expected.size());
+						readback->download(actual.data(), readback->bytes());
+						require(actual == expected,
+							"Concurrent texture ownership transfer failed");
+					}
+				}));
+			}
+			for (auto &worker : workers)
+				worker.get();
+			std::cout << "three concurrent transfer workers: 300 exact round trips\n";
+		}
 		auto invalid = cuda->allocate(4);
 		float nan = std::nanf("");
 		invalid->upload(&nan, 4);
@@ -157,6 +193,18 @@ int main()
 			rejected = true;
 		}
 		require(rejected, "Non-finite CUDA tensor accepted");
+		invalid->zero();
+		cuda->validate(*invalid, true);
+		float outside = 2.f;
+		invalid->upload(&outside, 4);
+		cuda->validate(*invalid, false);
+		rejected = false;
+		try {
+			cuda->validate(*invalid, true);
+		} catch (...) {
+			rejected = true;
+		}
+		require(rejected, "Out-of-range CUDA tensor accepted");
 		std::cout << "PASS\n";
 	} catch (const std::exception &e) {
 		std::cerr << e.what() << '\n';
