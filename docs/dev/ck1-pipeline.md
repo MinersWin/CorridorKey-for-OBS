@@ -50,6 +50,14 @@ The staged implementation uploads the small captured RGB and reads back the
 hint before inference. This Expert path includes a graphics synchronization
 cost; it is not a zero-transfer native interop path.
 
+On NVIDIA, CK1 and MODNet use W10's persistent resident tensors and D3D11/CUDA
+capture and output transport. The RGB grid and MODNet matte remain on the device;
+the fixed CK1 hint binding receives a device copy. Captured sessions are warmed
+twice before admitting frames. Kernel-loading or texture-registration failures
+select staged transport. DirectML uses the staged path. The CK2 hint currently
+uses host bilinear resizing around its resident CK2 sessions; it still incurs
+those transfers. Chroma deliberately requests staged tensors for its OBS shader.
+
 The decoded maps and original retained input enter W08 reconstruction without
 a CPU output upsample. Blue checkpoint selection also selects blue-channel
 despill. Alpha/foreground/crop views use the existing reconstruction output;
@@ -69,9 +77,11 @@ The optional CK2 hint retains its FP32 foundation policy and FP16 stage policy.
 Production activation acquires the selected screen package and the chosen hint
 package only after licence acceptance. The combined model retains both reader
 leases. The preparation key includes the model, screen colour and hint source,
-in addition to the existing grid/backend/revision fields. W10's interop and
-NVIDIA provider files are unchanged. The shared `filter_input.cpp` changes
-select the pipeline, acquire its hint dependency and publish its cost. The
+in addition to the existing grid/backend/transport/revision fields. This branch
+is rebased onto W10 at `b33fe0f`. W10's GPU and NVIDIA provider implementations
+are unchanged. The shared `filter_input.cpp` changes select the pipeline,
+acquire its hint dependency and publish its cost. `ModelPipeline` exposes the
+same device-context getter for both families, preserving W10's transport choice. The
 shared status adds one optional last-frame hint time; it is included in total
 inference rather than added to it twice.
 The existing worker phase log uses `stage1_ms` for the complete hint and

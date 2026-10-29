@@ -186,6 +186,28 @@ Ck1Prepared prepare_ort(const PrepareRequest &request, const RuntimeConfig &runt
 		auto graph = std::make_unique<ck2::OrtGraph>(std::move(prepared.session), input_contract(grid, modnet),
 							     output_contract(grid, modnet), device, std::move(recreate),
 							     std::move(fallback));
+		graph->device_resident(runtime.interop && device &&
+				       request.settings->hint.source != HintSource::chroma &&
+				       (request.settings->backend.transport == TransportKind::automatic ||
+					request.settings->backend.transport == TransportKind::interop));
+		if (auto context = graph->device_context()) {
+			try {
+				context->ensure_kernels();
+			} catch (const std::exception &e) {
+				graph->device_resident(false);
+				if (runtime.info)
+					runtime.info(std::string("Device conversion unavailable; staged tensors: ") +
+						     e.what());
+			}
+		}
+		if (captured) {
+			auto zeros = input_contract(grid, modnet);
+			Inputs warm;
+			for (const auto &[input_name, tensor] : zeros)
+				warm.emplace(input_name, &tensor);
+			graph->run(warm, request.cancellation);
+			graph->run(warm, request.cancellation);
+		}
 		if (modnet)
 			result.graphs.modnet = std::move(graph);
 		else
