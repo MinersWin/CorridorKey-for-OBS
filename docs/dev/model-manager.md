@@ -112,17 +112,20 @@ ctest --test-dir build-contracts -C RelWithDebInfo --output-on-failure
 
 For OBS captures, build the plugin against the 30.2 SDK with
 `CORRIDORKEY_MANAGER_FIXTURES=ON`, run CTest once to generate `manager-fixture`,
-then run `tests/ui/run-obs-captures.ps1`. It checks for an existing OBS process,
-takes the shared installed-OBS lock, uses the CorridorKey Test collection, and
-restores the previous plugin and preferences after each capture series.
-Pass `-PortableRoot S:\Projects\obs-test\obs-33.0.0-w07` to use the isolated OBS
-33 copy while the installed host is locked. This mode changes only the selected
-portable host and leaves the installed-OBS lock alone. `-Scale 0.5` and
-`-Scale 0.75` produced 100% and 150% captures on the test machine's 200% desktop;
-check the recorded device-pixel ratio when using a different desktop scale.
-`run-obs30-smoke.ps1` uses the dedicated portable 30.2 installation and restores
-its plugin and preferences. Both launch only their own OBS process and request
-normal shutdown. Neither script may interrupt an existing OBS session.
+then run `tests/ui/run-obs-captures.ps1` with an isolated `-PortableRoot` beneath
+`S:\Projects\obs-test\obs-`. Supply `-ProbeTools` with the staged backend helper
+and probe graphs; the production manager validates their presence. The runner
+refuses a running test host, an enabled obs-websocket server or a browser source
+in CorridorKey Test. It restores the previous plugin and preferences afterwards.
+
+Use `-Scale 1` or `-Scale 1.5` for the capture scale and `-HostScale 2` on the
+200% desktop used here. Check the recorded device-pixel ratio on other desktops.
+`-Diagnostics` captures the report preview, timing section and clipboard checks.
+The installed-host fallback takes the shared lock, but D1 used only its portable
+copy. Never interrupt an OBS session started by someone else.
+
+`run-obs30-smoke.ps1` remains the older-host smoke test. The
+[design review](design-review.md) describes the D1 captures and their limits.
 
 The capture code is absent from release builds. It drives real Qt widgets
 inside OBS and captures their rendered pixels without a mouse cursor. State

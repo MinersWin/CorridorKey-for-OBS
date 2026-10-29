@@ -1,40 +1,26 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-# Properties captures
+# Filter properties captures
 
-These are real OBS filter-dialog captures from 29 October 2026. The orange source
-is the dedicated CorridorKey Test colour source. The build passes video through;
-none of these images shows neural keying or measured model performance.
+Captured on 29 October 2026 in isolated portable OBS 33.0.0, Qt 6.11.1,
+with the D1 build compiled against the OBS 30.2 SDK. Each PNG is a real Qt
+widget capture, with no cursor or desktop overlays. The test profile disables
+obs-websocket and contains no browser sources. Installed OBS was left untouched.
 
-| Capture | Host and appearance | View |
+| Appearance | 100% | 150% |
 | --- | --- | --- |
-| [Standard](obs33-yami.png) | Installed OBS 33.0.0, Yami / Default, 100% | Default controls and missing-model status |
-| [Advanced](obs33-yami-advanced.png) | Installed OBS 33.0.0, Yami / Default, 100% | Separate Advanced and Expert toggles, quality group |
-| [Crop](obs33-yami-crop.png) | Installed OBS 33.0.0, Yami / Default, 100% | Expanded native group with four percentage cuts |
-| [Light](obs33-yami-light.png) | Installed OBS 33.0.0, Yami / Light, 100% | Default controls in the light palette |
-| [Advanced, light](obs33-yami-light-advanced.png) | Installed OBS 33.0.0, Yami / Light, 100% | Quality controls and status |
-| [150%](obs30-yami-150.png) | Portable OBS 30.2.0, Yami, English | Labels, tooltips, sliders and scrolling at `QT_SCALE_FACTOR=1.5` |
-| [German, 200%](obs30-yami-de-200.png) | Portable OBS 30.2.0, Yami, German | Translated labels at `QT_SCALE_FACTOR=2` |
+| Yami | [View](obs33-yami.png) | [View](obs33-yami-1.5.png) |
+| Yami Light | [View](obs33-yami-light.png) | [View](obs33-yami-light-1.5.png) |
 
-The installed-OBS test held `installed-obs.lock` as `w02-settings`. Its backed-up
-module, locales and preferences were restored before releasing that lock. Another
-package then acquired it. The shared portable runtime was also in use, so its
-application files were copied to the W02 build directory for the scaling checks,
-with an isolated portable configuration. No other OBS process was closed.
+Metadata records the actual device pixel ratio: 1.0 and 1.5, respectively.
+On the capture machine the native desktop scale was 200%, so the runner used
+`-HostScale 2` to compensate. No image was rescaled after capture.
 
-The review caught a status row whose long description widened the form's label
-column. The final form puts status text in the value column with an empty label
-and a tooltip. Standard and Advanced labels remain readable in both palettes.
-Percentage cuts and numeric boxes align within their groups. At 150% and 200%,
-the host's scroll area keeps controls accessible when the panel exceeds the window.
-The source preview was reduced with OBS's own splitter for the captures.
+Each combination has standard, `-crop` and `-advanced` views. The test source
+has no installed model. QWidget capture excludes the GPU-rendered preview;
+these images document controls rather than key quality. English and German
+property callbacks passed the libobs test, but this capture set is English.
 
-Windows 11, MSVC 19.44 and the OBS 30.2 SDK were used. C++ compilation treats
-warnings as errors. The core suite also builds with the plugin disabled, without
-an OBS SDK. CTest passed with both OBS 30.2 and 33 runtimes for JSON persistence,
-preset/model callbacks, expansion, availability, localization and migration.
-Linux, system high-contrast themes and a full keyboard/screen-reader audit were
-not tested here. GPU inference, model download and audio-offset execution belong
-to later packages.
-
-The final core run passed 24 cases and 2,050 assertions. Both libobs-runtime CTest
-runs passed. clang-format, gersemi and Git whitespace checks passed.
+Run `tests/ui/run-obs-captures.ps1` with an isolated portable root and staged
+probe tools. Add `-Diagnostics` for the diagnostics set. The runner restores the
+test plugin and preferences after each run. See [the design review](../../dev/design-review.md)
+for the comparison, checks and remaining work.

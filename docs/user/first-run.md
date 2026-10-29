@@ -1,120 +1,96 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # First run: set up CorridorKey
 
-Add CorridorKey to a camera or media source with a green screen. Models
-run on your computer. The plugin downloads model files from their publishers;
-it does not upload your camera video.
-
-Windows may ask whether OBS should be allowed through the firewall, especially
-when you start a new portable copy. CorridorKey does not need inbound network
-access. You can choose **Cancel** on that prompt and continue model setup.
+Add CorridorKey to a camera or media source with a green screen. Models run on
+your computer. Setup downloads model files from their publishers; camera video
+is not uploaded.
 
 ## Add the filter
 
 Select your source in OBS and open **Filters**. Under Effect Filters, click
-**+**, choose **CorridorKey**, and keep the default filter name.
+**+**, choose **CorridorKey**, and keep Balanced selected. The status asks you
+to open Manage models until the required package is installed.
 
-![CorridorKey in the actual OBS effect-filter menu](../images/first-run/01-add-filter.jpg)
+![Preset, model and edge refiner followed by Crop and Advanced](../images/first-run/yami-properties.png)
 
-Leave the preset on Balanced for the first setup. Before its model is installed,
-video stays unchanged and the status asks you to open Manage models.
+## Choose the model
 
-![Balanced before installation, with the original green-screen video](../images/first-run/02-model-missing.jpg)
+Click **Manage models...**, then **Set up CorridorKey**. The same manager is
+available from the OBS Tools menu. Setup opens the licence review for CK2
+Balanced / Quality; it does not start a download immediately.
 
-## Open the model manager
+![The setup action and total download size in Yami](../images/first-run/yami-first-run.png)
 
-Click **Manage models...** in the filter, then **Set up CorridorKey**. You can
-also open the same manager from the OBS Tools menu.
+The manager shows the current download size. Balanced and Quality share a
+package; Facecam uses separate graphs and reuses the source checkpoints.
+Edge Refiner v12 is a separate installation. Storage shows cache usage and free
+space on the drive. Hover the folder path to read it in full, or choose Open folder.
 
-![Production packages in CorridorKey Models](../images/first-run/03-model-manager.jpg)
+## Accept the model licences
 
-Setup selects CK2 Balanced / Quality. Its initial download is 3.07 GiB. The
-manager also shows the additional disk space needed for source files, locally
-prepared weights and backend caches. Keep that space available until preparation
-finishes. Balanced and Quality share this package; Facecam has a separate graph
-package and reuses the same downloaded checkpoints.
+Read the required files, attribution and licence texts. CK2 weights and graphs
+use the Corridor Key Licence. MoGe includes MIT and the DINOv2 Apache-2.0 notice;
+DeepMind's Recurrent Video MAE checkpoint uses CC BY 4.0. These terms are separate
+from the plugin's GPL licence.
 
-## Review and accept the model licences
-
-Read the required files, attribution and complete licence texts. CK2 weights and
-graphs use the Corridor Key Licence. MoGe includes MIT and the DINOv2 Apache-2.0
-notice; DeepMind's Recurrent Video MAE checkpoint uses CC BY 4.0. These terms are
-separate from the plugin's GPL licence.
-
-![The download button is disabled before licence acceptance](../images/first-run/04-licences-before-acceptance.jpg)
+![Licence review before acceptance](../images/first-run/yami-setup-licences.png)
 
 If you accept the displayed terms, check **I accept these model licences**.
-**Accept and download** then becomes available. Acceptance is saved locally for
-these exact package and licence versions.
+**Accept and download** becomes available. The plugin saves acceptance for the
+exact package and licence versions shown.
 
-![Explicit acceptance enables the download](../images/first-run/05-licences-accepted.jpg)
+![The download action becomes available after acceptance](../images/first-run/yami-setup-accepted.png)
 
-## Download and prepare the weights
+## Download and prepare
 
-Click **Accept and download**. No Hugging Face account or token is needed. You
-can keep using OBS or close the manager while the task runs. Cancel task stops
-at a safe boundary; verified downloads remain available for a retry.
+Choose **Accept and download**. No Hugging Face account or token is needed.
+You can keep using OBS or close the manager while it runs. **Cancel task** stops
+at a safe boundary and preserves verified downloads for a retry.
 
-![The real package download and its progress](../images/first-run/06-downloading.jpg)
+The progress row shows bytes received and transfer rate during a download.
+The plugin then checks each file's SHA-256 and prepares weights locally. Preparing
+weights can continue after network activity stops. Balanced includes the Stage 2
+files used by Quality.
 
-The plugin checks SHA-256 for each file and prepares the ONNX weight files on
-this computer. Preparing weights is a local step and can continue after network
-activity stops. The package includes Stage 2 for Quality, even though Balanced
-uses Stage 1.
+![Download layout, shown with an explicitly labelled tiny UI fixture](../images/first-run/yami-downloading.png)
 
-![The native binder prepares the downloaded checkpoints locally](../images/first-run/07-preparing-weights.jpg)
+![Local preparation layout, shown with the same UI fixture](../images/first-run/yami-binding.png)
 
-## Start keying
+## Check the result
 
-Once preparation finishes, an active filter loads the package automatically.
-The source stays in passthrough while the backend is being prepared. You do not
-need to recreate the filter or set an environment variable.
+Ready means the package files passed verification. An active filter loads the
+package automatically and prepares its backend. Video stays unchanged until
+the pipeline is ready. Return to the filter preview to check hair, clothing and
+moving edges against your source. Open Crop to remove room edges outside the screen.
 
-Ready confirms that the package files passed verification. Once backend
-preparation finishes, return to the filter preview to check the matte against
-your source.
+![Ready state in the local UI fixture](../images/first-run/yami-ready.png)
 
-![Balanced / Quality ready in the model manager](../images/first-run/08-ready.jpg)
-
-![Balanced producing a live key from the downloaded package](../images/first-run/09-balanced-live-key.jpg)
-
-Balanced and Quality use a 512x512 analysis grid. Facecam uses 256x512. If you
-switch to a package that is not installed, the filter returns to passthrough;
-open Manage models to install the matching package.
-
-![Selecting Facecam before installing its package preserves the original video](../images/first-run/10-facecam-package-missing.jpg)
-
-The current pipeline reconstructs the matte against the native source frame.
-To use learned refinement, install the separate Edge Refiner v12 package in
-Manage models and accept its licence. Enable Edge refiner in the filter
-properties. The tile budget selects the matching graph; changing the switch or
-budget prepares a replacement pipeline while video stays in passthrough.
+If you switch to a package that is not installed, the status explains that models
+are missing. Open Manage models to install that package. For learned refinement,
+install Edge Refiner v12 and enable **Edge refiner** near Model. The tile budget
+is under Advanced; changing it prepares a replacement pipeline.
 
 Refinement is still experimental. Its current tile transfers can exceed the
-default frame-age limit and return video to passthrough. See the
+frame-age limit and return video to passthrough. See the
 [refiner measurements](../dev/refiner.md) for the current latency limits.
-
-## Optional TensorRT preparation
-
-The bundled DirectML backend needs no TensorRT engine. If you install an
-optional NVIDIA runtime and use TensorRT, the manager shows Building TensorRT
-engine with an indeterminate bar and elapsed time. The bar indicates ongoing
-work; it does not estimate time remaining. Backend tests and session loading
-appear as Testing backend. OBS stays responsive and shows passthrough until the
-pipeline is ready. Cancel task requests cancellation without blocking the UI.
-Restart OBS after installing or changing a runtime bundle.
 
 ## If setup fails
 
-Check the status in the filter and manager. A verification error needs a clean
-retry; a disk-space error needs more free space on the cache drive. If the model
-catalogue cannot be opened, reinstall the plugin to restore its installed data.
-Use View licences to review the accepted texts. Copy diagnostics opens a preview
-so you can review the report before sharing it.
+A verification error needs a clean retry; a disk-space error needs more free
+space on the cache drive. If the catalogue cannot be opened, reinstall the
+plugin to restore its data files. **Copy diagnostics...** opens a report preview;
+review it before sharing. Error codes and technical details are in diagnostics
+and the status tooltip.
 
-The screenshots use portable OBS 33 and Mixkit's
-[female reporter clip](https://mixkit.co/free-stock-video/female-reporter-reporting-with-microphone-in-hand-on-a-chroma-28293/).
-The footage and visible publisher licence texts retain their original terms.
-See [Mixkit's licence](https://mixkit.co/license/).
-The GPU was shared with another workload during capture. Live readouts in the
-screenshots are not benchmark results.
+The bundled DirectML backend needs no TensorRT engine. Optional TensorRT setup
+can spend time building an engine. Its activity bar means work is ongoing and
+does not estimate time remaining. Restart OBS after changing runtime bundles.
+
+Windows may ask about inbound access when a new portable OBS copy starts.
+CorridorKey needs no listening port; you can cancel that firewall prompt.
+
+These captures use real OBS 33 widgets. Setup and licence review use the bundled
+production catalogue. Progress and Ready use labelled synthetic state fixtures,
+not a repeated multi-gigabyte download or a live keying measurement. The properties
+capture uses a test source; its GPU preview is not included by the widget capture.
+Both themes at 100% and 150% are in the [capture index](../images/first-run/README.md).

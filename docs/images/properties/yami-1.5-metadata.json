@@ -1,0 +1,35 @@
+{
+  "properties": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": true,
+    "logical_height": 720,
+    "logical_width": 1000,
+    "obs": "33.0.0",
+    "pixel_height": 1080,
+    "pixel_width": 1500,
+    "qt": "6.11.1"
+  },
+  "properties-advanced": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": true,
+    "logical_height": 720,
+    "logical_width": 1000,
+    "obs": "33.0.0",
+    "pixel_height": 1080,
+    "pixel_width": 1500,
+    "qt": "6.11.1"
+  },
+  "properties-crop": {
+    "cursor": "excluded",
+    "device_pixel_ratio": 1.5,
+    "fixture": true,
+    "logical_height": 720,
+    "logical_width": 1000,
+    "obs": "33.0.0",
+    "pixel_height": 1080,
+    "pixel_width": 1500,
+    "qt": "6.11.1"
+  }
+}

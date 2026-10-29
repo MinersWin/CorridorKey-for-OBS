@@ -3,7 +3,7 @@
 
 Add CorridorKey through your source's Filters window. Start with Balanced and leave Advanced off until you need a specific adjustment. Hover a control or its question-mark icon for help.
 
-This development build saves and validates settings, but still passes the source through. The model manager and inference integration are not ready. Changing these controls does not yet produce a keyed image. Unavailable choices stay grey until a compatible installed model or tested backend declares support.
+Install the required model through Manage models before expecting a keyed image. Missing models or an unavailable backend leave video unchanged and show a recovery message. Unavailable choices stay grey until a compatible model or backend declares support.
 
 ## Presets and model choice
 
@@ -18,17 +18,17 @@ Editing a quality control selects Custom. Choosing a named preset explicitly res
 
 CK1 starts in Custom with a proposed 384 × 384 grid, Chroma hint and RGB guided edges. Its refiner defaults off. These CK1 choices still need export evaluation; the CK2 prototype's speed measurements do not apply to CK1. Switching between CK1 and CK2 restores each pipeline's saved quality, backend, hints and experiments.
 
-Manage models opens an inline setup notice in this build. It will become the entry point for model installation and licence review. Selecting a model or hint never starts a download.
+Manage models opens installation, licence review and backend tests. Selecting a model or hint in the properties never starts a download.
 
 ## Reading the panel
 
-Advanced reveals detailed controls. Expert appears inside Advanced and reveals backend choices and experiments. Crop, Output / debug and Sync / delay each have a Show details checkbox. These checkboxes only expand the form.
+The standard view contains Preset, Model and Edge refiner, followed by status, Manage models and Crop. Advanced reveals quality, edge, colour, hint, output and sync controls. Expert adds backend experiments. Crop, Output / debug and Sync / delay have Show details checkboxes that only expand the form.
 
-The status below Model explains whether keying is ready or why video is passing through. Once timing is available, it distinguishes milliseconds per key from the age of the input when the result is displayed. Camera and encoder delay are outside that measurement. Unmeasured values say Warming up or Not measured. Current status refreshes when the panel opens or a setting changes; periodic telemetry is still pending.
+The status below Edge refiner explains what to do when models or a backend are missing. Once timing is available, one line shows the model, backend, keyed fps, milliseconds per key and filter delay. Delay is the age of the captured input when displayed; it excludes camera and encoder latency. Hover for error codes, p95 delay and dropped/repeated counts. Status refreshes every two seconds while the form is idle, and pauses while a control is being edited.
 
 ![CorridorKey properties in OBS 33, Yami](../images/properties/obs33-yami.png)
 
-The standard view uses the host's font, spacing and colours. The orange preview is an OBS colour source. This build passes it through unchanged.
+The panel uses OBS's font, spacing and colours. These captures show a test source without installed models. Widget capture excludes the GPU-rendered preview; these are settings examples, not keying comparisons.
 
 ![CorridorKey properties in OBS 33, Yami Light](../images/properties/obs33-yami-light.png)
 
@@ -58,13 +58,13 @@ The standard view uses the host's font, spacing and colours. The orange preview 
 
 | Option | Default | Visibility and range | Effect |
 | --- | --- | --- | --- |
-| Refine edges (`refiner_enabled`) | On (CK1: Off) | Standard; Off / On | Recover edges from native pixels. Requires a compatible refiner model and transfer path. CK1 needs an evaluated experimental package. |
+| Edge refiner (`refiner_enabled`) | On (CK1: Off) | Standard; Off / On | Recover edges from native pixels. Requires a compatible refiner model and transfer path. CK1 needs an evaluated experimental package. |
 | Edge method (`guide_mode`) | Refiner (CK1: RGB guided) | Advanced; Refiner / RGB guided / Bilinear / Chroma legacy | RGB guided is the fallback if refinement is unavailable. Bilinear reveals the model detail limit. Chroma legacy is experimental. |
 | Refiner (`refiner_model`) | v12 | Advanced; Installed model or validated source ID | Use an installed compatible model: v12 is the reference; older versions are for comparison. Arbitrary checkpoint paths are not accepted. |
 | Hair radius (`guided_radius`) | 2 px | Advanced; 1 to 12 px; step 1 | Guided-filter neighborhood in low-grid pixels. Larger values can smooth detail. |
 | Edge smoothness (`guided_eps`) | 0.0005 | Expert; log10 epsilon −5 to −2; step 0.1; exact epsilon saved | Stored as exact epsilon; the UI uses log10 from −5 to −2. Larger values smooth more.  |
-| Matte contrast (`alpha_contrast`) | 1.05 | Standard; 0.7 to 1.5; step 0.01 | Increase separation around mid-opacity. Too much removes translucent detail. |
-| Matte choke (`alpha_offset`) | 0 | Standard; -0.2 to 0.2; step 0.005 | Negative shrinks opacity; positive expands it. Check hair and motion blur. |
+| Matte contrast (`alpha_contrast`) | 1.05 | Advanced; 0.7 to 1.5; step 0.01 | Increase separation around mid-opacity. Too much removes translucent detail. |
+| Matte choke (`alpha_offset`) | 0 | Advanced; -0.2 to 0.2; step 0.005 | Negative shrinks opacity; positive expands it. Check hair and motion blur. |
 | Black point (`clip_black`) | 0 | Advanced; 0 to 0.5; step 0.005 | Alpha at or below this becomes transparent. White point must be at least 0.01 higher. |
 | White point (`clip_white`) | 1 | Advanced; 0.5 to 1; step 0.005 | Alpha at or above this becomes solid. Keep at least 0.01 above Black point. |
 | Band minimum (`refiner_band_lo`) | 0.004 | Expert; 0 to 0.1; step 0.001 | Lowest alpha considered for edge refinement. Raising it can lose faint hair. |
@@ -76,8 +76,8 @@ The standard view uses the host's font, spacing and colours. The orange preview 
 | --- | --- | --- | --- |
 | Colour method (`unmix_mode`) | Delta | Advanced; Delta / Compositing equation | Delta transfers model colour correction onto native detail. Compositing equation is experimental. |
 | Interior colour (`unmix_inner`) | 1 | Advanced; 0 to 1; step 0.05 | Model colour correction in solid areas. Edges retain full correction. |
-| Despill (`despill_strength`) | 0.65 | Standard; 0 to 1; step 0.02 | Remove green spill after refinement. Reduce if neutral or coloured details shift. |
-| Screen (`screen_color`) | Green | Standard; Green / Blue | CK1 uses a separate blue-screen checkpoint. CK2 v12 presets are evaluated for green. |
+| Despill (`despill_strength`) | 0.65 | Advanced; 0 to 1; step 0.02 | Remove green spill after refinement. Reduce if neutral or coloured details shift. |
+| Screen (`screen_color`) | Green | Advanced; Green / Blue | CK1 uses a separate blue-screen checkpoint. CK2 v12 presets are evaluated for green. |
 
 ## Manual crop
 
@@ -98,7 +98,7 @@ CK1 always lists Chroma, CK2 Stage 1 and MODNet. Learned hints remain unavailabl
 
 | Option | Default | Visibility and range | Effect |
 | --- | --- | --- | --- |
-| Hint source (`hint_source`) | Chroma | Standard; Chroma / CK2 Stage 1 / MODNet / MediaPipe / Imported mask / Custom hint | Chroma is cheap. CK2 Stage 1 needs its full dependencies. Person models such as MODNet may exclude props or chairs. Selecting a row never downloads a model. |
+| Hint source (`hint_source`) | Chroma | Advanced; Chroma / CK2 Stage 1 / MODNet / MediaPipe / Imported mask / Custom hint | Chroma is cheap. CK2 Stage 1 needs its full dependencies. Person models such as MODNet may exclude props or chairs. Selecting a row never downloads a model. |
 | Screen match (`hint_similarity`) | 0.40 | Advanced; 0 to 1; step 0.01 | Chroma similarity used to seed background. Calibration is provisional; inspect Hint output. |
 | Hint softness (`hint_smoothness`) | 0.10 | Advanced; 0.01 to 0.5; step 0.01 | Width of the chroma transition, not final matte sharpness. |
 | Hint rate (`hint_refresh`) | 1 frame | Advanced; 1 to 8; step 1 | Refresh every N accepted frames. Reuse may expose delayed guides during motion. |
@@ -115,28 +115,28 @@ Inspection views replace program output and can appear on stream or in a recordi
 
 | Option | Default | Visibility and range | Effect |
 | --- | --- | --- | --- |
-| View (`obs_view`) | Key | Standard; Key / Alpha / Hint / Foreground / Crop / Input / Tile coverage / ROI | Inspection replaces output and may appear on stream or recording. Crop sliders never enable a view automatically. |
+| View (`obs_view`) | Key | Advanced; Key / Alpha / Hint / Foreground / Crop / Input / Tile coverage / ROI | Inspection replaces output and may appear on stream or recording. Crop sliders never enable a view automatically. |
 | Inspect (`view_mode`) | Transparent | Advanced; Transparent / Checker / Black / Alpha / Side by side | Transparent is normal Key output. Other backgrounds and Side by side explicitly change output. |
 | Preview colour (`bg_color_rgb`) | Black | Advanced; RGB picker; 0 to 1 per channel (8-bit storage) | Inspection background only; normal Key output remains transparent. |
-| Bypass (`bypass`) | Off | Standard; Off / On | Show original input and stop inference submissions. |
+| Bypass (`bypass`) | Off | Advanced; Off / On | Show original input and stop inference submissions. |
 
 ## Sync and delay
 
-Auto lip-sync execution is not implemented yet and its checkbox is disabled. The source picker lists actual audio sources and saves their persistent IDs. When sync becomes available, manual offset edits will release automatic control. Your microphone's original offset must be restored when the filter stops controlling it.
+Auto lip-sync is off by default. Choose the microphone paired with this camera before enabling it. The source picker saves its persistent ID. Manual offset edits release automatic control; the plugin restores the baseline offset when it stops controlling the microphone. See the [lip-sync guide](lip-sync.md) for a clap test.
 
 | Option | Default | Visibility and range | Effect |
 | --- | --- | --- | --- |
-| Auto lip-sync (`auto_sync`) | Off | Standard; Off / On | Add measured filter delay to one explicitly selected microphone. Other latency may still need correction. |
-| Audio source (`audio_source_id`) | None | Standard when sync is enabled; actual audio sources | Choose the paired microphone by persistent ID. One filter may own its offset; manual changes release ownership. |
+| Auto lip-sync (`auto_sync`) | Off | Advanced; Off / On | Add measured filter delay to one explicitly selected microphone. Other latency may still need correction. |
+| Audio source (`audio_source_id`) | None | Advanced when sync is enabled; actual audio sources | Choose the paired microphone by persistent ID. One filter may own its offset; manual changes release ownership. |
 | Sync trim (`sync_trim_ms`) | 0 ms | Advanced; -250 to 250 ms; step 1 | Extra correction after measured delay. Negative values cannot make already-delayed audio arrive earlier. Verify with a clap recording. |
 | Delay limit (`sync_limit_ms`) | 250 ms | Expert; 50 to 1000 ms; step 10 | Maximum added audio delay. Large values cannot fix a backend that falls behind. |
 | Stale limit (`stale_timeout_ms`) | 250 ms | Expert; 100 to 1000 ms; step 10 | Return to live input if no fresh keyed result arrives in this time. |
 
-Filter delay shows the median age from captured input to the displayed result. Applied delay is the extra offset added to the microphone; it remains Not measured until audio-sync execution is available. Neither readout includes camera or encoder delay.
+Filter delay shows the median age from captured input to the displayed result. Applied delay is the extra offset added to the microphone and its current sync state. Unavailable measurements are labelled rather than shown as zero. Neither readout includes camera or encoder delay.
 
 ## Expert controls
 
-Experiments stay unavailable until their implementation and graph support are declared. Reset memory requests a new temporal state through the filter controller. Diagnostics currently displays an inline notice; backend results and the full diagnostic report are pending.
+Experiments stay unavailable until their implementation and graph support are declared. Reset memory requests a new temporal state through the filter controller. Use Copy diagnostics in Manage models to review the full report; backend testing is available there too.
 
 | Option | Default | Visibility and range | Effect |
 | --- | --- | --- | --- |
