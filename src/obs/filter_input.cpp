@@ -118,18 +118,16 @@ struct FilterInput::Impl {
 	Crop publishing_roi;
 	TimePoint publishing_started{};
 	TimePoint publication_started{};
-	std::atomic<bool> transfer_queued{false}, input_available{false};
+	std::atomic<bool> input_available{false};
 	SettingsSnapshot worker_settings;
 	FakeOptions worker_options;
 	bool worker_active = false, diagnostic = false, worker_diagnostic = false;
-	std::uint64_t transfer_tick = 0;
-	bool has_transfer_tick = false;
 	std::atomic<bool> discard_presentation{false};
 	std::array<std::optional<FrameResult>, FramePool::maximum_capacity> retired;
 	Extent size;
 	gs_color_space color_space = GS_CS_SRGB;
 	obs_weak_source_t *target = nullptr;
-	bool enabled = false, host_enabled = true;
+	bool enabled = false, host_enabled = true, suspended = false, recovery_attempted = false;
 	int debug_view = 0;
 	std::atomic<bool> unsupported_hdr{false};
 	std::uint64_t last_capture_tick = 0;
@@ -176,29 +174,12 @@ struct FilterInput::Impl {
 	}
 	template<typename Function> void graphics_task(Function &&function)
 	{
-		struct Task {
-			Function &function;
-			CallbackTimes &timings;
-			std::exception_ptr exception;
-		} task{function, graphics_timings, {}};
-		// OBS drains graphics tasks before its destroy queue at shutdown. Only
-		// the worker waits here; the task never waits for model or GPU completion.
-		obs_queue_task(
-			OBS_TASK_GRAPHICS,
-			[](void *parameter) {
-				auto &task = *static_cast<Task *>(parameter);
-				const auto start = obs_now();
-				try {
-					GraphicsScope graphics;
-					task.function();
-				} catch (...) {
-					task.exception = std::current_exception();
-				}
-				task.timings.record(obs_now() - start, {});
-			},
-			&task, true);
-		if (task.exception)
-			std::rethrow_exception(task.exception);
+		// Control/teardown worker only, with no filter mutex held. OBS may discard
+		// queued graphics tasks during a canvas reset, including synchronous ones.
+		const auto start = obs_now();
+		GraphicsScope graphics;
+		function();
+		graphics_timings.record(obs_now() - start, {});
 	}
 	void invalidate()
 	{
@@ -256,11 +237,11 @@ struct FilterInput::Impl {
 		     CallbackTimes::quantile(graphics_timings.total, graphics_timings.count.load(), .95));
 		const auto age = frame_timing.snapshot(now);
 		blog(LOG_INFO,
-		     "[corridorkey:w08] age_median_ms=%.3f age_p95_ms=%.3f input_ms=%.3f output_ms=%.3f inference_ms=%.3f queue_ms=%.3f keyed_fps=%.3f",
-		     age.age_median_ms.value_or(-1), age.age_p95_ms.value_or(-1),
-		     age.input_transfer_median_ms.value_or(-1), age.output_transfer_median_ms.value_or(-1),
-		     age.inference_median_ms.value_or(-1), age.queue_median_ms.value_or(-1),
-		     age.keyed_fps.value_or(-1));
+		     "[corridorkey:w08] instance=%llu age_median_ms=%.3f age_p95_ms=%.3f input_ms=%.3f output_ms=%.3f inference_ms=%.3f queue_ms=%.3f keyed_fps=%.3f",
+		     static_cast<unsigned long long>(instance), age.age_median_ms.value_or(-1),
+		     age.age_p95_ms.value_or(-1), age.input_transfer_median_ms.value_or(-1),
+		     age.output_transfer_median_ms.value_or(-1), age.inference_median_ms.value_or(-1),
+		     age.queue_median_ms.value_or(-1), age.keyed_fps.value_or(-1));
 		blog(LOG_INFO, "[corridorkey:w08] post_cpu_ms_p50<=%.2f post_cpu_ms_p95<=%.2f",
 		     CallbackTimes::quantile(post_timings.total, post_timings.count.load(), .5),
 		     CallbackTimes::quantile(post_timings.total, post_timings.count.load(), .95));
@@ -275,8 +256,8 @@ struct FilterInput::Impl {
 		     CallbackTimes::quantile(worker_timings.total, worker_timings.count.load(), .95));
 		if (model_frames) {
 			blog(LOG_INFO,
-			     "[corridorkey:w09] frames=%llu published=%llu keyed_fps=%.2f moge_ms=%.3f rvm_ms=%.3f stage1_ms=%.3f stage2_ms=%.3f worker_ms=%.3f",
-			     static_cast<unsigned long long>(model_frames),
+			     "[corridorkey:w09] instance=%llu frames=%llu published=%llu keyed_fps=%.2f moge_ms=%.3f rvm_ms=%.3f stage1_ms=%.3f stage2_ms=%.3f worker_ms=%.3f",
+			     static_cast<unsigned long long>(instance), static_cast<unsigned long long>(model_frames),
 			     static_cast<unsigned long long>(published.load()),
 			     static_cast<double>(published - last_published) /
 				     std::chrono::duration<double>(now - last_log).count(),
@@ -295,35 +276,8 @@ struct FilterInput::Impl {
 	}
 	bool active() const
 	{
-		return !stopping && enabled && host_enabled && settings && !settings->context.bypass && size.width &&
-		       size.height;
-	}
-	// At most one queued graphics callback; the worker continues polling inference.
-	void queue_transfer()
-	{
-		const auto current_tick = tick.load();
-		if ((has_transfer_tick && transfer_tick == current_tick) || transfer_queued.exchange(true))
-			return;
-		has_transfer_tick = true;
-		transfer_tick = current_tick;
-		obs_queue_task(
-			OBS_TASK_GRAPHICS,
-			[](void *parameter) {
-				auto &s = *static_cast<Impl *>(parameter);
-				const auto start = obs_now();
-				try {
-					GraphicsScope graphics;
-					std::lock_guard lock(s.mutex);
-					s.transfer();
-				} catch (const std::bad_alloc &) {
-					s.failure = ErrorCode::out_of_memory;
-				} catch (...) {
-					s.failure = ErrorCode::internal;
-				}
-				s.graphics_timings.record(obs_now() - start, {});
-				s.transfer_queued = false;
-			},
-			this, false);
+		return !stopping && !suspended && enabled && host_enabled && settings && !settings->context.bypass &&
+		       size.width && size.height;
 	}
 	void transfer()
 	{
@@ -342,6 +296,10 @@ struct FilterInput::Impl {
 			}
 		}
 		collect();
+		if (!active() && pool.in_use() == 0) {
+			transport.reset();
+			resource_attempt = 0;
+		}
 		if (active() && pool.in_use() == 0 && resource_attempt != pool.generation()) {
 			resource_attempt = pool.generation();
 			const auto grid = settings->quality.grid;
@@ -426,6 +384,11 @@ struct FilterInput::Impl {
 	}
 	void work(Generation &prepared)
 	{
+		struct CountDrops {
+			Impl &self;
+			std::uint64_t before;
+			~CountDrops() { self.dropped += self.scheduler.dropped() - before; }
+		} count_drops{*this, scheduler.dropped()};
 #ifdef CORRIDORKEY_CK2_RUNTIME
 		// The last session reference is released here, so graphics never joins an inference worker.
 		std::erase_if(retained_refiners, [](const auto &stage) { return stage.use_count() == 1; });
@@ -460,6 +423,23 @@ struct FilterInput::Impl {
 		}
 #endif
 		const auto generation = pool.generation();
+		if (prepared != generation) {
+			pipeline->cancel();
+			scheduler.reset();
+			if (scheduler.running()) {
+				if (pipeline == &fake)
+					fake.advance(obs_now());
+				auto cancelled = pipeline->poll_result();
+				if (!cancelled && pipeline->diagnostics().outstanding != 0)
+					return;
+				++completed;
+				++dropped;
+				scheduler.completed();
+			}
+			// Registrations retain native textures. Release them on their worker
+			// before graphics replaces the drained generation's transport.
+			device_transfers.clear();
+		}
 		if (prepared != generation) {
 			std::lock_guard lock(mutex);
 			preparation = std::stop_source{};
@@ -715,8 +695,10 @@ struct FilterInput::Impl {
 			scheduler.completed();
 			++completed;
 			if (!result->input.lease.current() || !active) {
+				++dropped;
 				result.reset();
 			} else if (result->failure) {
+				++dropped;
 				failure = result->failure.code;
 				discard_presentation = true;
 				result.reset();
@@ -736,6 +718,7 @@ struct FilterInput::Impl {
 				result->timings.output_transfer = obs_now() - pack_start;
 			} else {
 				failure = ErrorCode::timeout;
+				++dropped;
 				result.reset();
 			}
 		}
@@ -773,7 +756,6 @@ struct FilterInput::Impl {
 			staged_input.reset();
 			input_available = false;
 		}
-		queue_transfer();
 		if (input && input->lease.current()) {
 			std::shared_ptr<nvidia::Context> context;
 #ifdef CORRIDORKEY_CK2_RUNTIME
@@ -786,9 +768,7 @@ struct FilterInput::Impl {
 				blog(LOG_INFO, "[corridorkey:w10] transport=%s",
 				     selected_transport == TransportKind::interop ? "d3d11-cuda" : "staged");
 			input_transfers[input->lease.id().index] = obs_now() - input->identity.captured_at;
-			const auto previous_dropped = scheduler.dropped();
 			scheduler.offer(std::move(*input));
-			dropped += scheduler.dropped() - previous_dropped;
 		}
 		if (active && !preparation_error && generation == pool.generation()) {
 			const auto problem = scheduler.submit(*pipeline, tick.load(), obs_now());
@@ -818,18 +798,17 @@ struct FilterInput::Impl {
 		pipeline->cancel();
 		scheduler.reset();
 		pipeline->shutdown();
+		scheduler.completed();
 		device_transfers.clear();
 		pool.advance_generation();
 		graphics_task([&] {
-			// FIFO barrier: the last asynchronous callback has returned before
-			// its mailbox and graphics resources can be released.
-			std::scoped_lock lock(mutex, mailbox_mutex);
+			// Source callbacks have detached before the teardown worker runs.
 			staged_input.reset();
 			completed_result.reset();
 			completed_pixels.clear();
 			gs_flush();
 		});
-		// Poll once per graphics task while the detached worker owns retirement.
+		// Poll completion while the detached worker owns retirement.
 		bool drained = false;
 		while (!drained) {
 			graphics_task([&] {
@@ -851,7 +830,10 @@ struct FilterInput::Impl {
 					completed_refiner.reset();
 					drained = true;
 				}
+				gs_flush();
 			});
+			if (!drained)
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
 #ifdef CORRIDORKEY_CK2_RUNTIME
 		retained_refiners.clear();
@@ -863,6 +845,7 @@ FilterInput::~FilterInput() = default;
 void FilterInput::update(obs_data_t *data, SettingsSnapshot settings)
 {
 	std::lock_guard lock(impl_->mutex);
+	impl_->recovery_attempted = false;
 	impl_->settings = std::move(settings);
 	impl_->diagnostic = false;
 #ifdef CORRIDORKEY_ENABLE_FAKE_FILTER
@@ -897,6 +880,11 @@ void FilterInput::tick() noexcept
 	const Extent size{target ? obs_source_get_base_width(target) : 0,
 			  target ? obs_source_get_base_height(target) : 0};
 	const bool enabled = obs_source_enabled(s.source);
+	if (!s.suspended && s.last_render != TimePoint{} &&
+	    obs_now() - s.last_render > std::chrono::milliseconds(500)) {
+		s.suspended = true;
+		s.invalidate();
+	}
 	const gs_color_space preferred[] = {GS_CS_SRGB, GS_CS_SRGB_16F, GS_CS_709_EXTENDED, GS_CS_709_SCRGB};
 	const auto color_space = target ? obs_source_get_color_space(target, 4, preferred) : GS_CS_SRGB;
 	const bool changed = target ? !s.target || !obs_weak_source_references_source(s.target, target)
@@ -908,6 +896,7 @@ void FilterInput::tick() noexcept
 	}
 	if (changed || size != s.size || color_space != s.color_space || enabled != s.host_enabled ||
 	    s.reset_requested.exchange(false)) {
+		s.recovery_attempted = false;
 		s.size = size;
 		s.color_space = color_space;
 		s.host_enabled = enabled;
@@ -915,14 +904,20 @@ void FilterInput::tick() noexcept
 		if (!size.width || !size.height)
 			s.failure = ErrorCode::invalid_input;
 	}
+	if (s.transport && s.transport->failure().code == ErrorCode::device_lost && !s.recovery_attempted) {
+		s.recovery_attempted = true;
+		s.invalidate();
+	}
 	try {
 		s.publish();
 		// Finishing a refined frame can start the next gather in this same video tick.
 		s.publish();
 		const auto start = obs_now();
 		GraphicsScope graphics;
-		s.poll_input();
+		s.transfer();
 		s.tick_transfer_timings.record(obs_now() - start, {});
+	} catch (const std::bad_alloc &) {
+		s.failure = ErrorCode::out_of_memory;
 	} catch (...) {
 		s.failure = ErrorCode::internal;
 	}
@@ -951,6 +946,10 @@ bool FilterInput::render() noexcept
 		if (!s.size.width || !s.size.height) {
 			s.failure = ErrorCode::invalid_input;
 			return false;
+		}
+		if (s.suspended) {
+			s.suspended = false;
+			s.invalidate();
 		}
 #ifdef CORRIDORKEY_CK2_RUNTIME
 		if (s.preparing_model || s.model_pending) {

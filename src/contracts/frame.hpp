@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace corridorkey {
-enum class PixelFormat { rgb_f32, rgba_f32, alpha_f32, rgba8, bgra8 };
+enum class PixelFormat { rgb_f32, rgba_f32, alpha_f32, rgba8, bgra8, rgba_f16 };
 
 // A resource's deleter must enqueue thread-affine destruction on its owner.
 class ImageStorage {
