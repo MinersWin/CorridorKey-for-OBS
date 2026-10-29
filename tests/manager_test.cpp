@@ -100,7 +100,7 @@ TEST_CASE("source inventory provides honest sizes and no future download slot")
 	auto rows = model_rows({}, sources);
 	REQUIRE(rows.size() == 4);
 	CHECK(rows[0].recommended);
-	CHECK(rows[0].download_bytes == 3282961820ULL);
+	CHECK(rows[0].download_bytes == 3283029804ULL);
 	for (auto &row : rows) {
 		CHECK_FALSE(row.manifest);
 		CHECK_FALSE(actions(row).install);
@@ -198,6 +198,58 @@ TEST_CASE("a new catalogue revision retains verified installed revisions and off
 	CHECK(actions(snapshot.rows[0]).primary == "Review update");
 }
 
+TEST_CASE("v12 to v15 offers an update and removes the old refiner only after activation and lease release")
+{
+	Temp temp;
+	const auto data = models::fs::path(CK_SOURCE_DIR);
+	const auto previous =
+		models::strict_json(models::read_small_file(data / "tests/fixtures/refiner-v12-package.json"));
+	const auto catalogue = models::strict_json(models::read_small_file(data / "data/models/catalogue-v1.json"));
+	const auto pin = std::find_if(catalogue.at("packages").begin(), catalogue.at("packages").end(),
+				      [](const auto &p) { return p.at("id") == "refiner-v12"; });
+	REQUIRE(pin != catalogue.at("packages").end());
+	auto raw = models::strict_json(testing::manifest(fixture()).raw);
+	raw["id"] = previous.at("id");
+	raw["revision"] = previous.at("revision");
+	raw["display_name"] = previous.at("display_name");
+	auto bytes = raw.dump();
+	const auto old = models::parse_manifest(bytes, models::sha256(bytes));
+	{
+		ManagerController initial(temp.path, testing::licence_registry(), model_rows({old}, {}),
+					  testing::binder());
+		initial.install(old.key, true, fixture());
+		REQUIRE(until([&] { return initial.snapshot().rows[0].status.state == ModelState::ready; }));
+	}
+	models::Cache cache(temp.path);
+	cache.select_current(old);
+	auto reader = cache.acquire(old);
+	REQUIRE(reader);
+	raw["revision"] = pin->at("revision");
+	raw["display_name"] = "Edge Refiner v15";
+	bytes = raw.dump();
+	const auto next = models::parse_manifest(bytes, models::sha256(bytes));
+	ManagerController manager(temp.path, testing::licence_registry(), model_rows({next}, {}), testing::binder());
+	REQUIRE(until([&] { return manager.snapshot().rows[0].status.state == ModelState::update_available; }));
+	CHECK(state_name(manager.snapshot().rows[0].status.state) == "Update available");
+	manager.install(next.key, true, fixture());
+	REQUIRE(until([&] { return manager.snapshot().rows[0].status.state == ModelState::ready; }));
+	CHECK(cache.current(old.key.id) == old.key);
+	CHECK(models::fs::exists(cache.revision(old.key)));
+	auto ready = cache.acquire(next);
+	REQUIRE(ready);
+	CHECK(ready->key == next.key);
+	cache.select_current(next);
+	// Force a disk refresh while an old session still owns its reader lease.
+	manager.install(next.key, false, fixture());
+	REQUIRE(until([&] { return manager.snapshot().rows[0].status.state == ModelState::ready; }));
+	CHECK(models::fs::exists(cache.revision(old.key)));
+	reader.reset();
+	REQUIRE(until([&] { return !models::fs::exists(cache.revision(old.key)); }));
+	CHECK(cache.current(next.key.id) == next.key);
+	CHECK(cache.acquire(next));
+	CHECK_FALSE(cache.remove(next.key));
+}
+
 TEST_CASE("production catalogue is pinned, licence-complete and selects packages by grid and stage")
 {
 	const auto root = models::fs::path(CK_SOURCE_DIR) / "data/models";
@@ -213,7 +265,8 @@ TEST_CASE("production catalogue is pinned, licence-complete and selects packages
 		for (const auto &licence : manifest.licences)
 			(void)licences.at(licence);
 		CHECK((manifest.key.revision == "5d88114f169cb082cda238426af47feffb9724af" ||
-		       manifest.key.revision == "082f53c75d275c10b1ddf3be2cb72c5ca559f30b"));
+		       manifest.key.revision == "082f53c75d275c10b1ddf3be2cb72c5ca559f30b" ||
+		       manifest.key.revision == "121984ec124141b9a1e42af05946fafe26205fec"));
 		manifests.push_back(std::move(manifest));
 	}
 	REQUIRE(manifests.size() == 6);
@@ -223,6 +276,8 @@ TEST_CASE("production catalogue is pinned, licence-complete and selects packages
 		const auto *manifest = models::activation_refiner_manifest(manifests, refined);
 		REQUIRE(manifest);
 		CHECK(manifest->key.id == "refiner-v12");
+		CHECK(manifest->display_name == "Edge Refiner v15");
+		CHECK(manifest->key.revision == "121984ec124141b9a1e42af05946fafe26205fec");
 	}
 	refined.quality.refiner_max_tiles = 123;
 	CHECK_FALSE(models::activation_refiner_manifest(manifests, refined));
@@ -243,6 +298,8 @@ TEST_CASE("production catalogue is pinned, licence-complete and selects packages
 		models::read_small_file(models::fs::path(CK_SOURCE_DIR) / "tests/fixtures/ck2-release-r3.json"));
 	const auto ck1_release = models::strict_json(
 		models::read_small_file(models::fs::path(CK_SOURCE_DIR) / "tests/fixtures/ck1-release-r4.json"));
+	const auto refiner_release = models::strict_json(
+		models::read_small_file(models::fs::path(CK_SOURCE_DIR) / "tests/fixtures/refiner-release-r5.json"));
 	for (const auto &m : manifests)
 		for (const auto &[id, a] : m.artifacts) {
 			(void)id;
@@ -250,7 +307,8 @@ TEST_CASE("production catalogue is pinned, licence-complete and selects packages
 				CHECK(a.sha256 ==
 				      models::string((m.key.revision == "082f53c75d275c10b1ddf3be2cb72c5ca559f30b"
 							      ? ck1_release
-							      : release)
+						      : m.key.id == "refiner-v12" ? refiner_release
+										  : release)
 							     .at("sha256")
 							     .at(models::fs::path(a.path).filename().string())));
 		}

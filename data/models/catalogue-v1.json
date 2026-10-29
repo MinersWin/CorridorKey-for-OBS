@@ -1,7 +1,7 @@
 {
   "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. UNSIGNED installer-only catalogue; release signing is required before remote distribution.",
   "schema_version": 1,
-  "sequence": 2,
+  "sequence": 3,
   "packages": [
     {
       "id": "ck2-facecam",
@@ -45,19 +45,19 @@
     },
     {
       "id": "refiner-v12",
-      "revision": "5d88114f169cb082cda238426af47feffb9724af",
+      "revision": "121984ec124141b9a1e42af05946fafe26205fec",
       "manifest": {
         "id": "refiner-v12-manifest",
-        "path": "manifests/8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e.json",
+        "path": "manifests/cbb6a1deae57bc0ae1f0ef0a629d2d5c8ab78c45f1202680725799720e134e9b.json",
         "format": "manifest-json",
-        "bytes": 13575,
-        "sha256": "8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e",
+        "bytes": 13586,
+        "sha256": "cbb6a1deae57bc0ae1f0ef0a629d2d5c8ab78c45f1202680725799720e134e9b",
         "licenses": [
           "LicenseRef-Corridor-Key-2.0"
         ],
         "origin": {
-          "url": "https://github.com/MinersWin/CorridorKey-for-OBS/releases/download/model-catalogue-v1/8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e.json",
-          "revision": "8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e"
+          "url": "https://github.com/MinersWin/CorridorKey-for-OBS/releases/download/model-catalogue-v1/cbb6a1deae57bc0ae1f0ef0a629d2d5c8ab78c45f1202680725799720e134e9b.json",
+          "revision": "cbb6a1deae57bc0ae1f0ef0a629d2d5c8ab78c45f1202680725799720e134e9b"
         }
       }
     },

@@ -640,9 +640,15 @@ struct FilterInput::Impl {
 								models::Cache(models::obs_model_cache_path())
 									.select_current(*manifest);
 							if (const auto *refiner = models::activation_refiner_manifest(
-								    manifests, *snapshot))
+								    manifests, *snapshot)) {
 								models::Cache(models::obs_model_cache_path())
 									.select_current(*refiner);
+								blog(LOG_INFO,
+								     "[corridorkey] Active refiner: %s; revision %s; manifest %s",
+								     refiner->display_name.c_str(),
+								     refiner->key.revision.c_str(),
+								     refiner->digest.c_str());
+							}
 							if (auto stage = replacement->refiner_stage())
 								retained_refiners.push_back(std::move(stage));
 							real = std::move(replacement);

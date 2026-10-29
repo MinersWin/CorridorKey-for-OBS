@@ -100,7 +100,7 @@ const LegacyField legacy[] = {
 	{"output_width/output_height/engine_resolution", Disposition::derived, "parent source dimensions"},
 	{"async_4k_post", Disposition::derived, "asynchronous worker"},
 	{"refiner_tile/refiner_halo/refiner_band_hi", Disposition::derived,
-	 "manifest constants: v12 center 32, halo 10, upper band .996"},
+	 "manifest constants: v15 center 32, halo 10, upper band .996"},
 	{"refiner_max_tiles=0", Disposition::retired, "bounded live batches; retain notice, use minimum 64"},
 	{"use_cradio", Disposition::retired, "off; migration notice"},
 	{"post_v3/compile_post/triton_post/triton_dw/compile_refiner/compile_mode", Disposition::retired,
@@ -178,6 +178,8 @@ void clamp(Settings &s)
 	s.revision = copy.revision;
 	for (const auto &f : fields)
 		assign(s, f, f.get(copy));
+	// The catalogue ships one refiner; saved version choices follow its verified package.
+	s.quality.refiner_model = "v15";
 	s.quality.clip_white = std::max(s.quality.clip_white, s.quality.clip_black + .01f);
 	// Off is RGB guided; selecting a method updates the boolean in edit().
 	if (s.quality.model == ModelFamily::ck1) {
@@ -290,13 +292,13 @@ Settings decode(Record r, std::vector<std::string> *notices)
 		alias(r, "refiner", "refiner_model");
 		alias(r, "refiner_path", "refiner_model");
 		auto refiner = string(r, "refiner_model");
-		for (const auto *id : {"v12", "v10w", "v9b", "v4"})
+		for (const auto *id : {"v15", "v12", "v10w", "v9b", "v4"})
 			if (refiner.find(id) != std::string::npos) {
 				r["refiner_model"] = std::string(id);
 				break;
 			}
 		if (string(r, "refiner_model").find_first_of("/\\.") != std::string::npos) {
-			r["refiner_model"] = std::string("v12");
+			r["refiner_model"] = std::string("v15");
 			notice("Migration.Refiner");
 		}
 		// Lua numbers are numeric in obs_data, while native list values are strings.

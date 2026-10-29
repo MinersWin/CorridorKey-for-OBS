@@ -172,7 +172,7 @@ std::vector<ModelRow> model_rows(const std::vector<models::Manifest> &manifests,
 		"ck2-balanced", "CorridorKey 2.0 · Balanced", "Corridor Digital / Niko Pueringer",
 		"Release graphs and a signed package are not available yet. Source size excludes unreleased graphs.",
 		true, {"ck2", "stats", "moge", "rvm", "refiner"});
-	placeholder("refiner-v12", "Edge Refiner v12",
+	placeholder("refiner-v12", "Edge Refiner v15",
 		    "Moritz Mantel · CorridorKey attribution: Corridor Digital / Niko Pueringer",
 		    "Included with the recommended CK2 set when its package is released.", false, {"refiner"});
 	placeholder("modnet", "MODNet hint", "ZHKKKe / MODNet contributors",

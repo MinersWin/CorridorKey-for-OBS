@@ -1,0 +1,15 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later",
+  "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+  "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+  "sha256": {
+    "refiner_b256.json": "62bbdfde0d87a6eb5deb5fd3932b18f2649f50e2ee10473d30a2187c3c2b254a",
+    "refiner_b256.onnx": "e991f02184152dcf57a4ffc047dbbde0cbd8f4160a1d4c220f21a141eed6c69d",
+    "refiner_b384.json": "10e9e51af7581ea0490c854786ee1119bafc139ba13ca673b32eda631d15a104",
+    "refiner_b384.onnx": "01d0e348016e1187b668377fefa99feb5f1c0fd6dd2aa2494b4b0841c1f56d76",
+    "refiner_b512.json": "cd8f13fc4f3185b3fe88d8a5e6edf8b04caeb5cdc363be8aad4255d0f8336b83",
+    "refiner_b512.onnx": "62ee8f0bdef804dc5976f3a14a776711b42c5d0f53ac05c3f49af653358878a9",
+    "refiner_b768.json": "2c77d36361ddc56335f28fbcdfebc1688eb1542c7bbabefbf80e0baa41f48a7b",
+    "refiner_b768.onnx": "7c76a54f62503b925548fa74cc817d2150e0300318774de9c9c6881d93272a7f"
+  }
+}

@@ -495,12 +495,8 @@ obs_property_t *add_field(obs_properties_t *p, const Field &f, Form *form)
 				obs_property_list_add_string(prop, tr(choice_label), choice.value);
 			}
 		} else if (std::string_view(f.key) == "refiner_model") {
-			for (const auto *id : {"v12", "v10w", "v9b", "v4"}) {
-				if (std::string_view(id) == "v4" && !allowed(*form, f.key, id))
-					continue;
-				const auto index = obs_property_list_add_string(prop, id, id);
-				obs_property_list_item_disable(prop, index, !allowed(*form, f.key, id));
-			}
+			const auto index = obs_property_list_add_string(prop, "Edge Refiner v15", "v15");
+			obs_property_list_item_disable(prop, index, !allowed(*form, f.key, "v15"));
 		} else {
 			obs_property_list_add_string(
 				prop, tr(std::string_view(f.key) == "device" ? "Choice.auto" : "Choice.none"), "");

@@ -414,7 +414,7 @@ void ModelManager::details()
 	QString description = q(r->availability.empty() ? r->description : r->availability);
 	if (r->availability.empty() && r->key.id == "ck2-balanced")
 		description = tr("The default keying model. Balanced keeps delay low; Quality adds a detail pass. "
-				 "Edge Refiner v12 is installed separately.");
+				 "Edge Refiner v15 is installed separately.");
 	else if (r->availability.empty() && r->key.id == "ck2-facecam")
 		description = tr(
 			"A smaller working grid for faster keying. Shares source downloads with Balanced / Quality.");

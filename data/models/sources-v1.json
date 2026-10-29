@@ -48,16 +48,16 @@
     },
     {
       "id": "refiner",
-      "bytes": 94336,
+      "bytes": 162320,
       "licenses": [
         "LicenseRef-Corridor-Key-2.0"
       ],
-      "path": "sources/refiner/corridorkey_edge_refiner_v12.safetensors",
-      "sha256": "377d7c60ab7f6a5691e9977a491bcea397ade1421bb6087f2bc79ad3a9ce315d",
+      "path": "sources/refiner/corridorkey_edge_refiner_v15.safetensors",
+      "sha256": "b38746544edbdaa207723ffe1dd6e799e1fa7f176bd74ad4c7c91d5dd84abf74",
       "origin": {
-        "revision": "6e37255904c81ab224b1a1b39cbe4512c7a6dafb",
+        "revision": "db3adf8820653508bc617ff9a1f994dc273d08cb",
         "repo": "mantelmoritz/CorridorKey-Realtime-EdgeRefiner",
-        "file": "corridorkey_edge_refiner_v12.safetensors"
+        "file": "corridorkey_edge_refiner_v15.safetensors"
       },
       "format": "safetensors"
     },

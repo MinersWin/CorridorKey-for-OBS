@@ -27,7 +27,7 @@ struct QualitySettings {
 	bool roi_enabled = true;
 	std::uint32_t stage2_interval = 0;
 	bool refiner_enabled = true;
-	std::string refiner_model = "v12";
+	std::string refiner_model = "v15";
 	std::uint32_t refiner_max_tiles = 512;
 	GuideMode guide_mode = GuideMode::refiner;
 	float guided_scale = 1;
