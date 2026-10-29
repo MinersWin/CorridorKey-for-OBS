@@ -20,6 +20,19 @@ if(TARGET corridorkey AND ENABLE_QT AND ENABLE_FRONTEND_API)
   file(SHA256 "${PROJECT_SOURCE_DIR}/data/models/catalogue-v1.json" _w09b_catalogue_hash)
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/data/models/catalogue-v1.json")
   target_compile_definitions(corridorkey PRIVATE CORRIDORKEY_BUNDLED_CATALOGUE_SHA256="${_w09b_catalogue_hash}")
+  file(
+    GENERATE OUTPUT
+    "${CMAKE_CURRENT_BINARY_DIR}/catalogue-build.json"
+    CONTENT
+      "{\n  \"public_key\": \"${CORRIDORKEY_CATALOGUE_PUBLIC_KEY}\",\n  \"catalogue_sha256\": \"${_w09b_catalogue_hash}\"\n}\n"
+  )
+  if(WIN32)
+    set(_w07_models_destination "${CMAKE_PROJECT_NAME}/data/models")
+  else()
+    include(GNUInstallDirs)
+    set(_w07_models_destination "${CMAKE_INSTALL_DATAROOTDIR}/obs/obs-plugins/${CMAKE_PROJECT_NAME}/models")
+  endif()
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/catalogue-build.json" DESTINATION "${_w07_models_destination}")
   if(NOT WIN32)
     include(GNUInstallDirs)
     target_compile_definitions(
