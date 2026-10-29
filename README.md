@@ -1,53 +1,54 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # CorridorKey for OBS
 
-**Pre-alpha / work in progress.** The native CK2 pipeline and model manager are
-available on Windows. Missing models or unavailable backends leave video in
-passthrough. CK1 is available under Advanced as an experimental option. Its edge
-quality is below CK2; try CK2 Facecam with Edge refiner off for a weak GPU.
+A native OBS Studio filter for green-screen keying with CorridorKey. Models run
+on your computer; camera video is not uploaded. The plugin is free, with no paid
+builds or tiers. Model licences are reviewed separately before download.
 
-A native OBS Studio video filter for neural background keying on Windows x64
-and Linux x86_64. No model weights or derived graphs are included.
+Version 0.1.0 is being prepared for its first release candidate. Windows keying
+has been tested on an RTX 5070 Ti. Linux runtime testing and AMD/Intel community
+validation remain release limitations. Check the [compatibility matrix](docs/compatibility.md)
+before relying on it for a stream.
 
-See [design specifications](docs/design/) for the planned architecture, models, interface and implementation backlog.
+![CorridorKey model setup in OBS's default Yami theme](docs/images/first-run/yami-first-run.png)
 
-## Features and remaining work
+## Features
 
-- CorridorKey 2.0 with Facecam, Balanced and Quality profiles.
-- Experimental CK1 green/blue with MODNet, CK2 Stage-1 or Expert-only chroma hints.
-  See the [CK1 guide](docs/user/ck1.md) for quality comparisons and costs.
-- Native matte reconstruction, despill and advanced controls in filter properties.
-- Optional learned Edge Refiner v15 with a tile budget selected in filter properties.
-- In-OBS model management with licence acceptance, resumable downloads and SHA-256 verification.
-- CK2 GPU inference through ONNX Runtime: NVIDIA TensorRT / CUDA and DirectML.
-  Additional providers still need pipeline integration and hardware validation.
-- Live processing and input-to-output delay, with optional audio sync adjustment.
+- CorridorKey 2.0 with Facecam, Balanced and Quality presets, plus the learned Edge Refiner v15.
+- Native matte reconstruction, foreground recovery, despill and crop controls.
+- NVIDIA D3D11/CUDA and Windows DirectML D3D11/D3D12 device paths, with staged-transfer fallback.
+- A model manager with licence review, resumable downloads, SHA-256 verification and offline import.
+- Multiple filters with separate temporal state, live key rate and displayed-frame age.
+- Optional automatic lip-sync and diagnostics you can review before sharing.
+- Experimental CK1 green/blue keying with MODNet or CK2 hints under Advanced. See the
+  [CK1 guide](docs/user/ck1.md) for quality comparisons and costs.
 
-CPU execution is intended for debugging. AMD providers still need hardware testing.
+For a slower GPU, start with CK2 Facecam and Edge refiner off. CK1 has worse
+edges in the evaluated clips. CPU inference is for diagnostics, not live use.
+See [performance](docs/user/performance.md) for measured results and their limits.
 
-```mermaid
-flowchart LR
-  input[OBS source] --> filter[CorridorKey filter]
-  filter --> passthrough[Passthrough while unavailable] --> output[OBS output]
-  filter --> prep[Prepare accepted and verified model package]
-  prep --> model[CK2 or experimental CK1]
-  model --> composite[Native reconstruction and despill]
-  composite --> output
-```
+## Quick start
 
-## Requirements
+1. Install a package from [Releases](https://github.com/MinersWin/CorridorKey-for-OBS/releases)
+   with OBS closed. Windows needs OBS 30.2 or newer; choose the zip layout for
+   your host if you use portable OBS. See [installation](docs/user/install.md).
+2. Add **CorridorKey** to your source's **Effect Filters**. Keep Balanced selected.
+3. Open **Manage models...**, choose **Set up CorridorKey**, and review the
+   model licences. Accept them to download and prepare the package.
+4. Install the separate edge-refiner package, or turn **Edge refiner** off. Missing
+   packages or unavailable backends leave video unchanged with a status message.
+5. Check the key on moving footage and crop away areas outside your screen.
 
-- OBS Studio **30.2 or newer**, subject to the compatibility checks below.
-- Windows 10/11 x64, or Ubuntu 24.04 x86_64 with a compatible OBS installation.
-- The Qt 6 libraries provided by OBS on Windows, or the distribution on Linux.
-- A supported GPU, a compatible runtime and separately downloaded models.
-  Windows release packages include DirectML; optional NVIDIA bundles have their
-  own licence acceptance and installation step.
+Windows packages include ONNX Runtime and DirectML. Optional NVIDIA acceleration
+has its own download and licence review. Linux packages target native OBS on
+Ubuntu 24.04 or 26.04 with matching Qt libraries; Flatpak is not supported.
+Model weights and derived model graphs are not included in the plugin packages.
 
-Add **CorridorKey** to a source's video filters, open **Manage models...**, then
-choose **Set up CorridorKey**. Review the model licences before downloading.
-Follow the illustrated [first-run guide](docs/user/first-run.md) for setup,
-local weight preparation and activation.
+Read the illustrated [first-run guide](docs/user/first-run.md),
+[settings reference](docs/user/settings.md), [model manager guide](docs/user/model-manager.md),
+[lip-sync guide](docs/user/lip-sync.md), [CK1 guide](docs/user/ck1.md),
+and [troubleshooting](docs/user/troubleshooting.md). Changes and known limits are
+in the [changelog](CHANGELOG.md).
 
 ## Build
 
@@ -73,7 +74,7 @@ cmake --install build_x64 --config RelWithDebInfo --prefix "$PWD/stage"
 With OBS closed, copy `stage/corridorkey` to
 `C:/ProgramData/obs-studio/plugins/corridorkey`. Do not install into a running OBS.
 The default install rules and Windows zip target OBS 33+: the module sits at
-`corridorkey/corridorkey.dll`, beside `data/`. For OBS 30.2â€“32, use the `-legacy.zip`
+`corridorkey/corridorkey.dll`, beside `data/`. For OBS 30.2-32, use the `-legacy.zip`
 asset, or configure with `-DCORRIDORKEY_WINDOWS_LAYOUT=LEGACY` to place the module
 in `corridorkey/bin/64bit/`. CMake installs remove the alternate module copy.
 The installer detects OBS in its default location and lets you choose the host
@@ -86,7 +87,7 @@ include the DirectML baseline runtime; a raw CMake install needs runtime assembl
 Do not install both zip layouts together. When upgrading manually, remove the
 old `corridorkey.dll` before copying the new layout. In portable OBS 33+, use
 `plugins/corridorkey/{corridorkey.dll,data/}` inside the portable installation.
-Portable OBS 30.2â€“32 uses `obs-plugins/64bit/corridorkey.dll` and
+Portable OBS 30.2-32 uses `obs-plugins/64bit/corridorkey.dll` and
 `data/obs-plugins/corridorkey/`. The installer targets installed OBS, not portable
 copies. See [OBS's migration guide](https://obsproject.com/kb/legacy-plugin-developer-info).
 
@@ -102,7 +103,7 @@ set `CORRIDORKEY_USE_BUNDLED_SDK=OFF` and `CMAKE_PREFIX_PATH` to its installatio
 
 ### Ubuntu 24.04 x86_64
 
-Ubuntu 24.04 remains a supported build lane for compatible OBS 30.2â€“32 hosts
+Ubuntu 24.04 remains a supported build lane for compatible OBS 30.2-32 hosts
 from the distribution/backports or the OBS PPA. The stock initial 30.0 package
 is below the intended floor. CI builds the exact baseline SDK from source against
 Ubuntu's FFmpeg libraries, independently of the installed OBS application:
@@ -125,7 +126,7 @@ archives, with no upper version limit. An already installed SDK 30.2+ may also b
 used directly. For an optional current-SDK check, pass `--sdk current` to build
 OBS 33 and minimal FFmpeg 8 into `.deps/linux-sdk-current`, then use that prefix.
 This does not install an OBS host. OBS 33 itself dropped upstream Ubuntu 24.04
-and Qt 6.4â€“6.9 support; its host needs a compatible newer distro/Qt stack. The
+and Qt 6.4-6.9 support; its host needs a compatible newer distro/Qt stack. The
 24.04 release lane does not advertise an OBS 33 host on the stock 24.04 stack.
 
 ### Optional inference dependency
@@ -133,54 +134,40 @@ and Qt 6.4â€“6.9 support; its host needs a compatible newer distro/Qt stack
 `CORRIDORKEY_FETCH_ONNXRUNTIME` defaults to `OFF`. See
 [the dependency notes](cmake/dependencies/README.md) for the pinned Linux CPU/CUDA
 archives and the Windows DirectML source build. Enabling this prepares a runtime;
-it does not add inference to this filter or bundle that runtime in releases.
+release runtime assembly is handled separately by `packaging/package.py`.
 
 ### Formatting and packages
 
 Use clang-format 19.1.7 and gersemi 0.22.2. CI checks all tracked C/C++ and CMake
 files. Release tags must match `v` plus `buildspec.json`'s version. A `v*` tag builds
 Windows modern/legacy zips, an installer and Linux deb/tar.xz assets into a **draft** GitHub Release.
-The workflow uses the repository's automatic token; no custom secrets are needed.
+Release catalogue signing uses `CATALOGUE_SIGNING_KEY` in the protected `release`
+environment. See the [release checklist](docs/dev/release-checklist.md) for RC
+tags, signing approval and draft verification. Windows binaries are not code signed.
 
 ## Compatibility
 
-See the [compatibility matrix](docs/compatibility.md) for backend evidence,
-tested host versions and how to collect a redacted support report.
+Release builds use the OBS 30.2 API floor. OBS 30.2 and 33 have local Windows
+evidence; 31 and 32 are expected to work. Compatible newer versions load with a
+warning and capability checks. The plugin uses OBS's Qt and checks actual GPU
+and runtime capabilities, without requiring an exact driver version.
 
-| Platform / host | Intended support | Verification in this foundation |
-| --- | --- | --- |
-| Windows x64, OBS 30.2â€“32.x | 30.2.0 hardware-tested; 31.xâ€“32.x expected | MSVC build loaded in the legacy portable layout with a color source/filter |
-| Windows x64, OBS 33.x | 33.0.0 hardware-tested | Baseline MSVC DLL loaded from the modern ProgramData layout exactly once; the current-SDK build also passed |
-| Ubuntu 24.04 x86_64, OBS 30.2â€“32 | Expected to work | Baseline build job configured; first hosted run and runtime validation pending |
-| Newer/unknown OBS releases | Load with a warning when the ABI remains compatible | Simulated version 99 loaded and retained pass-through; real newer hosts remain untested |
-| CK2 GPU inference on Windows | Available through installed model packages and runtimes | See [pipeline validation](docs/dev/ck2-pipeline.md) and [first-run evidence](docs/dev/validation-w09b.json); shared GPU, no clean performance claim |
+The [compatibility matrix](docs/compatibility.md) separates host loading, graph
+tests and live inference. Linux GPU interop is not implemented. AMD and Intel
+DirectML await community reports; NVIDIA measurements do not qualify those GPUs.
+The two-camera soak showed a positive memory trend that needs further investigation.
 
-The filter uses longstanding OBS APIs. It logs the host version; an unreviewed
-version alone never causes rejection. Future optional APIs must be resolved at
-runtime, and missing inference/provider capabilities must leave pass-through
-available. A genuine host ABI break may still prevent loading before plugin
-initialization. No exact Qt, ORT or GPU-driver version whitelist is imposed.
-Build download pins are separate from runtime compatibility. Qt must have the
-host-compatible ABI; inference negotiates ORT's versioned C API and
-check actual provider/device capabilities before use.
-
-Please [open an issue](https://github.com/MinersWin/CorridorKey-for-OBS/issues/new/choose)
-when something fails. Copy diagnostics from the model manager, review the
-preview and paste it into the form. An OBS log is optional; review it for private
-information before attaching it. Runtime support remains provisional until the
-corresponding matrix entry records an actual test.
-See [local validation notes](docs/VALIDATION.md) for the compiler, logs and limits
-of these tests. Installer execution, Linux compilation and hosted CI remain pending.
+If something fails, [open an issue](https://github.com/MinersWin/CorridorKey-for-OBS/issues/new/choose)
+with reviewed diagnostics from the model manager and the steps that reproduce it.
 
 ## Licensing
 
-Plugin code is **GPL-3.0-or-later**; see [LICENSE](LICENSE). A separate
-[section 7 additional permission](LICENSE-EXCEPTION.md) permits linking or loading
-specified proprietary GPU runtimes and drivers where the relevant copyright
-holders grant it. It does not grant redistribution rights to vendor libraries.
+Plugin code is [GPL-3.0-or-later](LICENSE), with a
+[section 7 additional permission](LICENSE-EXCEPTION.md) for the specified GPU
+runtimes. Vendor libraries and separately downloaded models retain their own terms.
+CorridorKey models use the Corridor Key Licence; their licence texts and attribution
+are shown before downloading.
 
-**CorridorKey models are not included and are not covered by the plugin's GPL.**
-Users must accept the applicable **Corridor Key Licence** before downloading.
-Credit: **Corridor Digital LLC / Niko Pueringer**. MoGe-2 is MIT; RVM is CC BY 4.0.
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for sources and attribution.
-This is an independent integration, not an official Corridor Digital product.
+CorridorKey is by Corridor Digital LLC / Niko Pueringer. This is an independent
+integration. See [third-party notices](THIRD_PARTY_NOTICES.md) for every bundled
+component and model source.

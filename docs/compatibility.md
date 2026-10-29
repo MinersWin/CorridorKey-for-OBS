@@ -25,14 +25,14 @@ test does not establish full CorridorKey inference, image parity or frame rate.
 | OBS 30.2.x | hardware-tested: portable 30.2.0, Windows 11, Qt 6.6.3 | [W07](dev/validation-w07.md), [W15](dev/validation-w15.md): manager, fake pipeline and delay/sync. |
 | OBS 31.x | expected | Uses the 30.2 API floor; no 31 host run recorded. |
 | OBS 32.x | expected | Uses the 30.2 API floor; no 32 host run recorded. |
-| OBS 33.x | hardware-tested: installed 33.0.0, Windows 11, Qt 6.11.1 | [W07](dev/validation-w07.md), [W15](dev/validation-w15.md): manager and fake pipeline. An outstanding shutdown allocation remains unexplained. |
+| OBS 33.x | hardware-tested: 33.0.0, Windows 11, Qt 6.11.1 | [NVIDIA live matrix](dev/interop.md), [DirectML live matrix](dev/dml.md), [multi-instance soak](dev/multi-instance.md), manager and lip-sync checks. Portable runs reported zero OBS allocations at shutdown; the soak's memory trend remains unresolved. |
 | Compatible newer OBS | expected | [Foundation simulated version test](VALIDATION.md#properties-and-compatibility-checks), [W17 mock policy tests](dev/validation-w17.md). These do not certify a future ABI. |
 | Windows 10 x64 | expected | No local Windows 10 run. The host, GPU driver and chosen runtime must each support the OS. |
 | Windows 11 x64 | hardware-tested: this machine's RTX 5070 Ti | Host checks above; backend fixture evidence below. |
 | Ubuntu 24.04+ x86-64 | expected | [CI build lane](../.github/workflows/build.yml); no local Linux host or distribution runtime test. Match the host's Qt and system-library ABI. |
 | Host Qt 6.x | hardware-tested: 6.6.3 and 6.11.1 on Windows | [W07 baseline/current SDK checks](dev/validation-w07.md). The plugin uses OBS's Qt; it does not ship a second copy. |
 
-Windows OBS 30.2â€“32 uses the `bin/64bit` plugin layout. OBS 33+ uses a flat
+Windows OBS 30.2-32 uses the `bin/64bit` plugin layout. OBS 33+ uses a flat
 module beside `data`. Use the package for your host layout; portable OBS has
 its own plugin paths. [Foundation layout checks](VALIDATION.md).
 
@@ -41,10 +41,10 @@ its own plugin paths. [Foundation layout checks](VALIDATION.md).
 | GPU / backend | State and exact anchor | Evidence, failing feature and fallback |
 | --- | --- | --- |
 | NVIDIA TensorRT-RTX | hardware-tested: RTX 5070 Ti, Windows 11, driver 616.92, ORT 1.31.1, RTX EP 0.5.0 | [W06](dev/validation-w06.md): synthetic FP32/FP16 Add through host tensors; refiner session compilation. Native video interop and full CK2 are separate checks. |
-| NVIDIA conventional TensorRT | hardware-tested: RTX 5070 Ti, ORT 1.31.1, exporter-side TRT 10 | [W06 export evidence](dev/validation-w06.md#real-graph-compilation-and-export-side-evidence): graph timings from the exporter, not the native OBS pipeline. W06 did not execute a conventional TRT runtime. |
+| NVIDIA conventional TensorRT | hardware-tested: RTX 5070 Ti, Windows 11, ORT 1.31.1, TensorRT 10 | [Native interop and live matrix](dev/interop.md): CK2, learned refinement, 1080p/4K and captured execution. [CK1 checks](dev/ck1-validation.md) cover MODNet and both transport paths. |
 | NVIDIA CUDA | hardware-tested: RTX 5070 Ti, Windows 11, CUDA 13 ORT 1.31.1 | [W06](dev/validation-w06.md): FP32/FP16 synthetic fixture. CUDA is a slower graph fallback in the recorded export tests. |
 | NVIDIA DirectML | hardware-tested: RTX 5070 Ti, ORT DML 1.24.4, DirectML 1.15.4 | [W11](dev/dml.md): CK2 and refiner D3D11/D3D12 transport, twelve-case live matrix, 30-frame FP32 parity and multiple instances. This is not AMD or Intel evidence. |
-| DirectML BF16 fixture | known-broken: W06 Add graph | [W06](dev/validation-w06.md#native-fixture-measurements): session assignment failed. Live preparation excludes BF16; use FP32/FP16 after graph validation. |
+| DirectML BF16 fixture | known-broken: W06 Add graph | [W06](dev/validation-w06.md#native-fixture-measurements): session assignment failed. Live preparation excludes BF16; use FP32 for DirectML model graphs. |
 | AMD DirectML, Windows | expected; awaiting community-tested evidence | [DML transport](dev/dml.md) checks the same-adapter D3D11/D3D12 bridge and resource bindings. Failed sharing retains staged DML. No AMD hardware result yet. |
 | AMD MIGraphX, Linux | build-only: x86-64 ORT 1.31.1 session/probe objects, Zig 0.15.2 Clang | [W17 object compilation](dev/validation-w17.md#linux-compilation-scope). No vendor EP binary was linked or loaded; no AMD hardware run or full Linux plugin link. |
 | Intel DirectML, Windows | expected; awaiting community-tested evidence | Same vendor-independent [DML checks and staged fallback](dev/dml.md). No Intel hardware result yet. |
@@ -65,8 +65,10 @@ tests. They do not require every user to have one exact driver, CUDA, TensorRT
 or ORT version. Keep matched runtime libraries together; installing a CUDA
 development toolkit is not part of normal plugin setup.
 
-Auto tries NVIDIA TensorRT-RTX, conventional TensorRT, CUDA and, on Windows,
-DirectML. AMD and Intel use DirectML on Windows; AMD Linux uses MIGraphX.
+Auto probes installed NVIDIA TensorRT-RTX, conventional TensorRT, CUDA and,
+on Windows, DirectML candidates. AMD and Intel use DirectML on Windows.
+MIGraphX is a Linux integration target; no validated downloadable AMD bundle
+is offered. Linux GPU interop is not implemented.
 Missing optional features use an older API or a staged transport when available.
 An unavailable provider affects that backend; it does not prevent the model
 manager from opening. [Bundle selection and ABI policy](dev/runtime-bundles.md).

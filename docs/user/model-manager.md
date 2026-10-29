@@ -12,7 +12,7 @@ Advanced in the filter. Read the [CK1 guide](ck1.md) for its quality limits and
 the recommended CK2 Facecam fallback.
 The [first-run guide](first-run.md) explains setup, licence acceptance and recovery.
 
-![Earlier CK2 catalogue capture in OBS](../images/first-run/yami-first-run.png)
+![Model catalogue in OBS](../images/first-run/yami-first-run.png)
 
 ## Installing a package
 
@@ -26,7 +26,7 @@ Then choose **Accept and download**. The plugin saves a local receipt for those
 exact texts and that package revision. A changed package or licence needs a new
 acceptance. Declining starts no download.
 
-CorridorKey attribution credits Corridor Digital / Niko Pueringer. CK2 packages
+CorridorKey attribution credits Corridor Digital LLC / Niko Pueringer. CK2 packages
 also carry the Microsoft/MoGe MIT text and DINOv2 Apache notice, and the DeepMind
 RVM CC BY 4.0 text. Scroll through the review window to read each dependency's
 terms. The plugin's GPL licence does not change the model licences.
@@ -50,7 +50,7 @@ rate. Verification checks file hashes. Preparing weights creates local model
 files. Steps without a measured total use an activity indicator.
 
 **Ready** means the package files passed verification. An active filter then
-prepares its backend and loads the package through a reader lease. Video stays
+prepares its backend and loads the package. Video stays
 in passthrough until that pipeline is ready. TensorRT preparation shows an
 activity indicator and elapsed time; it does not block the manager.
 
@@ -90,8 +90,7 @@ receipts. Shared sources are counted once in the cache total.
 
 ![A verified local test bundle with measured cache sizes](../images/model-manager/yami-import-ready.png)
 
-**Remove...** asks you to confirm. A model being installed or held by a reader
-lease cannot be removed. Remove the filters using that package, then retry.
+**Remove...** asks you to confirm. A model being installed or used by a filter cannot be removed. Remove the filters using that package, then retry.
 Removing an unused selected revision also clears its current-selection receipt. A refused removal
 keeps that selection intact.
 Removal keeps shared source downloads, so the cache total may fall by less than

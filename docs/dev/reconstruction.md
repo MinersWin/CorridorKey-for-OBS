@@ -64,7 +64,7 @@ flowchart LR
 ## Math
 
 The colour guided filter uses the local linear model from
-[He, Sun and Tang, *Guided Image Filtering*](https://kaiminghe.github.io/publications/eccv10guidedfilter.pdf).
+[He, Sun and Tang, *Guided Image Filtering*](https://people.csail.mit.edu/kaiming/publications/eccv10guidedfilter.pdf).
 Each model-grid pixel accumulates RGB/alpha moments over a radius-two box. Windows
 truncate at image borders and divide by their actual sample count. A local RGB
 origin reduces cancellation in FP32 on constant or nearly constant guides.

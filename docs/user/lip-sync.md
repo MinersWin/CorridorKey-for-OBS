@@ -18,8 +18,8 @@ The p95 is the age at or below which 95% of sampled presentations fall.
 
 Processing time and transfer time describe completed frames. They do not include
 the extra age of a repeated result. Transfer includes staged capture, waiting for
-the captured pixels and preparing/uploading the output. The diagnostic fake's
-processing time includes its configured wait; it is not neural inference time.
+the captured pixels and preparing/uploading the output. The older screenshots use simulated processing delays; their values are not
+neural inference measurements.
 
 ```mermaid
 flowchart LR
@@ -64,8 +64,8 @@ player can have different buffering, so verify the destination that matters.
 
 ## Enable Auto lip-sync
 
-Open this camera's **Filters**, select **CorridorKey**, and expand **Sync / delay**
-with **Show details**. Enable **Auto lip-sync** and select **Audio source**.
+Open this camera's **Filters**, select **CorridorKey**, enable **Advanced**, and
+expand **Sync / delay** with **Show details**. Enable **Auto lip-sync** and select **Audio source**.
 The existing OBS sync offset becomes the baseline. Source selection uses its
 persistent ID, so renaming the microphone keeps the pairing.
 

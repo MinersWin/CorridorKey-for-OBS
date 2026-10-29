@@ -85,8 +85,7 @@ Export-side timings on an RTX 5070 Ti measured CK1 alone at 4.7 / 5.4 / 7.1 ms
 with TensorRT FP16, or 8.9 / 15.8 / 28.5 ms with DirectML FP32, for 256 / 384 /
 512. MODNet adds about 1.6 to 2.1 ms on TensorRT or 1.9 to 3.2 ms on DirectML.
 These graph measurements exclude OBS capture, reconstruction and presentation.
-They are comparison figures from the release brief, not complete plugin frame
-times. Native checks and their test conditions are recorded in the
+They are graph comparison figures, not complete plugin frame times. Native checks and their test conditions are recorded in the
 [pipeline validation notes](../dev/ck1-pipeline.md).
 
 If a hint package is missing, a backend cannot run a graph, or a result becomes
