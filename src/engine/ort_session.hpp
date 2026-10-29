@@ -63,6 +63,7 @@ struct CompilerConfig {
 	fs::path helper, scratch;
 	std::chrono::milliseconds timeout{120000};
 	std::function<void(Backend, ModelState)> state;
+	std::function<void()> finished;
 };
 struct GraphAttempt {
 	Backend backend = Backend::automatic;

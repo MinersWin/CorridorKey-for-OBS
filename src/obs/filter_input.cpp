@@ -90,6 +90,7 @@ struct FilterInput::Impl {
 	Pipeline *pipeline = &fake;
 #ifdef CORRIDORKEY_CK2_RUNTIME
 	std::unique_ptr<Ck2Pipeline> real;
+	std::shared_ptr<const ReadyModel> leased_model, leased_refiner;
 	std::string prepared_key;
 	std::vector<std::shared_ptr<refiner::Stage>> retained_refiners;
 	std::vector<models::Manifest> manifests;
@@ -531,11 +532,18 @@ struct FilterInput::Impl {
 							models::AcceptanceStore(cache).contains(*manifest, licences),
 							"Open Manage models, then Set up CorridorKey and accept the model licences.",
 							ErrorCode::model_missing);
-						model = cache.acquire(*manifest, stop);
+						// A held reader lease keeps this verified revision immutable across resets.
+						// Rehashing gigabytes on every source/settings generation starves live activation.
+						if (leased_model && leased_model->key == manifest->key &&
+						    leased_model->manifest_sha256 == manifest->digest)
+							model = leased_model;
+						else
+							model = cache.acquire(*manifest, stop);
 						models::require(
 							bool(model),
 							"This grid's model package is not installed. Open Manage models to install it.",
 							ErrorCode::model_missing);
+						leased_model = model;
 						if (snapshot->quality.refiner_enabled) {
 							const auto *refiner = models::activation_refiner_manifest(
 								manifests, *snapshot);
@@ -548,11 +556,17 @@ struct FilterInput::Impl {
 													licences),
 								"Open Manage models and accept the edge-refiner licence.",
 								ErrorCode::model_missing);
-							auto refinement = cache.acquire(*refiner, stop);
+							auto refinement =
+								leased_refiner && leased_refiner->key == refiner->key &&
+										leased_refiner->manifest_sha256 ==
+											refiner->digest
+									? leased_refiner
+									: cache.acquire(*refiner, stop);
 							models::require(
 								bool(refinement),
 								"The edge-refiner package is not installed. Open Manage models to install it.",
 								ErrorCode::model_missing);
+							leased_refiner = refinement;
 							model = models::activation_model(std::move(model),
 											 std::move(refinement));
 						}
@@ -599,6 +613,9 @@ struct FilterInput::Impl {
 						     diagnostics::redact(message).c_str());
 					};
 					runtime.record_probe = diagnostics::record_probe;
+					runtime.compiler.finished = [id = instance] {
+						ui::preparation_finished(id);
+					};
 					runtime.compiler.state = [id = instance, key = model->key,
 								  cancellation = preparation](Backend,
 											      ModelState state) {
@@ -627,6 +644,10 @@ struct FilterInput::Impl {
 							if (manifest)
 								models::Cache(models::obs_model_cache_path())
 									.select_current(*manifest);
+							if (const auto *refiner = models::activation_refiner_manifest(
+								    manifests, *snapshot))
+								models::Cache(models::obs_model_cache_path())
+									.select_current(*refiner);
 							if (auto stage = replacement->refiner_stage())
 								retained_refiners.push_back(std::move(stage));
 							real = std::move(replacement);
@@ -894,6 +915,8 @@ bool FilterInput::render() noexcept
 		}
 #ifdef CORRIDORKEY_CK2_RUNTIME
 		if (s.preparing_model || s.model_pending) {
+			// Passthrough still receives frames. Preparation must not manufacture a source gap.
+			s.last_render = obs_now();
 			s.failure = s.model_pending ? ErrorCode::model_missing : ErrorCode::busy;
 			return false;
 		}

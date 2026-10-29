@@ -189,13 +189,30 @@ TEST_CASE("per-graph alternatives retain precision and never promote BF16 or CPU
 	alternatives[1].precision = Precision::bf16;
 	alternatives[2].bundle.backend = Backend::cpu_diagnostic;
 	alternatives[2].precision = Precision::fp32;
-	auto result = prepare_graph(alternatives, probe, {});
+	bool preparing = false;
+	unsigned finished = 0;
+	CompilerConfig compiler;
+	compiler.state = [&](Backend, ModelState) {
+		preparing = true;
+	};
+	compiler.finished = [&] {
+		preparing = false;
+		++finished;
+	};
+	auto result = prepare_graph(alternatives, probe, compiler);
 	CHECK_FALSE(result.session);
 	REQUIRE(result.attempts.size() == 3);
 	CHECK(result.attempts[0].precision == Precision::fp16);
 	CHECK(result.attempts[1].failure.code == ErrorCode::unsupported);
 	CHECK(result.attempts[2].failure.code == ErrorCode::unsupported);
 	CHECK(probe.calls == std::vector<Backend>{Backend::tensorrt});
+	CHECK_FALSE(preparing);
+	CHECK(finished == 1);
+	std::stop_source cancelled;
+	cancelled.request_stop();
+	CHECK(prepare_graph(alternatives, probe, compiler, cancelled.get_token()).attempts.empty());
+	CHECK_FALSE(preparing);
+	CHECK(finished == 2);
 }
 TEST_CASE("real optional CPU bundle probes before in-process IOBinding")
 {
