@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "engine/ck1_pipeline.hpp"
+#include "engine/ck2_pipeline.hpp"
+#include "runtime/scheduler.hpp"
 #include "settings/schema.hpp"
 #include <doctest/doctest.h>
 #include <limits>
@@ -60,6 +62,98 @@ InputFrame frame(FramePool &pool, const Settings &settings, Sequence sequence = 
 	return f;
 }
 } // namespace
+TEST_CASE("CK1 and CK2 workers share admission without sharing frames or recurrent state")
+{
+	struct RvmState {
+		std::vector<float> values;
+	};
+	class Ck2Graph final : public ck2::Graph {
+	public:
+		Ck2Graph(ck2::Stage stage, Extent grid, RvmState &state) : stage_(stage), grid_(grid), state_(state) {}
+		ck2::Tensors run(const ck2::Inputs &inputs, std::stop_token) override
+		{
+			auto output = ck2::output_contract(stage_, grid_);
+			if (stage_ == ck2::Stage::rvm) {
+				const auto value = inputs.at("state")->values.front();
+				state_.values.push_back(value);
+				std::fill(output.at("state_out").values.begin(), output.at("state_out").values.end(),
+					  value + 1);
+			}
+			if (stage_ == ck2::Stage::stage1)
+				std::fill(output.at("alpha").values.begin(), output.at("alpha").values.end(), .8f);
+			return output;
+		}
+
+	private:
+		ck2::Stage stage_;
+		Extent grid_;
+		RvmState &state_;
+	};
+	auto first = settings::defaults(Profile::custom, ModelFamily::ck1);
+	first.quality.grid = {256, 256};
+	auto second = settings::defaults(Profile::facecam, ModelFamily::ck2);
+	second.quality.refiner_enabled = false;
+	second.quality.roi_enabled = false;
+	auto seen = std::make_shared<Seen>();
+	RvmState state;
+	Ck1Pipeline ck1([&](const PrepareRequest &) {
+		Ck1Prepared prepared;
+		prepared.graphs = graphs(first, seen);
+		return prepared;
+	});
+	Ck2Pipeline ck2([&](const PrepareRequest &) {
+		Ck2Prepared prepared;
+		for (const auto stage : {ck2::Stage::moge, ck2::Stage::rvm, ck2::Stage::stage1})
+			prepared.graphs.emplace(stage, std::make_unique<Ck2Graph>(stage, second.quality.grid, state));
+		return prepared;
+	});
+	FramePool pools[2];
+	FairAdmission gate;
+	Scheduler schedulers[] = {Scheduler(gate), Scheduler(gate)};
+	ModelPipeline *pipelines[] = {&ck1, &ck2};
+	Settings settings[] = {first, second};
+	for (unsigned i = 0; i < 2; ++i) {
+		PrepareRequest request;
+		request.instance = i + 1;
+		request.generation = pools[i].generation();
+		request.settings = std::make_shared<Settings>(settings[i]);
+		REQUIRE_FALSE(pipelines[i]->prepare(request));
+	}
+	for (Sequence sequence = 1; sequence <= 8; ++sequence) {
+		for (unsigned i = 0; i < 2; ++i) {
+			auto input = frame(pools[i], settings[i], sequence);
+			input.identity.instance = i + 1;
+			input.transform.source_size = i == 0 ? Extent{719, 1281} : Extent{3840, 2160};
+			input.original.size = input.transform.source_size;
+			schedulers[i].offer(std::move(input));
+		}
+		REQUIRE_FALSE(schedulers[0].submit(ck1, sequence, Clock::now()));
+		CHECK(schedulers[1].submit(ck2, sequence, Clock::now()).code == ErrorCode::busy);
+		for (unsigned i = 0; i < 2; ++i) {
+			if (i == 1)
+				REQUIRE_FALSE(schedulers[i].submit(*pipelines[i], sequence, Clock::now()));
+			std::optional<FrameResult> result;
+			const auto deadline = Clock::now() + std::chrono::seconds(3);
+			while (!(result = pipelines[i]->poll_result()) && Clock::now() < deadline)
+				std::this_thread::yield();
+			REQUIRE(result);
+			CHECK_FALSE(result->failure);
+			CHECK(result->identity.instance == i + 1);
+			CHECK(result->identity.sequence == sequence);
+			CHECK(result->input.settings->quality.model == settings[i].quality.model);
+			CHECK(result->input.original.size == (i == 0 ? Extent{719, 1281} : Extent{3840, 2160}));
+			CHECK(result->alpha.storage->host_floats().front() == doctest::Approx(i == 0 ? .3f : .8f));
+			schedulers[i].completed();
+			result.reset();
+			CHECK(pools[i].in_use() == 0);
+		}
+	}
+	REQUIRE(state.values.size() == 8);
+	for (unsigned i = 0; i < state.values.size(); ++i)
+		CHECK(state.values[i] == doctest::Approx(i));
+	CHECK(seen->hint == 8);
+	CHECK(seen->key == 8);
+}
 TEST_CASE("CK1 uses MODNet on the same square capture and preserves native crop identity")
 {
 	for (unsigned side : {256U, 384U, 512U}) {
