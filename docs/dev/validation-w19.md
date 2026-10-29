@@ -65,7 +65,8 @@ The installed OBS and other packages' portable copies were not modified or close
 - Uninstall and rollback remain pending. Another package needs its OBS instance;
   the coordinator requested that W19 stop waiting and hand over a noninteractive
   smoke script. The interactive uninstaller was cancelled before confirming any
-  removal. The final script and invocation are listed in the handover report.
+  removal. The script's syntax, read-only stage/path checks and refusal while
+  OBS is active passed; its actual install/uninstall sequence has not run.
 
 Evidence stays in `.cache/install-previous.log`, `.cache/upgrade.log`,
 `.cache/blocked-final.log`, the portable OBS log directory, and the images in
@@ -106,6 +107,35 @@ The package helper enforces GitHub's limit below 2 GiB per release asset. NVIDIA
 archives are never uploaded to the project's releases or Actions artifacts.
 
 ## Integration and remaining release work
+
+### Deferred uninstall/rollback script
+
+From the W19 worktree, in an OBS-free window, run:
+
+```powershell
+Set-Location 'S:\Projects\ck-obs-wt\w19-packaging'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\packaging\smoke-uninstall.ps1 -OBSRoot 'S:\Projects\obs-test\obs-33.0.0-w19'
+```
+
+The execution-policy flag applies only to that PowerShell process. The script
+uses the already prepared `stage/corridorkey` and `.cache/innosetup/ISCC.exe`.
+It verifies the stage inventory, compiles fixtures with a separate uninstall
+identity, removes an existing recognised fixture, installs the previous-version
+fixture, upgrades it, checks alternate-layout removal, silently uninstalls,
+rolls back and uninstalls again. It checks module hashes, installer versions and
+cache/config sentinels at each step. Each completed step prints `PASS`; a failure
+prints `FAIL` and stops. Evidence remains under `.cache/packaging-smoke/<id>`.
+
+The default prior-version fixture uses the current payload with version 0.0.9;
+it tests installer mechanics. Pass `-PreviousStageDir <verified-prior-stage>` to
+test different prior binaries. `-StageDir`, `-InnoCompiler`, `-Version` and
+`-PreviousVersion` override the other inputs. `-PreflightOnly` performs the
+read-only checks. All variants refuse while any OBS instance is active.
+The script leaves the portable plugin uninstalled on success and retains
+existing user configuration/cache; it removes only its own sentinel files.
+It does not exercise the interactive cache-deletion choice or a new OBS load.
+
+### Release follow-up
 
 The root CMake list gained only `w19`; `src/plugin-main.cpp` gained the runtime
 manager include and register/shutdown hooks. W04/W06/W07 implementation files and
