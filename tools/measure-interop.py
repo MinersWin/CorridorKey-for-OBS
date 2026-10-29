@@ -74,6 +74,7 @@ def main(args):
             settings = dict(profile="facecam-60" if profile == "facecam" else profile,
                             grid="256x512" if profile == "facecam" else "512x512",
                             roi_enabled=profile != "facecam", backend="tensorrt",
+                            target_fps="60", stage2_interval="1" if profile == "quality" else "0",
                             transport="staged_grid" if transport == "staged" else "auto",
                             refiner_enabled=refine, edge_refiner=refine,
                             stale_timeout_ms=1000,
