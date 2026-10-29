@@ -6,6 +6,11 @@ foreground and alpha. The same post-processing interface accepts decoded model
 outputs: straight sRGB foreground `(1,3,h,w)` and linear alpha `(1,1,h,w)`.
 This does not load or validate a neural model.
 
+[CK2 integration](ck2-pipeline.md) feeds Stage 1 half-grid or Stage 2 full-grid
+maps into this interface. Sampling uses the model texture's own dimensions and
+bilinear interpolation before solving at the analysis-grid resolution. The
+smaller-texture GPU fixture checks this against an explicitly expanded reference.
+
 ## Passes and ownership
 
 `Reconstruction` owns reusable FP32 scratch textures. Call it with OBS graphics

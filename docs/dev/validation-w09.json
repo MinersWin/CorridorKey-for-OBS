@@ -1,0 +1,2683 @@
+{
+  "revision": "5d88114f169cb082cda238426af47feffb9724af",
+  "timing_context": "shared GPU",
+  "reports": {
+    "r3-dml-parity-moge-256": {
+      "graphs": {
+        "moge_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "df5d7ede17cb0eb9d720d63af25ec114d0e4dbff3f30b2be6796c88e071b32aa",
+          "precision": "fp32",
+          "prepare_ms": 2128.7778,
+          "runtime": "1.24.4",
+          "weights_sha256": "90a6078688cf8c53b1447a066c05c7bf58d91c0818924a199469e588b9048863"
+        }
+      },
+      "grid": [
+        256,
+        512
+      ],
+      "mode": "parity",
+      "ok": true,
+      "outputs": {
+        "moge_feat": {
+          "elements": 24576,
+          "max_abs": 0.0014035701751708984,
+          "mean_abs": 0.00022657136674656778
+        }
+      },
+      "partitions": {
+        "DmlExecutionProvider": 6
+      },
+      "run_ms": [
+        5.8985,
+        2.9847,
+        2.7407,
+        3.3209,
+        3.1081,
+        3.0117
+      ]
+    },
+    "r3-dml-parity-moge-512": {
+      "graphs": {
+        "moge_512x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "ac9dec954278bab3a47f15bac8a930631c51c79c871cdb675cf4fbdb6c32c63e",
+          "precision": "fp32",
+          "prepare_ms": 1356.6976,
+          "runtime": "1.24.4",
+          "weights_sha256": "90a6078688cf8c53b1447a066c05c7bf58d91c0818924a199469e588b9048863"
+        }
+      },
+      "grid": [
+        512,
+        512
+      ],
+      "mode": "parity",
+      "ok": true,
+      "outputs": {
+        "moge_feat": {
+          "elements": 49152,
+          "max_abs": 0.0014426708221435547,
+          "mean_abs": 0.00022576268774006833
+        }
+      },
+      "partitions": {
+        "DmlExecutionProvider": 6
+      },
+      "run_ms": [
+        5.7874,
+        2.995,
+        3.479,
+        3.6588,
+        3.3309,
+        3.2504
+      ]
+    },
+    "r3-dml-parity-rvm-256": {
+      "graphs": {
+        "rvm_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "d4577d07e75a8d6ed4071064212ffd6e4729e41657818a61d9c248553898e9bb",
+          "precision": "fp32",
+          "prepare_ms": 1140.1358,
+          "runtime": "1.24.4",
+          "weights_sha256": "21b2f868e5b51297cc4803fa246219f808ea1cfc0bb1fb49c8e8918133709192"
+        }
+      },
+      "grid": [
+        256,
+        512
+      ],
+      "mode": "parity",
+      "ok": true,
+      "outputs": {
+        "rvm_feat": {
+          "elements": 12288,
+          "max_abs": 3.6716461181640625e-05,
+          "mean_abs": 3.474613220551722e-06
+        },
+        "state_out": {
+          "elements": 12672,
+          "max_abs": 4.601478576660156e-05,
+          "mean_abs": 3.7887975298817214e-06
+        }
+      },
+      "partitions": {
+        "DmlExecutionProvider": 6
+      },
+      "run_ms": [
+        6.0672,
+        2.9099,
+        3.377,
+        3.4003,
+        3.0489,
+        2.9134
+      ]
+    },
+    "r3-dml-parity-rvm-512": {
+      "graphs": {
+        "rvm_512x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "7187c65e4039892a0c8e545f367d46ba6dbe78680ec15c85fc72e6de0f226bb3",
+          "precision": "fp32",
+          "prepare_ms": 1202.0444,
+          "runtime": "1.24.4",
+          "weights_sha256": "21b2f868e5b51297cc4803fa246219f808ea1cfc0bb1fb49c8e8918133709192"
+        }
+      },
+      "grid": [
+        512,
+        512
+      ],
+      "mode": "parity",
+      "ok": true,
+      "outputs": {
+        "rvm_feat": {
+          "elements": 24576,
+          "max_abs": 4.8100948333740234e-05,
+          "mean_abs": 4.256642371173551e-06
+        },
+        "state_out": {
+          "elements": 24960,
+          "max_abs": 4.5925378799438477e-05,
+          "mean_abs": 4.684629169414387e-06
+        }
+      },
+      "partitions": {
+        "DmlExecutionProvider": 6
+      },
+      "run_ms": [
+        7.1013,
+        3.0472,
+        3.24,
+        3.1707,
+        3.8913,
+        3.166
+      ]
+    },
+    "r3-dml-parity-stage1nomask-256": {
+      "graphs": {
+        "stage1nomask_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "352379960c6961d9da10bdf6115ded4047f93f795bedf4027a60f8051ab1d6da",
+          "precision": "fp32",
+          "prepare_ms": 4626.6968,
+          "runtime": "1.24.4",
+          "weights_sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1"
+        }
+      },
+      "grid": [
+        256,
+        512
+      ],
+      "mode": "parity",
+      "ok": true,
+      "outputs": {
+        "alpha": {
+          "elements": 32768,
+          "max_abs": 0.00141926109790802,
+          "mean_abs": 9.573420450159631e-06
+        },
+        "baton": {
+          "elements": 262144,
+          "max_abs": 0.00458410382270813,
+          "mean_abs": 0.0001128104097219973
+        },
+        "fg": {
+          "elements": 98304,
+          "max_abs": 0.001012910157442093,
+          "mean_abs": 2.1891174967428486e-05
+        }
+      },
+      "partitions": {
+        "DmlExecutionProvider": 366
+      },
+      "run_ms": [
+        24.4087,
+        16.8274,
+        17.1257,
+        16.6286,
+        16.9697,
+        17.1415
+      ]
+    },
+    "r3-dml-parity-stage1nomask-512": {
+      "graphs": {
+        "stage1nomask_512x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "498c697246d1a089f7b6c9c3b1980392e52b12194029a691854098fbee264bb5",
+          "precision": "fp32",
+          "prepare_ms": 7139.5076,
+          "runtime": "1.24.4",
+          "weights_sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1"
+        }
+      },
+      "grid": [
+        512,
+        512
+      ],
+      "mode": "parity",
+      "ok": true,
+      "outputs": {
+        "alpha": {
+          "elements": 65536,
+          "max_abs": 0.0014987587928771973,
+          "mean_abs": 1.2248903814793266e-05
+        },
+        "baton": {
+          "elements": 524288,
+          "max_abs": 0.006998777389526367,
+          "mean_abs": 0.0001345639888981065
+        },
+        "fg": {
+          "elements": 196608,
+          "max_abs": 0.0016936734318733215,
+          "mean_abs": 2.978749197074297e-05
+        }
+      },
+      "partitions": {
+        "DmlExecutionProvider": 366
+      },
+      "run_ms": [
+        43.8963,
+        27.9899,
+        28.6086,
+        29.0381,
+        28.6191,
+        28.1834
+      ]
+    },
+    "r3-dml-parity-stage2nomask-256": {
+      "graphs": {
+        "stage2nomask_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "eb450a51ccbefd7e4ac29dec40403eab98adaf84aefb4bcc0685c0d9fb57d76e",
+          "precision": "fp32",
+          "prepare_ms": 2445.3694,
+          "runtime": "1.24.4",
+          "weights_sha256": "ab218724cc9428b1273ccce58d081ccd023ba7bed4e716600aea587fcbb32f5d"
+        }
+      },
+      "grid": [
+        256,
+        512
+      ],
+      "mode": "parity",
+      "ok": true,
+      "outputs": {
+        "alpha": {
+          "elements": 131072,
+          "max_abs": 5.245208740234375e-06,
+          "mean_abs": 6.797162654947897e-08
+        },
+        "fg": {
+          "elements": 393216,
+          "max_abs": 4.887580871582031e-06,
+          "mean_abs": 1.5508930929763039e-07
+        }
+      },
+      "partitions": {
+        "DmlExecutionProvider": 114
+      },
+      "run_ms": [
+        27.1882,
+        18.8012,
+        20.1975,
+        19.4624,
+        20.8038,
+        19.7609
+      ]
+    },
+    "r3-dml-parity-stage2nomask-512": {
+      "graphs": {
+        "stage2nomask_512x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "d67141a67c4cd75062045525cf2088ff9aa0e697e9094a96c1cdea38c979d5b5",
+          "precision": "fp32",
+          "prepare_ms": 4296.2587,
+          "runtime": "1.24.4",
+          "weights_sha256": "ab218724cc9428b1273ccce58d081ccd023ba7bed4e716600aea587fcbb32f5d"
+        }
+      },
+      "grid": [
+        512,
+        512
+      ],
+      "mode": "parity",
+      "ok": true,
+      "outputs": {
+        "alpha": {
+          "elements": 262144,
+          "max_abs": 4.470348358154297e-06,
+          "mean_abs": 5.881716447220242e-08
+        },
+        "fg": {
+          "elements": 786432,
+          "max_abs": 6.258487701416016e-06,
+          "mean_abs": 1.4858541659060492e-07
+        }
+      },
+      "partitions": {
+        "DmlExecutionProvider": 114
+      },
+      "run_ms": [
+        78.953,
+        80.6161,
+        75.0502,
+        47.2416,
+        42.5488,
+        44.2499
+      ]
+    },
+    "r3-dml-chain-256": {
+      "frames": [
+        {
+          "index": 0,
+          "moge_ms": 6.3549,
+          "moge_refreshed": true,
+          "rvm_ms": 6.5541,
+          "stage1_ms": 30.2924,
+          "stage2_ms": 0.0,
+          "total_ms": 48.5065
+        },
+        {
+          "index": 1,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 4.1453,
+          "stage1_ms": 18.7826,
+          "stage2_ms": 0.0,
+          "total_ms": 27.4872
+        },
+        {
+          "index": 2,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 6.8031,
+          "stage1_ms": 21.7714,
+          "stage2_ms": 0.0,
+          "total_ms": 32.3611
+        }
+      ],
+      "graphs": {
+        "moge_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "df5d7ede17cb0eb9d720d63af25ec114d0e4dbff3f30b2be6796c88e071b32aa",
+          "precision": "fp32",
+          "prepare_ms": 1754.3294,
+          "runtime": "1.24.4",
+          "weights_sha256": "90a6078688cf8c53b1447a066c05c7bf58d91c0818924a199469e588b9048863"
+        },
+        "rvm_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "d4577d07e75a8d6ed4071064212ffd6e4729e41657818a61d9c248553898e9bb",
+          "precision": "fp32",
+          "prepare_ms": 653.9097,
+          "runtime": "1.24.4",
+          "weights_sha256": "21b2f868e5b51297cc4803fa246219f808ea1cfc0bb1fb49c8e8918133709192"
+        },
+        "stage1nomask_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "352379960c6961d9da10bdf6115ded4047f93f795bedf4027a60f8051ab1d6da",
+          "precision": "fp32",
+          "prepare_ms": 6428.6569,
+          "runtime": "1.24.4",
+          "weights_sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1"
+        }
+      },
+      "grid": [
+        256,
+        512
+      ],
+      "mode": "chain",
+      "ok": true,
+      "outputs": {
+        "alpha": {
+          "elements": 32768,
+          "max_abs": 0.0014227032661437988,
+          "mean_abs": 9.544591367927069e-06
+        },
+        "fg": {
+          "elements": 98304,
+          "max_abs": 0.0010114535689353943,
+          "mean_abs": 2.1911035897180943e-05
+        }
+      },
+      "partitions": [
+        {
+          "DmlExecutionProvider": 1
+        },
+        {
+          "DmlExecutionProvider": 3
+        },
+        {
+          "DmlExecutionProvider": 183
+        }
+      ]
+    },
+    "r3-dml-clip-256": {
+      "frames": [
+        {
+          "index": 0,
+          "moge_ms": 7.179,
+          "moge_refreshed": true,
+          "rvm_ms": 5.5275,
+          "stage1_ms": 25.6859,
+          "stage2_ms": 0.0,
+          "total_ms": 43.0897
+        },
+        {
+          "index": 1,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 3.5298,
+          "stage1_ms": 17.8485,
+          "stage2_ms": 0.0,
+          "total_ms": 25.3871
+        },
+        {
+          "index": 2,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 3.3574,
+          "stage1_ms": 17.7131,
+          "stage2_ms": 0.0,
+          "total_ms": 25.5473
+        },
+        {
+          "index": 3,
+          "moge_ms": 3.746,
+          "moge_refreshed": true,
+          "rvm_ms": 3.2534,
+          "stage1_ms": 17.5293,
+          "stage2_ms": 0.0,
+          "total_ms": 30.7123
+        },
+        {
+          "index": 4,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 4.3502,
+          "stage1_ms": 18.9357,
+          "stage2_ms": 0.0,
+          "total_ms": 28.3772
+        },
+        {
+          "index": 5,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 3.6114,
+          "stage1_ms": 17.5945,
+          "stage2_ms": 0.0,
+          "total_ms": 26.0856
+        },
+        {
+          "index": 6,
+          "moge_ms": 3.1741,
+          "moge_refreshed": true,
+          "rvm_ms": 3.2867,
+          "stage1_ms": 18.3827,
+          "stage2_ms": 0.0,
+          "total_ms": 30.7522
+        },
+        {
+          "index": 7,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 3.6312,
+          "stage1_ms": 16.5803,
+          "stage2_ms": 0.0,
+          "total_ms": 24.2591
+        },
+        {
+          "index": 8,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 3.2913,
+          "stage1_ms": 17.3329,
+          "stage2_ms": 0.0,
+          "total_ms": 25.1968
+        },
+        {
+          "index": 9,
+          "moge_ms": 6.1722,
+          "moge_refreshed": true,
+          "rvm_ms": 6.3361,
+          "stage1_ms": 20.8166,
+          "stage2_ms": 0.0,
+          "total_ms": 39.6899
+        },
+        {
+          "index": 10,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 3.6307,
+          "stage1_ms": 17.9163,
+          "stage2_ms": 0.0,
+          "total_ms": 26.2788
+        },
+        {
+          "index": 11,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 3.2455,
+          "stage1_ms": 18.187,
+          "stage2_ms": 0.0,
+          "total_ms": 26.2595
+        }
+      ],
+      "graphs": {
+        "moge_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "df5d7ede17cb0eb9d720d63af25ec114d0e4dbff3f30b2be6796c88e071b32aa",
+          "precision": "fp32",
+          "prepare_ms": 1652.5103,
+          "runtime": "1.24.4",
+          "weights_sha256": "90a6078688cf8c53b1447a066c05c7bf58d91c0818924a199469e588b9048863"
+        },
+        "rvm_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "d4577d07e75a8d6ed4071064212ffd6e4729e41657818a61d9c248553898e9bb",
+          "precision": "fp32",
+          "prepare_ms": 808.9401,
+          "runtime": "1.24.4",
+          "weights_sha256": "21b2f868e5b51297cc4803fa246219f808ea1cfc0bb1fb49c8e8918133709192"
+        },
+        "stage1nomask_256x512": {
+          "backend": "directml",
+          "capture": false,
+          "graph_sha256": "352379960c6961d9da10bdf6115ded4047f93f795bedf4027a60f8051ab1d6da",
+          "precision": "fp32",
+          "prepare_ms": 6182.4073,
+          "runtime": "1.24.4",
+          "weights_sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1"
+        }
+      },
+      "grid": [
+        256,
+        512
+      ],
+      "mode": "clip",
+      "ok": true,
+      "partitions": [
+        {
+          "DmlExecutionProvider": 4
+        },
+        {
+          "DmlExecutionProvider": 12
+        },
+        {
+          "DmlExecutionProvider": 732
+        }
+      ]
+    },
+    "reporter-research-comparison": {
+      "max_abs": 0.025421977043151855,
+      "mean_abs": 0.0003886227204930037,
+      "per_frame": [
+        {
+          "max_abs": 0.0166817307472229,
+          "mean_abs": 0.00035456111072562635
+        },
+        {
+          "max_abs": 0.01909482479095459,
+          "mean_abs": 0.00038579260581173003
+        },
+        {
+          "max_abs": 0.017025530338287354,
+          "mean_abs": 0.00039697595639154315
+        },
+        {
+          "max_abs": 0.015810728073120117,
+          "mean_abs": 0.0003938871086575091
+        },
+        {
+          "max_abs": 0.018093585968017578,
+          "mean_abs": 0.0003837600816041231
+        },
+        {
+          "max_abs": 0.013458430767059326,
+          "mean_abs": 0.0003886661143042147
+        },
+        {
+          "max_abs": 0.013190805912017822,
+          "mean_abs": 0.00039422110421583056
+        },
+        {
+          "max_abs": 0.01721063256263733,
+          "mean_abs": 0.00039383224793709815
+        },
+        {
+          "max_abs": 0.01627826690673828,
+          "mean_abs": 0.0003834546951111406
+        },
+        {
+          "max_abs": 0.018709421157836914,
+          "mean_abs": 0.0003923000767827034
+        },
+        {
+          "max_abs": 0.02485823631286621,
+          "mean_abs": 0.00040706442086957395
+        },
+        {
+          "max_abs": 0.025421977043151855,
+          "mean_abs": 0.0003889572690241039
+        }
+      ],
+      "research_frame_ms": [
+        30.999999959021807,
+        31.00000019185245,
+        16.00000006146729,
+        0.0,
+        0.0,
+        15.00000013038516,
+        16.00000006146729,
+        15.999999828636646,
+        16.00000006146729,
+        16.00000006146729,
+        30.999999959021807,
+        0.0
+      ],
+      "total_s": 39.610000000102445,
+      "gpu": [
+        "2026/10/29 03:53:14.995, 27, 14410",
+        "2026/10/29 03:53:15.098, 27, 14412",
+        "2026/10/29 03:53:15.180, 27, 14412",
+        "2026/10/29 03:53:15.252, 19, 14412",
+        "2026/10/29 03:53:15.309, 19, 14412",
+        "2026/10/29 03:53:15.373, 19, 14412",
+        "2026/10/29 03:53:15.445, 19, 14412",
+        "2026/10/29 03:53:15.513, 19, 14412",
+        "2026/10/29 03:53:15.571, 19, 14412",
+        "2026/10/29 03:53:15.647, 19, 14412",
+        "2026/10/29 03:53:15.706, 19, 14412",
+        "2026/10/29 03:53:15.783, 22, 14412"
+      ],
+      "timing_context": "shared GPU",
+      "note": "Research engine uses bf16 and its own CUDA graph warmup/history; native separate graphs use FP32 DirectML."
+    },
+    "obs-dml-1080-fixed": {
+      "stats": {
+        "activeFps": 60.0000024000001,
+        "availableDiskSpace": 46119.84375,
+        "averageFrameRenderTime": 0.605426,
+        "cpuUsage": 3.5010419994940314,
+        "memoryUsage": 2871.22265625,
+        "outputSkippedFrames": 0,
+        "outputTotalFrames": 0,
+        "renderSkippedFrames": 1,
+        "renderTotalFrames": 2046,
+        "webSocketSessionIncomingMessages": 3,
+        "webSocketSessionOutgoingMessages": 3
+      },
+      "gpu": "2026/10/29 03:50:14.853, 62, 13753",
+      "timing_context": "shared GPU",
+      "scope": "Historical W03 presentation before W08 integration"
+    },
+    "obs-dml-4k": {
+      "stats": {
+        "activeFps": 60.0000024000001,
+        "availableDiskSpace": 46111.1796875,
+        "averageFrameRenderTime": 1.577452,
+        "cpuUsage": 4.495771502126839,
+        "memoryUsage": 3432.7578125,
+        "outputSkippedFrames": 0,
+        "outputTotalFrames": 0,
+        "renderSkippedFrames": 3,
+        "renderTotalFrames": 6050,
+        "webSocketSessionIncomingMessages": 3,
+        "webSocketSessionOutgoingMessages": 3
+      },
+      "gpu": "2026/10/29 03:51:21.623, 51, 13988",
+      "timing_context": "shared GPU",
+      "scope": "Historical W03 presentation before W08 integration"
+    },
+    "r3-dml-samples": [
+      {
+        "name": "r3-dml-parity-moge-256",
+        "exit": 0,
+        "wall_s": 3.234999999869615,
+        "gpu": [
+          "2026/10/29 03:42:56.370, 8, 5609",
+          "2026/10/29 03:42:57.440, 9, 5627",
+          "2026/10/29 03:42:58.523, 7, 6635"
+        ],
+        "timing_context": "shared GPU"
+      },
+      {
+        "name": "r3-dml-parity-rvm-256",
+        "exit": 0,
+        "wall_s": 2.093000000109896,
+        "gpu": [
+          "2026/10/29 03:42:59.577, 23, 7011",
+          "2026/10/29 03:43:00.624, 9, 7085"
+        ],
+        "timing_context": "shared GPU"
+      },
+      {
+        "name": "r3-dml-parity-stage1nomask-256",
+        "exit": 0,
+        "wall_s": 8.359999999869615,
+        "gpu": [
+          "2026/10/29 03:43:01.673, 7, 7014",
+          "2026/10/29 03:43:02.720, 6, 6012",
+          "2026/10/29 03:43:03.763, 8, 6028",
+          "2026/10/29 03:43:04.807, 7, 6035",
+          "2026/10/29 03:43:05.849, 7, 6037",
+          "2026/10/29 03:43:06.895, 6, 6035",
+          "2026/10/29 03:43:07.940, 10, 6238",
+          "2026/10/29 03:43:08.986, 21, 6112"
+        ],
+        "timing_context": "shared GPU"
+      },
+      {
+        "name": "r3-dml-parity-stage2nomask-256",
+        "exit": 0,
+        "wall_s": 5.2189999998081475,
+        "gpu": [
+          "2026/10/29 03:43:10.037, 11, 6054",
+          "2026/10/29 03:43:11.080, 42, 6454",
+          "2026/10/29 03:43:12.123, 6, 6453",
+          "2026/10/29 03:43:13.169, 7, 6476",
+          "2026/10/29 03:43:14.213, 10, 6923"
+        ],
+        "timing_context": "shared GPU"
+      },
+      {
+        "name": "r3-dml-parity-moge-512",
+        "exit": 0,
+        "wall_s": 2.094000000040978,
+        "gpu": [
+          "2026/10/29 03:43:15.261, 7, 3096",
+          "2026/10/29 03:43:16.304, 7, 3119"
+        ],
+        "timing_context": "shared GPU"
+      },
+      {
+        "name": "r3-dml-parity-rvm-512",
+        "exit": 0,
+        "wall_s": 2.094000000040978,
+        "gpu": [
+          "2026/10/29 03:43:17.352, 7, 3096",
+          "2026/10/29 03:43:18.395, 7, 3122"
+        ],
+        "timing_context": "shared GPU"
+      },
+      {
+        "name": "r3-dml-parity-stage1nomask-512",
+        "exit": 0,
+        "wall_s": 13.702999999979511,
+        "gpu": [
+          "2026/10/29 03:43:19.456, 7, 3096",
+          "2026/10/29 03:43:20.499, 10, 3743",
+          "2026/10/29 03:43:21.542, 7, 3743",
+          "2026/10/29 03:43:22.588, 6, 3743",
+          "2026/10/29 03:43:23.632, 7, 3743",
+          "2026/10/29 03:43:24.679, 7, 3766",
+          "2026/10/29 03:43:25.730, 17, 5516",
+          "2026/10/29 03:43:26.779, 8, 5844",
+          "2026/10/29 03:43:27.836, 15, 6137",
+          "2026/10/29 03:43:28.901, 14, 6334",
+          "2026/10/29 03:43:29.966, 12, 6337",
+          "2026/10/29 03:43:31.027, 19, 8194",
+          "2026/10/29 03:43:32.096, 16, 6214"
+        ],
+        "timing_context": "shared GPU"
+      },
+      {
+        "name": "r3-dml-parity-stage2nomask-512",
+        "exit": 0,
+        "wall_s": 7.422000000020489,
+        "gpu": [
+          "2026/10/29 03:43:33.162, 31, 7413",
+          "2026/10/29 03:43:34.212, 13, 6539",
+          "2026/10/29 03:43:35.260, 12, 6539",
+          "2026/10/29 03:43:36.328, 12, 6564",
+          "2026/10/29 03:43:37.378, 12, 6597",
+          "2026/10/29 03:43:38.426, 16, 6763",
+          "2026/10/29 03:43:39.526, 19, 9716"
+        ],
+        "timing_context": "shared GPU"
+      }
+    ],
+    "r3-dml-chain-samples": [
+      {
+        "name": "r3-dml-chain-256",
+        "exit": 0,
+        "wall_s": 13.765999999828637,
+        "gpu": [
+          "2026/10/29 03:46:17.255, 33, 10668",
+          "2026/10/29 03:46:18.314, 22, 10691",
+          "2026/10/29 03:46:19.367, 34, 11237",
+          "2026/10/29 03:46:20.412, 7, 11431",
+          "2026/10/29 03:46:21.461, 46, 11431",
+          "2026/10/29 03:46:22.507, 7, 11431",
+          "2026/10/29 03:46:23.563, 7, 11439",
+          "2026/10/29 03:46:24.612, 40, 11439",
+          "2026/10/29 03:46:25.666, 6, 11439",
+          "2026/10/29 03:46:26.728, 34, 11439",
+          "2026/10/29 03:46:27.798, 7, 11446",
+          "2026/10/29 03:46:28.874, 6, 11445",
+          "2026/10/29 03:46:29.938, 78, 11584"
+        ],
+        "timing_context": "shared GPU"
+      },
+      {
+        "name": "r3-dml-chain-512",
+        "exit": 0,
+        "wall_s": 17.95299999997951,
+        "gpu": [
+          "2026/10/29 03:46:30.995, 24, 10674",
+          "2026/10/29 03:46:32.040, 7, 10697",
+          "2026/10/29 03:46:33.093, 31, 11243",
+          "2026/10/29 03:46:34.148, 45, 11439",
+          "2026/10/29 03:46:35.193, 7, 11440",
+          "2026/10/29 03:46:36.243, 18, 11440",
+          "2026/10/29 03:46:37.297, 31, 11447",
+          "2026/10/29 03:46:38.382, 14, 11447",
+          "2026/10/29 03:46:39.435, 18, 11447",
+          "2026/10/29 03:46:40.487, 33, 11447",
+          "2026/10/29 03:46:41.545, 7, 11447",
+          "2026/10/29 03:46:42.605, 28, 11823",
+          "2026/10/29 03:46:43.663, 6, 13231",
+          "2026/10/29 03:46:44.721, 49, 13239",
+          "2026/10/29 03:46:45.780, 28, 13239",
+          "2026/10/29 03:46:46.835, 10, 13239",
+          "2026/10/29 03:46:47.885, 7, 11349"
+        ],
+        "timing_context": "shared GPU"
+      },
+      {
+        "name": "r3-dml-clip-256",
+        "exit": 0,
+        "wall_s": 13.766000000061467,
+        "gpu": [
+          "2026/10/29 03:46:48.938, 17, 10674",
+          "2026/10/29 03:46:49.997, 34, 10697",
+          "2026/10/29 03:46:51.058, 18, 11302",
+          "2026/10/29 03:46:52.115, 11, 11438",
+          "2026/10/29 03:46:53.168, 34, 11438",
+          "2026/10/29 03:46:54.214, 7, 11438",
+          "2026/10/29 03:46:55.262, 8, 11445",
+          "2026/10/29 03:46:56.345, 9, 11445",
+          "2026/10/29 03:46:57.406, 18, 11445",
+          "2026/10/29 03:46:58.466, 18, 11445",
+          "2026/10/29 03:46:59.524, 33, 11445",
+          "2026/10/29 03:47:00.584, 14, 12350",
+          "2026/10/29 03:47:01.651, 73, 11559"
+        ],
+        "timing_context": "shared GPU"
+      }
+    ],
+    "obs-w08-dml-ort-profiles": {
+      "moge": {
+        "samples": 662,
+        "ort_model_run_median_ms": 3.407,
+        "ort_model_run_mean_ms": 3.7252205438066466,
+        "partitions": [
+          "DmlExecutionProvider"
+        ]
+      },
+      "rvm": {
+        "samples": 1993,
+        "ort_model_run_median_ms": 3.418,
+        "ort_model_run_mean_ms": 3.726660311088811,
+        "partitions": [
+          "DmlExecutionProvider"
+        ]
+      },
+      "stage1nomask": {
+        "samples": 1993,
+        "ort_model_run_median_ms": 16.231,
+        "ort_model_run_mean_ms": 16.76226191670848,
+        "partitions": [
+          "DmlExecutionProvider"
+        ]
+      }
+    },
+    "obs-w08-dml-1080": {
+      "timing_context": "shared GPU",
+      "stats": {
+        "activeFps": 60.0000024000001,
+        "availableDiskSpace": 46098.4140625,
+        "averageFrameRenderTime": 1.170339,
+        "cpuUsage": 3.4659910549456385,
+        "memoryUsage": 3229.4609375,
+        "outputSkippedFrames": 0,
+        "outputTotalFrames": 0,
+        "renderSkippedFrames": 11,
+        "renderTotalFrames": 4817,
+        "webSocketSessionIncomingMessages": 2,
+        "webSocketSessionOutgoingMessages": 2
+      },
+      "gpu": "2026/10/29 04:30:52.666, 69 %, 11159 MiB"
+    },
+    "obs-w08-dml-4k": {
+      "timing_context": "shared GPU",
+      "stats": {
+        "activeFps": 60.0000024000001,
+        "availableDiskSpace": 46101.4375,
+        "averageFrameRenderTime": 1.216485,
+        "cpuUsage": 3.3196032630508325,
+        "memoryUsage": 3425.3828125,
+        "outputSkippedFrames": 0,
+        "outputTotalFrames": 0,
+        "renderSkippedFrames": 7,
+        "renderTotalFrames": 3230,
+        "webSocketSessionIncomingMessages": 2,
+        "webSocketSessionOutgoingMessages": 2
+      },
+      "gpu": "2026/10/29 04:30:26.211, 88 %, 12027 MiB"
+    },
+    "obs-w08-trt-1080": {
+      "timing_context": "shared GPU",
+      "stats": {
+        "activeFps": 60.0000024000001,
+        "availableDiskSpace": 46127.28125,
+        "averageFrameRenderTime": 1.11985,
+        "cpuUsage": 5.092572651523743,
+        "memoryUsage": 3185.61328125,
+        "outputSkippedFrames": 0,
+        "outputTotalFrames": 0,
+        "renderSkippedFrames": 1,
+        "renderTotalFrames": 12931,
+        "webSocketSessionIncomingMessages": 2,
+        "webSocketSessionOutgoingMessages": 2
+      },
+      "gpu": "2026/10/29 04:22:09.136, 65 %, 10453 MiB",
+      "scope": "W08 integration before half-grid sampling correction"
+    },
+    "r3-trt-chain-256": {
+      "frames": [
+        {
+          "index": 0,
+          "moge_ms": 10.5471,
+          "moge_refreshed": true,
+          "rvm_ms": 23.5284,
+          "stage1_ms": 46.122,
+          "stage2_ms": 0.0,
+          "total_ms": 85.2075
+        },
+        {
+          "index": 1,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 1.1683,
+          "stage1_ms": 6.8338,
+          "stage2_ms": 0.0,
+          "total_ms": 12.8216
+        },
+        {
+          "index": 2,
+          "moge_ms": 0.0,
+          "moge_refreshed": false,
+          "rvm_ms": 1.189,
+          "stage1_ms": 6.6511,
+          "stage2_ms": 0.0,
+          "total_ms": 13.5519
+        }
+      ],
+      "graphs": {
+        "moge_256x512": {
+          "backend": "tensorrt",
+          "capture": false,
+          "graph_sha256": "df5d7ede17cb0eb9d720d63af25ec114d0e4dbff3f30b2be6796c88e071b32aa",
+          "precision": "fp32",
+          "prepare_ms": 37514.8655,
+          "runtime": "1.31.1",
+          "weights_sha256": "90a6078688cf8c53b1447a066c05c7bf58d91c0818924a199469e588b9048863"
+        },
+        "rvm_256x512": {
+          "backend": "tensorrt",
+          "capture": true,
+          "graph_sha256": "d4577d07e75a8d6ed4071064212ffd6e4729e41657818a61d9c248553898e9bb",
+          "precision": "fp32",
+          "prepare_ms": 9757.4996,
+          "runtime": "1.31.1",
+          "weights_sha256": "21b2f868e5b51297cc4803fa246219f808ea1cfc0bb1fb49c8e8918133709192"
+        },
+        "stage1nomask_256x512": {
+          "backend": "tensorrt",
+          "capture": true,
+          "graph_sha256": "352379960c6961d9da10bdf6115ded4047f93f795bedf4027a60f8051ab1d6da",
+          "precision": "fp16",
+          "prepare_ms": 34172.4469,
+          "runtime": "1.31.1",
+          "weights_sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1"
+        }
+      },
+      "grid": [
+        256,
+        512
+      ],
+      "mode": "chain",
+      "ok": true,
+      "outputs": {
+        "alpha": {
+          "elements": 32768,
+          "max_abs": 0.009752249345183372,
+          "mean_abs": 0.00032306609827514876
+        },
+        "fg": {
+          "elements": 98304,
+          "max_abs": 0.010256089270114899,
+          "mean_abs": 0.0004113017530348665
+        }
+      },
+      "partitions": [
+        {
+          "TensorrtExecutionProvider": 1
+        },
+        {
+          "TensorrtExecutionProvider": 2
+        },
+        {
+          "TensorrtExecutionProvider": 2
+        }
+      ],
+      "reference_chain_compatible": true
+    },
+    "obs-w08-trt-ort-profiles": {
+      "moge": [
+        {
+          "profile": "moge_256x512_2026-10-29_04-41-52_943.json",
+          "samples": 2248,
+          "median_ms": 3.3345000000000002,
+          "mean_ms": 4.316944839857651,
+          "partitions": [
+            "TensorrtExecutionProvider"
+          ]
+        }
+      ],
+      "rvm": [
+        {
+          "profile": "rvm_256x512_2026-10-29_04-41-32_869.json",
+          "samples": 2690,
+          "median_ms": 0.841,
+          "mean_ms": 1.173085501858736,
+          "partitions": [
+            "TensorrtExecutionProvider"
+          ]
+        },
+        {
+          "profile": "rvm_256x512_2026-10-29_04-42-54_281.json",
+          "samples": 4054,
+          "median_ms": 0.842,
+          "mean_ms": 1.1313601381351752,
+          "partitions": [
+            "TensorrtExecutionProvider"
+          ]
+        }
+      ],
+      "stage1nomask": [
+        {
+          "profile": "stage1nomask_256x512_2026-10-29_04-40-10_987.json",
+          "samples": 2690,
+          "median_ms": 3.716,
+          "mean_ms": 4.058626394052045,
+          "partitions": [
+            "TensorrtExecutionProvider"
+          ]
+        },
+        {
+          "profile": "stage1nomask_256x512_2026-10-29_04-43-23_191.json",
+          "samples": 4054,
+          "median_ms": 3.706,
+          "mean_ms": 4.064791810557474,
+          "partitions": [
+            "TensorrtExecutionProvider"
+          ]
+        }
+      ]
+    },
+    "obs-w08-trt-4k-final": {
+      "timing_context": "shared GPU",
+      "stats": {
+        "activeFps": 60.0000024000001,
+        "availableDiskSpace": 46126.86328125,
+        "averageFrameRenderTime": 1.126132,
+        "cpuUsage": 3.993324308945089,
+        "memoryUsage": 3561.58203125,
+        "outputSkippedFrames": 0,
+        "outputTotalFrames": 0,
+        "renderSkippedFrames": 2,
+        "renderTotalFrames": 14767,
+        "webSocketSessionIncomingMessages": 2,
+        "webSocketSessionOutgoingMessages": 2
+      },
+      "gpu": "2026/10/29 04:42:45.044, 46 %, 11277 MiB"
+    },
+    "obs-w08-trt-1080-final": {
+      "timing_context": "shared GPU",
+      "stats": {
+        "activeFps": 60.0000024000001,
+        "availableDiskSpace": 46131.9921875,
+        "averageFrameRenderTime": 1.195514,
+        "cpuUsage": 4.864283311504079,
+        "memoryUsage": 3256.390625,
+        "outputSkippedFrames": 0,
+        "outputTotalFrames": 0,
+        "renderSkippedFrames": 7,
+        "renderTotalFrames": 22462,
+        "webSocketSessionIncomingMessages": 2,
+        "webSocketSessionOutgoingMessages": 2
+      },
+      "gpu": "2026/10/29 04:44:53.302, 60 %, 10280 MiB"
+    }
+  },
+  "binder_revision3": [
+    {
+      "bytes": 351049804,
+      "sha256": "90a6078688cf8c53b1447a066c05c7bf58d91c0818924a199469e588b9048863",
+      "graph": "moge_256x512",
+      "byte_equal": true,
+      "seconds": 5.86,
+      "manifest_sha256": "7c999b23cc8d1774e28441a644b4d6dd32c47f6afbecb98527f38a1db8a135cf",
+      "verified_at": "2026-10-29T03:21:07.858375+00:00"
+    },
+    {
+      "bytes": 351049804,
+      "sha256": "90a6078688cf8c53b1447a066c05c7bf58d91c0818924a199469e588b9048863",
+      "graph": "moge_512x512",
+      "byte_equal": true,
+      "seconds": 10.38,
+      "manifest_sha256": "ba1ea4df74eca62798fdc4af4b39d43b6e1afa4f0ffdea2f3943ccfc7a094446",
+      "verified_at": "2026-10-29T03:21:19.618814+00:00"
+    },
+    {
+      "bytes": 93520,
+      "sha256": "05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b",
+      "graph": "refiner_b256",
+      "byte_equal": true,
+      "seconds": 0.17,
+      "manifest_sha256": "bc6c70df41b000e06c1975e309a6840da4deffed0f015c08860adcda711bc9d1",
+      "verified_at": "2026-10-29T03:21:19.862819+00:00"
+    },
+    {
+      "bytes": 93520,
+      "sha256": "05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b",
+      "graph": "refiner_b384",
+      "byte_equal": true,
+      "seconds": 0.12,
+      "manifest_sha256": "7b68782047a90499a9f9248a78521ba5354953c6df48b35487f63fe2a9ceb9e4",
+      "verified_at": "2026-10-29T03:21:20.027499+00:00"
+    },
+    {
+      "bytes": 93520,
+      "sha256": "05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b",
+      "graph": "refiner_b512",
+      "byte_equal": true,
+      "seconds": 0.08,
+      "manifest_sha256": "2e10f73fbbc744303ed19dc6b58d4bac2c97d4e10fd2d36910fef6f374c209df",
+      "verified_at": "2026-10-29T03:21:20.123294+00:00"
+    },
+    {
+      "bytes": 93520,
+      "sha256": "05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b",
+      "graph": "refiner_b768",
+      "byte_equal": true,
+      "seconds": 0.03,
+      "manifest_sha256": "94e608108e9786d12673dc38de229b45facfb87d297a87f9726ed86cbef82e98",
+      "verified_at": "2026-10-29T03:21:20.167887+00:00"
+    },
+    {
+      "bytes": 132893696,
+      "sha256": "21b2f868e5b51297cc4803fa246219f808ea1cfc0bb1fb49c8e8918133709192",
+      "graph": "rvm_256x512",
+      "byte_equal": true,
+      "seconds": 17.98,
+      "manifest_sha256": "be9eb7ed49afe7ac6cd8eac99e0f1ce9105a3c432494639a7ffbda86bd38e691",
+      "verified_at": "2026-10-29T03:21:38.247513+00:00"
+    },
+    {
+      "bytes": 132893696,
+      "sha256": "21b2f868e5b51297cc4803fa246219f808ea1cfc0bb1fb49c8e8918133709192",
+      "graph": "rvm_512x512",
+      "byte_equal": true,
+      "seconds": 11.97,
+      "manifest_sha256": "f2d80c1d1d0d84483a1831a2af412c43478003de1b722a61c81118bcdbe50d8c",
+      "verified_at": "2026-10-29T03:21:55.615869+00:00"
+    },
+    {
+      "bytes": 1848139792,
+      "sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1",
+      "graph": "stage1_256x512",
+      "byte_equal": true,
+      "seconds": 53.19,
+      "manifest_sha256": "eb47ba0c934811a9c4e42cab03aad74366ae3ed60d06adc1c9cb151f8a57083c",
+      "verified_at": "2026-10-29T03:23:02.379563+00:00"
+    },
+    {
+      "bytes": 1848139792,
+      "sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1",
+      "graph": "stage1_512x512",
+      "byte_equal": true,
+      "seconds": 36.81,
+      "manifest_sha256": "222f3bc922dbd7dff111f1817bfe42d46416771d3c960a44c323e69c70c2620e",
+      "verified_at": "2026-10-29T03:23:46.910281+00:00"
+    },
+    {
+      "bytes": 1848139792,
+      "sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1",
+      "graph": "stage1nomask_256x512",
+      "byte_equal": true,
+      "seconds": 30.52,
+      "manifest_sha256": "ca9674b05772305c9cdbd34fd178fb4119fc7f9d6ef06bc430528ba318b38316",
+      "verified_at": "2026-10-29T03:24:19.232181+00:00"
+    },
+    {
+      "bytes": 1848139792,
+      "sha256": "c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1",
+      "graph": "stage1nomask_512x512",
+      "byte_equal": true,
+      "seconds": 21.08,
+      "manifest_sha256": "80ef9507231b096655e7b4ca4959146345fbee6e59fdf7760e9ce973e97466a2",
+      "verified_at": "2026-10-29T03:24:48.970943+00:00"
+    },
+    {
+      "bytes": 1981033536,
+      "sha256": "69c24ffe0181b43ae863e9fab18c96acb034ee2cfc6643576cd8db3b6f742960",
+      "graph": "stage1rvmnomask_256x512",
+      "byte_equal": true,
+      "seconds": 43.27,
+      "manifest_sha256": "f15507202f160a1cfc48062d6845a6764bd61e95ae88fa898ee8c8de2b90a866",
+      "verified_at": "2026-10-29T03:25:41.800546+00:00"
+    },
+    {
+      "bytes": 1981033536,
+      "sha256": "69c24ffe0181b43ae863e9fab18c96acb034ee2cfc6643576cd8db3b6f742960",
+      "graph": "stage1rvmnomask_512x512",
+      "byte_equal": true,
+      "seconds": 42.92,
+      "manifest_sha256": "931d3bac449139be38c39dbb063cb6014aa718734c4b780f325d82c1a6afd8e2",
+      "verified_at": "2026-10-29T03:26:33.698569+00:00"
+    },
+    {
+      "bytes": 807185680,
+      "sha256": "ab218724cc9428b1273ccce58d081ccd023ba7bed4e716600aea587fcbb32f5d",
+      "graph": "stage2_256x512",
+      "byte_equal": true,
+      "seconds": 13.5,
+      "manifest_sha256": "f05e02eece6ccfa74fa1aaf8f34acf1756b5caf54e61506239d02c6d6d1ef5f6",
+      "verified_at": "2026-10-29T03:26:51.620333+00:00"
+    },
+    {
+      "bytes": 807185680,
+      "sha256": "ab218724cc9428b1273ccce58d081ccd023ba7bed4e716600aea587fcbb32f5d",
+      "graph": "stage2_512x512",
+      "byte_equal": true,
+      "seconds": 17.8,
+      "manifest_sha256": "e77b4c92b8608a3f6a611c8c4afe08c70c39a513642cf6601119683f9068bc09",
+      "verified_at": "2026-10-29T03:27:12.998231+00:00"
+    },
+    {
+      "bytes": 807185680,
+      "sha256": "ab218724cc9428b1273ccce58d081ccd023ba7bed4e716600aea587fcbb32f5d",
+      "graph": "stage2nomask_256x512",
+      "byte_equal": true,
+      "seconds": 14.41,
+      "manifest_sha256": "4c4563f1e21da56d637ce539149986b12a0c5308915a10a64d5bc10489ac0c50",
+      "verified_at": "2026-10-29T03:27:31.262555+00:00"
+    },
+    {
+      "bytes": 807185680,
+      "sha256": "ab218724cc9428b1273ccce58d081ccd023ba7bed4e716600aea587fcbb32f5d",
+      "graph": "stage2nomask_512x512",
+      "byte_equal": true,
+      "seconds": 12.42,
+      "manifest_sha256": "bedd565daea725a97d5b7c78dc7d3cc8902b4763d1d7a88361aa0d202ab30404",
+      "verified_at": "2026-10-29T03:27:47.315749+00:00"
+    }
+  ],
+  "gpu_reconstruction_test": {
+    "fixtures": 13,
+    "passed": true,
+    "small_texture": {
+      "coefficient_max_abs": 1.91724369e-06,
+      "raw_max_abs": 4.4884139e-07,
+      "finished_max_abs": 5.26006878e-07
+    }
+  },
+  "obs_samples": {
+    "trt": {
+      "timing_context": "shared GPU",
+      "samples": [
+        {
+          "utc": "2026-10-29T03:18:42Z",
+          "gpu": "2026/10/29 04:18:42.263, 39, 8112",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46114.31640625,
+            "averageFrameRenderTime": 0.596711,
+            "cpuUsage": 3.6154130920999688,
+            "memoryUsage": 429.98828125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 523,
+            "webSocketSessionIncomingMessages": 2,
+            "webSocketSessionOutgoingMessages": 2
+          }
+        },
+        {
+          "utc": "2026-10-29T03:18:47Z",
+          "gpu": "2026/10/29 04:18:47.735, 40, 8459",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46114.6015625,
+            "averageFrameRenderTime": 0.528457,
+            "cpuUsage": 1.8238203231472485,
+            "memoryUsage": 431.0,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 851,
+            "webSocketSessionIncomingMessages": 3,
+            "webSocketSessionOutgoingMessages": 3
+          }
+        },
+        {
+          "utc": "2026-10-29T03:18:53Z",
+          "gpu": "2026/10/29 04:18:53.230, 40, 8629",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46129.13671875,
+            "averageFrameRenderTime": 0.657808,
+            "cpuUsage": 1.9355458399624228,
+            "memoryUsage": 431.48828125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 1180,
+            "webSocketSessionIncomingMessages": 4,
+            "webSocketSessionOutgoingMessages": 4
+          }
+        },
+        {
+          "utc": "2026-10-29T03:18:58Z",
+          "gpu": "2026/10/29 04:18:58.728, 39, 8644",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46104.55859375,
+            "averageFrameRenderTime": 0.460719,
+            "cpuUsage": 1.9364431991639581,
+            "memoryUsage": 430.72265625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 1510,
+            "webSocketSessionIncomingMessages": 5,
+            "webSocketSessionOutgoingMessages": 5
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:04Z",
+          "gpu": "2026/10/29 04:19:04.280, 28, 8654",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46103.515625,
+            "averageFrameRenderTime": 0.621408,
+            "cpuUsage": 1.9006693419681124,
+            "memoryUsage": 430.77734375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 1843,
+            "webSocketSessionIncomingMessages": 6,
+            "webSocketSessionOutgoingMessages": 6
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:09Z",
+          "gpu": "2026/10/29 04:19:09.756, 36, 8673",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46103.33203125,
+            "averageFrameRenderTime": 0.544095,
+            "cpuUsage": 1.9514850753090431,
+            "memoryUsage": 430.83984375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 2172,
+            "webSocketSessionIncomingMessages": 7,
+            "webSocketSessionOutgoingMessages": 7
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:15Z",
+          "gpu": "2026/10/29 04:19:15.268, 40, 8979",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46103.38671875,
+            "averageFrameRenderTime": 0.65888,
+            "cpuUsage": 2.073506288773164,
+            "memoryUsage": 430.125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 2503,
+            "webSocketSessionIncomingMessages": 8,
+            "webSocketSessionOutgoingMessages": 8
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:20Z",
+          "gpu": "2026/10/29 04:19:20.743, 41, 8124",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46103.3125,
+            "averageFrameRenderTime": 0.509318,
+            "cpuUsage": 1.9180667718121158,
+            "memoryUsage": 430.36328125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 2831,
+            "webSocketSessionIncomingMessages": 9,
+            "webSocketSessionOutgoingMessages": 9
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:26Z",
+          "gpu": "2026/10/29 04:19:26.188, 37, 8124",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46103.1953125,
+            "averageFrameRenderTime": 0.533937,
+            "cpuUsage": 1.8641819741894976,
+            "memoryUsage": 430.421875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 3158,
+            "webSocketSessionIncomingMessages": 10,
+            "webSocketSessionOutgoingMessages": 10
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:31Z",
+          "gpu": "2026/10/29 04:19:31.512, 13, 8317",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46101.29296875,
+            "averageFrameRenderTime": 0.411878,
+            "cpuUsage": 1.9278318461781427,
+            "memoryUsage": 430.453125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 3477,
+            "webSocketSessionIncomingMessages": 11,
+            "webSocketSessionOutgoingMessages": 11
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:36Z",
+          "gpu": "2026/10/29 04:19:36.892, 12, 8317",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.984375,
+            "averageFrameRenderTime": 0.526872,
+            "cpuUsage": 1.9864741825551706,
+            "memoryUsage": 430.19140625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 3800,
+            "webSocketSessionIncomingMessages": 12,
+            "webSocketSessionOutgoingMessages": 12
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:42Z",
+          "gpu": "2026/10/29 04:19:42.216, 15, 8320",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.921875,
+            "averageFrameRenderTime": 0.433231,
+            "cpuUsage": 1.9090099102543074,
+            "memoryUsage": 430.41015625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 4119,
+            "webSocketSessionIncomingMessages": 13,
+            "webSocketSessionOutgoingMessages": 13
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:47Z",
+          "gpu": "2026/10/29 04:19:47.834, 40, 9234",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.80078125,
+            "averageFrameRenderTime": 0.745114,
+            "cpuUsage": 2.0062936936372866,
+            "memoryUsage": 430.65625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 4456,
+            "webSocketSessionIncomingMessages": 14,
+            "webSocketSessionOutgoingMessages": 14
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:53Z",
+          "gpu": "2026/10/29 04:19:53.199, 15, 8129",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46099.02734375,
+            "averageFrameRenderTime": 0.424939,
+            "cpuUsage": 3.861240611001502,
+            "memoryUsage": 430.69921875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 4778,
+            "webSocketSessionIncomingMessages": 15,
+            "webSocketSessionOutgoingMessages": 15
+          }
+        },
+        {
+          "utc": "2026-10-29T03:19:58Z",
+          "gpu": "2026/10/29 04:19:58.515, 13, 8322",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.63671875,
+            "averageFrameRenderTime": 0.457527,
+            "cpuUsage": 4.132515936991508,
+            "memoryUsage": 1608.36328125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 5097,
+            "webSocketSessionIncomingMessages": 16,
+            "webSocketSessionOutgoingMessages": 16
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:03Z",
+          "gpu": "2026/10/29 04:20:03.861, 14, 8338",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.58203125,
+            "averageFrameRenderTime": 0.559591,
+            "cpuUsage": 4.791907638953834,
+            "memoryUsage": 5300.6171875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 5418,
+            "webSocketSessionIncomingMessages": 17,
+            "webSocketSessionOutgoingMessages": 17
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:09Z",
+          "gpu": "2026/10/29 04:20:09.175, 35, 8335",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.5078125,
+            "averageFrameRenderTime": 0.446916,
+            "cpuUsage": 2.4275609229399016,
+            "memoryUsage": 6717.96875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 5737,
+            "webSocketSessionIncomingMessages": 18,
+            "webSocketSessionOutgoingMessages": 18
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:14Z",
+          "gpu": "2026/10/29 04:20:14.491, 12, 8327",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.41796875,
+            "averageFrameRenderTime": 0.44379,
+            "cpuUsage": 1.8820598233879549,
+            "memoryUsage": 6741.578125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 6056,
+            "webSocketSessionIncomingMessages": 19,
+            "webSocketSessionOutgoingMessages": 19
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:20Z",
+          "gpu": "2026/10/29 04:20:20.280, 14, 8327",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46093.4765625,
+            "averageFrameRenderTime": 0.870349,
+            "cpuUsage": 2.7611997321352866,
+            "memoryUsage": 7445.10546875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 6404,
+            "webSocketSessionIncomingMessages": 20,
+            "webSocketSessionOutgoingMessages": 20
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:27Z",
+          "gpu": "2026/10/29 04:20:27.176, 19, 9305",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46093.984375,
+            "averageFrameRenderTime": 1.478272,
+            "cpuUsage": 3.9229943861720185,
+            "memoryUsage": 2666.171875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 6818,
+            "webSocketSessionIncomingMessages": 21,
+            "webSocketSessionOutgoingMessages": 21
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:32Z",
+          "gpu": "2026/10/29 04:20:32.924, 37, 9498",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46106.94921875,
+            "averageFrameRenderTime": 0.792811,
+            "cpuUsage": 2.735354089745624,
+            "memoryUsage": 2666.171875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 7162,
+            "webSocketSessionIncomingMessages": 22,
+            "webSocketSessionOutgoingMessages": 22
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:38Z",
+          "gpu": "2026/10/29 04:20:38.413, 38, 9620",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46146.70703125,
+            "averageFrameRenderTime": 0.72519,
+            "cpuUsage": 2.233270957678064,
+            "memoryUsage": 2665.3046875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 7491,
+            "webSocketSessionIncomingMessages": 23,
+            "webSocketSessionOutgoingMessages": 23
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:43Z",
+          "gpu": "2026/10/29 04:20:43.797, 45, 9623",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46145.515625,
+            "averageFrameRenderTime": 0.62985,
+            "cpuUsage": 1.9042932622836395,
+            "memoryUsage": 2665.53125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 7814,
+            "webSocketSessionIncomingMessages": 24,
+            "webSocketSessionOutgoingMessages": 24
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:49Z",
+          "gpu": "2026/10/29 04:20:49.212, 40, 9631",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46145.2109375,
+            "averageFrameRenderTime": 0.609149,
+            "cpuUsage": 1.9752173460332603,
+            "memoryUsage": 2665.5390625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 8139,
+            "webSocketSessionIncomingMessages": 25,
+            "webSocketSessionOutgoingMessages": 25
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:54Z",
+          "gpu": "2026/10/29 04:20:54.679, 12, 9641",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46144.08984375,
+            "averageFrameRenderTime": 0.535629,
+            "cpuUsage": 2.018636618047329,
+            "memoryUsage": 2651.703125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 8467,
+            "webSocketSessionIncomingMessages": 26,
+            "webSocketSessionOutgoingMessages": 26
+          }
+        },
+        {
+          "utc": "2026-10-29T03:20:59Z",
+          "gpu": "2026/10/29 04:20:59.971, 16, 9999",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46143.66796875,
+            "averageFrameRenderTime": 0.508357,
+            "cpuUsage": 2.0498930258116643,
+            "memoryUsage": 2662.78125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 8784,
+            "webSocketSessionIncomingMessages": 27,
+            "webSocketSessionOutgoingMessages": 27
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:05Z",
+          "gpu": "2026/10/29 04:21:05.281, 13, 9896",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46143.74609375,
+            "averageFrameRenderTime": 0.422095,
+            "cpuUsage": 1.9487112425718482,
+            "memoryUsage": 2662.86328125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 9103,
+            "webSocketSessionIncomingMessages": 28,
+            "webSocketSessionOutgoingMessages": 28
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:10Z",
+          "gpu": "2026/10/29 04:21:10.759, 40, 9319",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46145.12109375,
+            "averageFrameRenderTime": 0.699862,
+            "cpuUsage": 2.13833015861442,
+            "memoryUsage": 2662.92578125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 9432,
+            "webSocketSessionIncomingMessages": 29,
+            "webSocketSessionOutgoingMessages": 29
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:16Z",
+          "gpu": "2026/10/29 04:21:16.069, 13, 9508",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46144.8671875,
+            "averageFrameRenderTime": 0.417586,
+            "cpuUsage": 1.8585381423032448,
+            "memoryUsage": 2662.3203125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 9750,
+            "webSocketSessionIncomingMessages": 30,
+            "webSocketSessionOutgoingMessages": 30
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:21Z",
+          "gpu": "2026/10/29 04:21:21.523, 40, 9315",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46139.3828125,
+            "averageFrameRenderTime": 0.57217,
+            "cpuUsage": 3.9920268784534536,
+            "memoryUsage": 2662.50390625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 10078,
+            "webSocketSessionIncomingMessages": 31,
+            "webSocketSessionOutgoingMessages": 31
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:26Z",
+          "gpu": "2026/10/29 04:21:26.882, 15, 9516",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46139.29296875,
+            "averageFrameRenderTime": 0.390485,
+            "cpuUsage": 3.7259951373090945,
+            "memoryUsage": 2812.3046875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 10399,
+            "webSocketSessionIncomingMessages": 32,
+            "webSocketSessionOutgoingMessages": 32
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:32Z",
+          "gpu": "2026/10/29 04:21:32.343, 37, 9516",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46138.38671875,
+            "averageFrameRenderTime": 0.601995,
+            "cpuUsage": 1.9499663407615577,
+            "memoryUsage": 2812.5703125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 10727,
+            "webSocketSessionIncomingMessages": 33,
+            "webSocketSessionOutgoingMessages": 33
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:37Z",
+          "gpu": "2026/10/29 04:21:37.649, 13, 9524",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46138.36328125,
+            "averageFrameRenderTime": 0.455486,
+            "cpuUsage": 2.40801013644301,
+            "memoryUsage": 2813.28125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 11045,
+            "webSocketSessionIncomingMessages": 34,
+            "webSocketSessionOutgoingMessages": 34
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:42Z",
+          "gpu": "2026/10/29 04:21:42.977, 15, 9516",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46138.02734375,
+            "averageFrameRenderTime": 0.382983,
+            "cpuUsage": 4.6610104280922835,
+            "memoryUsage": 2816.34375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 11365,
+            "webSocketSessionIncomingMessages": 35,
+            "webSocketSessionOutgoingMessages": 35
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:48Z",
+          "gpu": "2026/10/29 04:21:48.405, 64, 10441",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46137.921875,
+            "averageFrameRenderTime": 0.994516,
+            "cpuUsage": 4.619667945176391,
+            "memoryUsage": 3183.15234375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 11691,
+            "webSocketSessionIncomingMessages": 36,
+            "webSocketSessionOutgoingMessages": 36
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:53Z",
+          "gpu": "2026/10/29 04:21:53.745, 42, 10441",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46137.890625,
+            "averageFrameRenderTime": 1.081283,
+            "cpuUsage": 4.649451669882711,
+            "memoryUsage": 3179.40234375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 12011,
+            "webSocketSessionIncomingMessages": 37,
+            "webSocketSessionOutgoingMessages": 37
+          }
+        },
+        {
+          "utc": "2026-10-29T03:21:59Z",
+          "gpu": "2026/10/29 04:21:59.070, 42, 10441",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46127.4453125,
+            "averageFrameRenderTime": 0.737526,
+            "cpuUsage": 4.399809481444414,
+            "memoryUsage": 3186.5703125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 12330,
+            "webSocketSessionIncomingMessages": 38,
+            "webSocketSessionOutgoingMessages": 38
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:04Z",
+          "gpu": "2026/10/29 04:22:04.391, 42, 10446",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46127.37109375,
+            "averageFrameRenderTime": 1.02129,
+            "cpuUsage": 4.75183245806737,
+            "memoryUsage": 3184.09765625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 1,
+            "renderTotalFrames": 12650,
+            "webSocketSessionIncomingMessages": 39,
+            "webSocketSessionOutgoingMessages": 39
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:09Z",
+          "gpu": "2026/10/29 04:22:09.958, 66, 10493",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46117.2109375,
+            "averageFrameRenderTime": 1.331208,
+            "cpuUsage": 8.277097363587393,
+            "memoryUsage": 3438.47265625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 12983,
+            "webSocketSessionIncomingMessages": 40,
+            "webSocketSessionOutgoingMessages": 40
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:15Z",
+          "gpu": "2026/10/29 04:22:15.405, 40, 10553",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46117.140625,
+            "averageFrameRenderTime": 0.937575,
+            "cpuUsage": 2.2862969184995334,
+            "memoryUsage": 3528.9140625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 13310,
+            "webSocketSessionIncomingMessages": 41,
+            "webSocketSessionOutgoingMessages": 41
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:20Z",
+          "gpu": "2026/10/29 04:22:20.767, 17, 10553",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46117.05859375,
+            "averageFrameRenderTime": 0.678465,
+            "cpuUsage": 2.469259036347148,
+            "memoryUsage": 3529.71484375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 13632,
+            "webSocketSessionIncomingMessages": 42,
+            "webSocketSessionOutgoingMessages": 42
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:26Z",
+          "gpu": "2026/10/29 04:22:26.184, 37, 10553",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46116.9765625,
+            "averageFrameRenderTime": 0.925796,
+            "cpuUsage": 2.368012188282554,
+            "memoryUsage": 3539.66796875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 13957,
+            "webSocketSessionIncomingMessages": 43,
+            "webSocketSessionOutgoingMessages": 43
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:31Z",
+          "gpu": "2026/10/29 04:22:31.603, 38, 10553",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46116.1171875,
+            "averageFrameRenderTime": 0.953283,
+            "cpuUsage": 2.28014636791702,
+            "memoryUsage": 3540.3984375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 14282,
+            "webSocketSessionIncomingMessages": 44,
+            "webSocketSessionOutgoingMessages": 44
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:36Z",
+          "gpu": "2026/10/29 04:22:36.912, 17, 10553",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46115.75,
+            "averageFrameRenderTime": 0.579245,
+            "cpuUsage": 2.226874833734531,
+            "memoryUsage": 3528.62109375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 14600,
+            "webSocketSessionIncomingMessages": 45,
+            "webSocketSessionOutgoingMessages": 45
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:48Z",
+          "gpu": "2026/10/29 04:22:48.078, 15, 10553",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46115.37890625,
+            "averageFrameRenderTime": 0.59218,
+            "cpuUsage": 1.8974979670853855,
+            "memoryUsage": 3529.55859375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 15270,
+            "webSocketSessionIncomingMessages": 46,
+            "webSocketSessionOutgoingMessages": 46
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:53Z",
+          "gpu": "2026/10/29 04:22:53.398, 17, 10553",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46103.4140625,
+            "averageFrameRenderTime": 0.619955,
+            "cpuUsage": 2.149627482330142,
+            "memoryUsage": 3523.12109375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 15589,
+            "webSocketSessionIncomingMessages": 47,
+            "webSocketSessionOutgoingMessages": 47
+          }
+        },
+        {
+          "utc": "2026-10-29T03:22:58Z",
+          "gpu": "2026/10/29 04:22:58.873, 37, 10553",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46103.38671875,
+            "averageFrameRenderTime": 0.866349,
+            "cpuUsage": 1.8633731109777456,
+            "memoryUsage": 3529.16796875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 15918,
+            "webSocketSessionIncomingMessages": 48,
+            "webSocketSessionOutgoingMessages": 48
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:04Z",
+          "gpu": "2026/10/29 04:23:04.331, 40, 10553",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46103.265625,
+            "averageFrameRenderTime": 1.087513,
+            "cpuUsage": 2.60226856660868,
+            "memoryUsage": 3541.328125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 16246,
+            "webSocketSessionIncomingMessages": 49,
+            "webSocketSessionOutgoingMessages": 49
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:09Z",
+          "gpu": "2026/10/29 04:23:09.838, 40, 10562",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46102.40625,
+            "averageFrameRenderTime": 0.935301,
+            "cpuUsage": 2.4921549954875597,
+            "memoryUsage": 3539.7890625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 16576,
+            "webSocketSessionIncomingMessages": 50,
+            "webSocketSessionOutgoingMessages": 50
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:15Z",
+          "gpu": "2026/10/29 04:23:15.312, 39, 10558",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46101.37109375,
+            "averageFrameRenderTime": 0.864714,
+            "cpuUsage": 2.3550529266544737,
+            "memoryUsage": 3540.671875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 16904,
+            "webSocketSessionIncomingMessages": 51,
+            "webSocketSessionOutgoingMessages": 51
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:20Z",
+          "gpu": "2026/10/29 04:23:20.705, 45, 10558",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46101.328125,
+            "averageFrameRenderTime": 0.800154,
+            "cpuUsage": 2.14660409721519,
+            "memoryUsage": 3489.69140625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 17228,
+            "webSocketSessionIncomingMessages": 52,
+            "webSocketSessionOutgoingMessages": 52
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:26Z",
+          "gpu": "2026/10/29 04:23:26.330, 18, 10558",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46101.2578125,
+            "averageFrameRenderTime": 1.347154,
+            "cpuUsage": 2.116155041415427,
+            "memoryUsage": 3540.26953125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 17566,
+            "webSocketSessionIncomingMessages": 53,
+            "webSocketSessionOutgoingMessages": 53
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:31Z",
+          "gpu": "2026/10/29 04:23:31.629, 17, 10558",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.26171875,
+            "averageFrameRenderTime": 0.629303,
+            "cpuUsage": 1.946335701407819,
+            "memoryUsage": 3528.40234375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 17883,
+            "webSocketSessionIncomingMessages": 54,
+            "webSocketSessionOutgoingMessages": 54
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:36Z",
+          "gpu": "2026/10/29 04:23:36.921, 15, 10563",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.19921875,
+            "averageFrameRenderTime": 0.612949,
+            "cpuUsage": 2.0753803626370453,
+            "memoryUsage": 3528.53515625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 18201,
+            "webSocketSessionIncomingMessages": 55,
+            "webSocketSessionOutgoingMessages": 55
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:42Z",
+          "gpu": "2026/10/29 04:23:42.232, 15, 10567",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.15234375,
+            "averageFrameRenderTime": 0.640044,
+            "cpuUsage": 1.8116219840343801,
+            "memoryUsage": 3540.9140625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 18519,
+            "webSocketSessionIncomingMessages": 56,
+            "webSocketSessionOutgoingMessages": 56
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:47Z",
+          "gpu": "2026/10/29 04:23:47.815, 38, 10568",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.7265625,
+            "averageFrameRenderTime": 1.163962,
+            "cpuUsage": 2.4708845576002334,
+            "memoryUsage": 3540.94921875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 18855,
+            "webSocketSessionIncomingMessages": 57,
+            "webSocketSessionOutgoingMessages": 57
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:53Z",
+          "gpu": "2026/10/29 04:23:53.168, 18, 10568",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.65234375,
+            "averageFrameRenderTime": 1.020167,
+            "cpuUsage": 2.7774275165560876,
+            "memoryUsage": 3539.40234375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 19175,
+            "webSocketSessionIncomingMessages": 58,
+            "webSocketSessionOutgoingMessages": 58
+          }
+        },
+        {
+          "utc": "2026-10-29T03:23:58Z",
+          "gpu": "2026/10/29 04:23:58.484, 19, 10568",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.62890625,
+            "averageFrameRenderTime": 0.635514,
+            "cpuUsage": 2.0575041705962254,
+            "memoryUsage": 3539.90234375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 3,
+            "renderTotalFrames": 19494,
+            "webSocketSessionIncomingMessages": 59,
+            "webSocketSessionOutgoingMessages": 59
+          }
+        }
+      ]
+    },
+    "dml": {
+      "timing_context": "shared GPU",
+      "samples": [
+        {
+          "utc": "2026-10-29T03:29:43Z",
+          "gpu": "2026/10/29 04:29:43.542, 26, 9047",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46114.16796875,
+            "averageFrameRenderTime": 0.952127,
+            "cpuUsage": 3.8832446495927946,
+            "memoryUsage": 795.2734375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 7,
+            "renderTotalFrames": 676,
+            "webSocketSessionIncomingMessages": 2,
+            "webSocketSessionOutgoingMessages": 2
+          }
+        },
+        {
+          "utc": "2026-10-29T03:29:48Z",
+          "gpu": "2026/10/29 04:29:48.956, 13, 8872",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46115.08984375,
+            "averageFrameRenderTime": 1.106563,
+            "cpuUsage": 4.731338603617892,
+            "memoryUsage": 2267.48828125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 7,
+            "renderTotalFrames": 998,
+            "webSocketSessionIncomingMessages": 3,
+            "webSocketSessionOutgoingMessages": 3
+          }
+        },
+        {
+          "utc": "2026-10-29T03:29:54Z",
+          "gpu": "2026/10/29 04:29:54.462, 20, 10950",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46113.8203125,
+            "averageFrameRenderTime": 1.108878,
+            "cpuUsage": 3.995385183055048,
+            "memoryUsage": 2724.1171875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 7,
+            "renderTotalFrames": 1329,
+            "webSocketSessionIncomingMessages": 4,
+            "webSocketSessionOutgoingMessages": 4
+          }
+        },
+        {
+          "utc": "2026-10-29T03:29:59Z",
+          "gpu": "2026/10/29 04:29:59.973, 46, 12026",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46113.94140625,
+            "averageFrameRenderTime": 1.134491,
+            "cpuUsage": 3.546222910601774,
+            "memoryUsage": 3283.4609375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 7,
+            "renderTotalFrames": 1659,
+            "webSocketSessionIncomingMessages": 5,
+            "webSocketSessionOutgoingMessages": 5
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:05Z",
+          "gpu": "2026/10/29 04:30:05.402, 82, 12027",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46113.90234375,
+            "averageFrameRenderTime": 1.291181,
+            "cpuUsage": 3.9132133968156153,
+            "memoryUsage": 3317.98046875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 7,
+            "renderTotalFrames": 1985,
+            "webSocketSessionIncomingMessages": 6,
+            "webSocketSessionOutgoingMessages": 6
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:10Z",
+          "gpu": "2026/10/29 04:30:10.752, 77, 12062",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46101.859375,
+            "averageFrameRenderTime": 1.145983,
+            "cpuUsage": 3.3128102241800517,
+            "memoryUsage": 3346.7890625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 7,
+            "renderTotalFrames": 2306,
+            "webSocketSessionIncomingMessages": 7,
+            "webSocketSessionOutgoingMessages": 7
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:16Z",
+          "gpu": "2026/10/29 04:30:16.147, 81, 12027",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46101.50390625,
+            "averageFrameRenderTime": 1.118993,
+            "cpuUsage": 3.6464332183468953,
+            "memoryUsage": 3336.7109375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 7,
+            "renderTotalFrames": 2629,
+            "webSocketSessionIncomingMessages": 8,
+            "webSocketSessionOutgoingMessages": 8
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:21Z",
+          "gpu": "2026/10/29 04:30:21.556, 87, 12027",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46101.5390625,
+            "averageFrameRenderTime": 1.188154,
+            "cpuUsage": 3.341130531701985,
+            "memoryUsage": 3407.2265625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 7,
+            "renderTotalFrames": 2954,
+            "webSocketSessionIncomingMessages": 9,
+            "webSocketSessionOutgoingMessages": 9
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:26Z",
+          "gpu": "2026/10/29 04:30:26.897, 74, 12027",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46101.4140625,
+            "averageFrameRenderTime": 1.162493,
+            "cpuUsage": 6.55474439465167,
+            "memoryUsage": 3493.32421875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 7,
+            "renderTotalFrames": 3274,
+            "webSocketSessionIncomingMessages": 10,
+            "webSocketSessionOutgoingMessages": 10
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:32Z",
+          "gpu": "2026/10/29 04:30:32.333, 87, 11151",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.4765625,
+            "averageFrameRenderTime": 0.928685,
+            "cpuUsage": 3.268915266240185,
+            "memoryUsage": 3129.0,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 11,
+            "renderTotalFrames": 3601,
+            "webSocketSessionIncomingMessages": 11,
+            "webSocketSessionOutgoingMessages": 11
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:37Z",
+          "gpu": "2026/10/29 04:30:37.842, 82, 11151",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46100.16015625,
+            "averageFrameRenderTime": 1.096059,
+            "cpuUsage": 3.2251890884556698,
+            "memoryUsage": 3156.3046875,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 11,
+            "renderTotalFrames": 3931,
+            "webSocketSessionIncomingMessages": 12,
+            "webSocketSessionOutgoingMessages": 12
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:43Z",
+          "gpu": "2026/10/29 04:30:43.152, 75, 11151",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46098.5859375,
+            "averageFrameRenderTime": 0.855663,
+            "cpuUsage": 3.127900513185526,
+            "memoryUsage": 3183.390625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 11,
+            "renderTotalFrames": 4250,
+            "webSocketSessionIncomingMessages": 13,
+            "webSocketSessionOutgoingMessages": 13
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:48Z",
+          "gpu": "2026/10/29 04:30:48.556, 89, 11151",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46098.4375,
+            "averageFrameRenderTime": 1.00544,
+            "cpuUsage": 3.1184798930864215,
+            "memoryUsage": 3207.00390625,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 11,
+            "renderTotalFrames": 4574,
+            "webSocketSessionIncomingMessages": 14,
+            "webSocketSessionOutgoingMessages": 14
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:53Z",
+          "gpu": "2026/10/29 04:30:53.974, 84, 11155",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46098.3359375,
+            "averageFrameRenderTime": 1.198473,
+            "cpuUsage": 4.1539792870973065,
+            "memoryUsage": 3244.58203125,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 11,
+            "renderTotalFrames": 4899,
+            "webSocketSessionIncomingMessages": 15,
+            "webSocketSessionOutgoingMessages": 15
+          }
+        },
+        {
+          "utc": "2026-10-29T03:30:59Z",
+          "gpu": "2026/10/29 04:30:59.286, 72, 11151",
+          "stats": {
+            "activeFps": 60.0000024000001,
+            "availableDiskSpace": 46098.3046875,
+            "averageFrameRenderTime": 0.769111,
+            "cpuUsage": 3.014600619592483,
+            "memoryUsage": 3261.984375,
+            "outputSkippedFrames": 0,
+            "outputTotalFrames": 0,
+            "renderSkippedFrames": 11,
+            "renderTotalFrames": 5218,
+            "webSocketSessionIncomingMessages": 16,
+            "webSocketSessionOutgoingMessages": 16
+          }
+        },
+        {
+          "utc": "2026-10-29T03:31:04Z",
+          "gpu": "2026/10/29 04:31:04.594, 7, 9349",
+          "stats_unavailable": "RuntimeError"
+        },
+        {
+          "utc": "2026-10-29T03:31:09Z",
+          "gpu": "2026/10/29 04:31:09.964, 31, 7962",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:31:17Z",
+          "gpu": "2026/10/29 04:31:17.277, 8, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:31:24Z",
+          "gpu": "2026/10/29 04:31:24.781, 48, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:31:32Z",
+          "gpu": "2026/10/29 04:31:32.052, 7, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:31:39Z",
+          "gpu": "2026/10/29 04:31:39.490, 30, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:31:46Z",
+          "gpu": "2026/10/29 04:31:46.885, 28, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:31:54Z",
+          "gpu": "2026/10/29 04:31:54.301, 23, 7962",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:32:01Z",
+          "gpu": "2026/10/29 04:32:01.585, 8, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:32:08Z",
+          "gpu": "2026/10/29 04:32:09.008, 28, 7967",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:32:16Z",
+          "gpu": "2026/10/29 04:32:16.404, 34, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:32:23Z",
+          "gpu": "2026/10/29 04:32:23.811, 26, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:32:31Z",
+          "gpu": "2026/10/29 04:32:31.286, 31, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:32:38Z",
+          "gpu": "2026/10/29 04:32:38.674, 30, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:32:45Z",
+          "gpu": "2026/10/29 04:32:46.026, 30, 7959",
+          "stats_unavailable": "ConnectionRefusedError"
+        },
+        {
+          "utc": "2026-10-29T03:32:53Z",
+          "gpu": "2026/10/29 04:32:53.339, 7, 7963",
+          "stats_unavailable": "ConnectionRefusedError"
+        }
+      ]
+    }
+  },
+  "live_log_samples": {
+    "directml": [
+      "04:30:09.757: [corridorkey:w03] instance=1 native=3840x2160 callbacks=2205 self_ms_p50<=0.01 self_ms_p95<=0.04 total_ms_p50<=0.03 total_ms_p95<=0.07 captures=597 submitted=307 completed=306 dropped=1860 repeated=0 status=0 graphics_tasks=626 graphics_ms_p50<=0.01 graphics_ms_p95<=0.20",
+      "04:30:09.757: [corridorkey:w08] age_median_ms=69.256 age_p95_ms=98.147 input_ms=16.246 output_ms=6.690 inference_ms=31.625 queue_ms=9.466 keyed_fps=29.918",
+      "04:30:09.757: [corridorkey:w08] post_cpu_ms_p50<=0.17 post_cpu_ms_p95<=0.33",
+      "04:30:09.757: [corridorkey:w08] tick_transfer_cpu_ms_p50<=0.01 tick_transfer_cpu_ms_p95<=0.13",
+      "04:30:09.757: [corridorkey:w08] fake_cpu_ms_p50<=0.01 fake_cpu_ms_p95<=0.01 worker_cpu_ms_p50<=0.68 worker_cpu_ms_p95<=1.23",
+      "04:30:09.757: [corridorkey:w09] frames=305 published=305 keyed_fps=30.50 moge_ms=4.817 rvm_ms=4.692 stage1_ms=20.133 stage2_ms=0.000 worker_ms=31.540",
+      "04:30:59.764: [corridorkey:w03] instance=1 native=1920x1080 callbacks=5203 self_ms_p50<=0.03 self_ms_p95<=0.05 total_ms_p50<=0.04 total_ms_p95<=0.08 captures=3562 submitted=1887 completed=1886 dropped=3245 repeated=2 status=0 graphics_tasks=3620 graphics_ms_p50<=0.08 graphics_ms_p95<=0.24",
+      "04:30:59.764: [corridorkey:w08] age_median_ms=66.823 age_p95_ms=83.512 input_ms=16.962 output_ms=7.766 inference_ms=29.266 queue_ms=8.238 keyed_fps=32.710",
+      "04:30:59.764: [corridorkey:w08] post_cpu_ms_p50<=0.17 post_cpu_ms_p95<=0.30",
+      "04:30:59.764: [corridorkey:w08] tick_transfer_cpu_ms_p50<=0.07 tick_transfer_cpu_ms_p95<=0.16",
+      "04:30:59.764: [corridorkey:w08] fake_cpu_ms_p50<=0.01 fake_cpu_ms_p95<=0.01 worker_cpu_ms_p50<=0.73 worker_cpu_ms_p95<=1.24",
+      "04:30:59.764: [corridorkey:w09] frames=1885 published=1883 keyed_fps=32.29 moge_ms=4.467 rvm_ms=4.511 stage1_ms=19.581 stage2_ms=0.000 worker_ms=30.608"
+    ],
+    "tensorrt": [
+      "04:42:25.599: [corridorkey:w03] instance=1 native=3840x2160 callbacks=13566 self_ms_p50<=0.01 self_ms_p95<=0.03 total_ms_p50<=0.03 total_ms_p95<=0.06 captures=1775 submitted=1616 completed=1615 dropped=11893 repeated=0 status=0 graphics_tasks=1825 graphics_ms_p50<=0.10 graphics_ms_p95<=0.25",
+      "04:42:25.599: [corridorkey:w08] age_median_ms=50.060 age_p95_ms=67.929 input_ms=17.236 output_ms=5.948 inference_ms=16.141 queue_ms=3.139 keyed_fps=46.166",
+      "04:42:25.599: [corridorkey:w08] post_cpu_ms_p50<=0.19 post_cpu_ms_p95<=0.38",
+      "04:42:25.599: [corridorkey:w08] tick_transfer_cpu_ms_p50<=0.01 tick_transfer_cpu_ms_p95<=0.09",
+      "04:42:25.599: [corridorkey:w08] fake_cpu_ms_p50<=0.01 fake_cpu_ms_p95<=0.01 worker_cpu_ms_p50<=0.57 worker_cpu_ms_p95<=1.09",
+      "04:42:25.599: [corridorkey:w09] frames=1614 published=1416 keyed_fps=47.89 moge_ms=4.555 rvm_ms=1.539 stage1_ms=7.291 stage2_ms=0.000 worker_ms=16.427",
+      "04:44:25.608: [corridorkey:w03] instance=1 native=1920x1080 callbacks=20762 self_ms_p50<=0.01 self_ms_p95<=0.05 total_ms_p50<=0.03 total_ms_p95<=0.18 captures=8637 submitted=5218 completed=5217 dropped=15444 repeated=1 status=0 graphics_tasks=8724 graphics_ms_p50<=0.08 graphics_ms_p95<=0.24",
+      "04:44:25.608: [corridorkey:w08] age_median_ms=50.035 age_p95_ms=66.949 input_ms=17.027 output_ms=7.900 inference_ms=15.612 queue_ms=2.530 keyed_fps=47.962",
+      "04:44:25.608: [corridorkey:w08] post_cpu_ms_p50<=0.19 post_cpu_ms_p95<=0.40",
+      "04:44:25.608: [corridorkey:w08] tick_transfer_cpu_ms_p50<=0.01 tick_transfer_cpu_ms_p95<=0.15",
+      "04:44:25.608: [corridorkey:w08] fake_cpu_ms_p50<=0.01 fake_cpu_ms_p95<=0.01 worker_cpu_ms_p50<=0.70 worker_cpu_ms_p95<=1.35",
+      "04:44:25.608: [corridorkey:w09] frames=5215 published=4675 keyed_fps=49.60 moge_ms=4.611 rvm_ms=1.533 stage1_ms=7.439 stage2_ms=0.000 worker_ms=16.779"
+    ]
+  },
+  "cleanup": {
+    "portable_closed_cleanly": true,
+    "obs_reported_memory_leaks": 0,
+    "installed_obs_lock_released": true
+  }
+}
