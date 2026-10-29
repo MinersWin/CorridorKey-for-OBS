@@ -86,7 +86,7 @@ int run_post_tests(const char *directory)
 	gs_begin_scene();
 	gs_enable_depth_test(false);
 	gs_set_cull_mode(GS_NEITHER);
-	for (unsigned fixture = 0; fixture < 15; ++fixture) {
+	for (unsigned fixture = 0; fixture < 17; ++fixture) {
 		const unsigned w = fixture >= 9 && fixture <= 10   ? 512
 				   : fixture == 1 || fixture == 11 ? 1
 				   : fixture == 2                  ? 5
@@ -130,6 +130,21 @@ int run_post_tests(const char *directory)
 			settings.quality.clip_black = 0.1f;
 			settings.quality.clip_white = 0.83f;
 			settings.quality.unmix_inner = 0.2f;
+		}
+		if (fixture == 15) {
+			settings.quality.model = ModelFamily::ck1;
+			settings.quality.screen_color = ScreenColor::blue;
+			for (auto &p : model.pixels)
+				p = {0.2, 0.3, 0.9, 0.7};
+		}
+		if (fixture == 16) {
+			settings.quality.model = ModelFamily::ck1;
+			settings.context.output = OutputView::hint;
+			settings.quality.alpha_contrast = 4;
+			settings.quality.clip_black = .1f;
+			settings.context.crop = {.1f, .1f, .9f, .9f};
+			for (auto &p : model.pixels)
+				p = {.2, .3, .4, .3};
 		}
 		if (fixture == 7)
 			settings.quality.unmix_mode = UnmixMode::compositing_equation;

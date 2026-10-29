@@ -38,7 +38,7 @@ TEST_CASE("settings shipped defaults follow the reference profiles")
 	CHECK(ck1.quality.grid == Extent{384, 384});
 	CHECK_FALSE(ck1.quality.refiner_enabled);
 	CHECK(ck1.quality.guide_mode == GuideMode::rgb_guided);
-	CHECK(ck1.hint.source == HintSource::chroma);
+	CHECK(ck1.hint.source == HintSource::modnet);
 }
 TEST_CASE("quality edits select Custom while context survives explicit presets")
 {

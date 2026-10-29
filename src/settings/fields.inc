@@ -30,9 +30,9 @@ static constexpr Choice choices_guide_mode[] = {{"refiner", "Choice.refiner"},
 static constexpr Choice choices_unmix_mode[] = {{"delta", "Choice.delta"},
 						{"compositing_equation", "Choice.compositing_equation"}};
 static constexpr Choice choices_screen_color[] = {{"green", "Choice.green"}, {"blue", "Choice.blue"}};
-static constexpr Choice choices_hint_source[] = {{"chroma", "Choice.chroma"},
+static constexpr Choice choices_hint_source[] = {{"modnet", "Choice.modnet"},
 						 {"ck2_stage1", "Choice.ck2_stage1"},
-						 {"modnet", "Choice.modnet"},
+						 {"chroma", "Choice.chroma"},
 						 {"mediapipe", "Choice.mediapipe"},
 						 {"external_mask", "Choice.external_mask"},
 						 {"distilled", "Choice.distilled"}};
@@ -76,7 +76,7 @@ static const Field fields[] = {
 									      : Profile::custom;
 	 }},
 
-	{"model_id", "top", Kind::choice, Level::normal, Disposition::active, 0, 0, 0, "", "", choices_model_id,
+	{"model_id", "top", Kind::choice, Level::advanced, Disposition::active, 0, 0, 0, "", "", choices_model_id,
 	 [](const Settings &s) -> Value {
 		 return Value{std::string(s.quality.model == ModelFamily::ck2 ? "ck2" : "ck1")};
 	 },
@@ -504,7 +504,7 @@ static const Field fields[] = {
 	{"hint_similarity",
 	 "hint",
 	 Kind::number,
-	 Level::advanced,
+	 Level::expert,
 	 Disposition::active,
 	 0,
 	 1,
@@ -519,7 +519,7 @@ static const Field fields[] = {
 	{"hint_smoothness",
 	 "hint",
 	 Kind::number,
-	 Level::advanced,
+	 Level::expert,
 	 Disposition::active,
 	 0.01,
 	 0.5,

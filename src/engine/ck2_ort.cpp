@@ -33,12 +33,12 @@ private:
 void verify_specs(const std::vector<ort::TensorSpec> &specs, const Tensors &expected)
 {
 	if (specs.size() != expected.size())
-		throw std::runtime_error("CK2 graph I/O count differs from export contract");
+		throw std::runtime_error("Graph I/O count differs from export contract");
 	for (const auto &spec : specs)
 		if (!expected.contains(spec.name) || spec.type != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT ||
 		    spec.shape != expected.at(spec.name).shape)
 			throw std::runtime_error(
-				"CK2 requires the verified static FP32 I/O contract; EP precision is independent");
+				"Graph requires the verified static FP32 I/O contract; EP precision is independent");
 }
 } // namespace
 void verify_manifest(const std::filesystem::path &path, Stage stage, Extent grid)
@@ -69,12 +69,19 @@ void verify_manifest(const std::filesystem::path &path, Stage stage, Extent grid
 OrtGraph::OrtGraph(std::unique_ptr<ort::Session> session, Stage stage, Extent grid, bool device,
 		   std::function<std::unique_ptr<ort::Session>()> recreate,
 		   std::function<std::unique_ptr<ort::Session>(const std::string &, std::stop_token)> fallback)
+	: OrtGraph(std::move(session), input_contract(stage, grid), output_contract(stage, grid), device,
+		   std::move(recreate), std::move(fallback))
+{
+}
+OrtGraph::OrtGraph(std::unique_ptr<ort::Session> session, Tensors inputs, Tensors outputs, bool device,
+		   std::function<std::unique_ptr<ort::Session>()> recreate,
+		   std::function<std::unique_ptr<ort::Session>(const std::string &, std::stop_token)> fallback)
 	: session_(std::move(session)),
 	  recreate_(std::move(recreate)),
 	  fallback_(std::move(fallback)),
 	  device_(device),
-	  inputs_(input_contract(stage, grid)),
-	  outputs_(output_contract(stage, grid))
+	  inputs_(std::move(inputs)),
+	  outputs_(std::move(outputs))
 {
 	if (!session_)
 		throw std::invalid_argument("Missing ORT session");
@@ -85,12 +92,12 @@ OrtGraph::OrtGraph(std::unique_ptr<ort::Session> session, Stage stage, Extent gr
 Tensors OrtGraph::run(const Inputs &inputs, std::stop_token stop)
 {
 	if (!session_ || !bindings_)
-		throw std::runtime_error("CK2 session recovery failed; prepare the pipeline again");
+		throw std::runtime_error("Graph session recovery failed; prepare the pipeline again");
 	if (inputs.size() != inputs_.size())
-		throw std::invalid_argument("Missing CK2 input");
+		throw std::invalid_argument("Missing graph input");
 	for (const auto &[name, expected] : inputs_) {
 		if (!inputs.contains(name) || !inputs.at(name))
-			throw std::invalid_argument("Missing CK2 tensor");
+			throw std::invalid_argument("Missing graph tensor");
 		check_tensor(*inputs.at(name), expected);
 	}
 	auto execute = [&] {

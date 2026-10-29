@@ -6,6 +6,9 @@
 #include "obs/audio_sync_obs.hpp"
 #include "settings/obs_settings.hpp"
 #include "telemetry/diagnostics.hpp"
+#ifdef CORRIDORKEY_CK2_RUNTIME
+#include "obs/ck1_runtime.hpp"
+#endif
 #if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 #include "obs/filter_input.hpp"
 #endif
@@ -139,6 +142,9 @@ obs_properties_t *filter_properties(void *data)
 	try {
 		PropertyCapabilities capabilities;
 		capabilities.audio_sync = true;
+#ifdef CORRIDORKEY_CK2_RUNTIME
+		add_model_capabilities(capabilities);
+#endif
 		auto *properties = create_filter_properties(static_cast<Filter *>(data), capabilities);
 #if defined(CORRIDORKEY_ENABLE_FAKE_FILTER) || defined(CORRIDORKEY_CK2_RUNTIME)
 		FilterInput::add_properties(properties);

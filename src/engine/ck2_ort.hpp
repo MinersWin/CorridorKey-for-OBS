@@ -7,6 +7,9 @@
 namespace corridorkey::ck2 {
 class OrtGraph final : public Graph {
 public:
+	OrtGraph(std::unique_ptr<ort::Session>, Tensors inputs, Tensors outputs, bool cuda_device = false,
+		 std::function<std::unique_ptr<ort::Session>()> recreate = {},
+		 std::function<std::unique_ptr<ort::Session>(const std::string &, std::stop_token)> fallback = {});
 	OrtGraph(std::unique_ptr<ort::Session>, Stage, Extent, bool cuda_device = false,
 		 std::function<std::unique_ptr<ort::Session>()> recreate = {},
 		 std::function<std::unique_ptr<ort::Session>(const std::string &, std::stop_token)> fallback = {});

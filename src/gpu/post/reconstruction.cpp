@@ -152,6 +152,7 @@ bool Reconstruction::prepare(gs_texture_t *native, gs_texture_t *guide, gs_textu
 		return false;
 	DrawState state;
 	const auto &q = settings.quality;
+	set("blue_screen", int(q.model == ModelFamily::ck1 && q.screen_color == ScreenColor::blue));
 	vec4 params;
 	vec4_set(&params, std::clamp(finite(q.guided_epsilon, 0.0005f), 0.00001f, 1.0f),
 		 std::clamp(finite(q.unmix_inner, 1), 0.0f, 1.0f),
@@ -244,6 +245,10 @@ bool Reconstruction::finish(gs_texrender_t *output, gs_texture_t *native, const 
 		switch (settings.context.output) {
 		case OutputView::alpha:
 			view = 1;
+			break;
+		case OutputView::hint:
+			if (q.model == ModelFamily::ck1)
+				view = 8;
 			break;
 		case OutputView::foreground:
 			view = 2;

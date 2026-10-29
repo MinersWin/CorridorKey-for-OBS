@@ -215,13 +215,23 @@ Fields reconstruct(const Image &native, const Image &input_guide, const Image &i
 			a = unit((a - 0.5) * q.alpha_contrast + 0.5 + q.alpha_offset);
 			a = unit((a - q.clip_black) / std::max(static_cast<double>(q.clip_white - q.clip_black), 1e-6));
 			a *= unit(rgb[3]) * inside(u, v, roi) * inside(u, v, settings.context.crop);
-			const auto spill = std::max(p[1] - (p[0] + p[2]) / 2, 0.0) * q.despill_strength;
+			const bool blue = q.model == corridorkey::ModelFamily::ck1 &&
+					  q.screen_color == corridorkey::ScreenColor::blue;
+			const auto channel = blue ? 2U : 1U;
+			const auto other = blue ? 1U : 2U;
+			const auto spill = std::max(p[channel] - (p[0] + p[other]) / 2, 0.0) * q.despill_strength;
 			p[0] += spill / 2;
-			p[1] -= spill;
-			p[2] += spill / 2;
+			p[channel] -= spill;
+			p[other] += spill / 2;
 			for (unsigned c = 0; c < 3; ++c)
 				p[c] = decode(p[c]) * a;
 			p[3] = a;
+			if (q.model == corridorkey::ModelFamily::ck1 &&
+			    settings.context.output == corridorkey::OutputView::hint) {
+				const auto hint = unit(sample(model, ru, rv)[3]) * unit(rgb[3]) * inside(u, v, roi) *
+						  inside(u, v, settings.context.crop);
+				p = {decode(hint), decode(hint), decode(hint), 1};
+			}
 			output.at(x, y) = p;
 		}
 	return {std::move(coefficients), std::move(delta), std::move(background),

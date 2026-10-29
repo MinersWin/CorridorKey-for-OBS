@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
-#include "pipeline.hpp"
+#include "model_pipeline.hpp"
 #include "temporal_state.hpp"
 #include "refiner_stage.hpp"
 #include <atomic>
@@ -17,7 +17,7 @@ struct Ck2Prepared {
 	std::shared_ptr<const ReadyModel> model{};
 };
 using Ck2Factory = std::function<Ck2Prepared(const PrepareRequest &)>;
-class Ck2Pipeline final : public Pipeline {
+class Ck2Pipeline final : public ModelPipeline {
 public:
 	explicit Ck2Pipeline(Ck2Factory, std::function<TimePoint()> now = Clock::now);
 	~Ck2Pipeline() override;
@@ -29,11 +29,11 @@ public:
 	void shutdown() noexcept override;
 	PipelineCapabilities capabilities() const override;
 	PipelineDiagnostics diagnostics() const override;
-	Crop suggested_roi() const;
-	ck2::StageTimes stage_times() const;
-	std::string detail() const;
-	std::shared_ptr<refiner::Stage> refiner_stage() const;
-	std::shared_ptr<nvidia::Context> device_context() const;
+	Crop suggested_roi() const override;
+	ck2::StageTimes stage_times() const override;
+	std::string detail() const override;
+	std::shared_ptr<refiner::Stage> refiner_stage() const override;
+	std::shared_ptr<nvidia::Context> device_context() const override;
 	static bool supports(const Settings &);
 
 private:

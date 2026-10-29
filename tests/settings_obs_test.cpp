@@ -44,6 +44,7 @@ int main(int argc, char **argv)
 		obs_properties_apply_settings(props, data);
 		check(obs_property_list_item_count(obs_properties_get(props, "profile")) == 4, "four presets");
 		check(!obs_property_visible(obs_properties_get(props, "expert")), "Expert hidden initially");
+		check(!obs_property_visible(obs_properties_get(props, "model_id")), "Model choice requires Advanced");
 		check(obs_property_visible(obs_properties_get(props, "refiner_enabled")),
 		      "Edge refiner stays in standard view");
 		for (const auto *key : {"group_edge", "group_color", "group_sync", "group_output"})
@@ -77,6 +78,24 @@ int main(int argc, char **argv)
 			      ready.find("DirectML") != std::string::npos,
 		      "Ready status keeps backend, frame rate and delay on one line");
 		obs_properties_destroy(status_props);
+		auto *cost_data = obs_data_create();
+		corridorkey::set_filter_defaults(cost_data);
+		obs_data_set_string(cost_data, "model_id", "ck1");
+		obs_data_set_string(cost_data, "hint_source", "ck2_stage1");
+		obs_data_set_bool(cost_data, "advanced", true);
+		control.state->hint_last_ms = 4.5;
+		auto *cost_props = corridorkey::create_filter_properties(&control);
+		obs_properties_apply_settings(cost_props, cost_data);
+		const std::string cost = obs_data_get_string(cost_data, "ck1_hint_cost");
+		check(cost.find("4.50") != std::string::npos && cost.find("CK2") != std::string::npos,
+		      "CK1 shows the selected hint's measured cost");
+		check(obs_property_visible(obs_properties_get(cost_props, "ck1_notice")), "CK1 quality notice");
+		control.state->hint_last_ms.reset();
+		obs_properties_apply_settings(cost_props, cost_data);
+		check(std::string(obs_data_get_string(cost_data, "ck1_hint_cost")).find("0.00") == std::string::npos,
+		      "An unmeasured hint does not claim zero milliseconds");
+		obs_properties_destroy(cost_props);
+		obs_data_release(cost_data);
 		check(!obs_property_visible(obs_properties_get(props, "group_performance")),
 		      "Advanced group hidden initially");
 		obs_data_set_bool(data, "advanced", true);
@@ -114,6 +133,15 @@ int main(int argc, char **argv)
 		obs_data_set_string(data, "model_id", "ck1");
 		obs_property_modified(obs_properties_get(props, "model_id"), data);
 		check(corridorkey::read_settings(data)->quality.grid == corridorkey::Extent{384, 384}, "CK1 defaults");
+		check(corridorkey::read_settings(data)->hint.source == corridorkey::HintSource::modnet,
+		      "MODNet default");
+		check(obs_property_visible(obs_properties_get(props, "ck1_notice")), "Experimental quality note");
+		obs_data_set_bool(data, "expert", false);
+		obs_property_modified(obs_properties_get(props, "expert"), data);
+		check(obs_property_list_item_count(obs_properties_get(props, "hint_source")) == 2,
+		      "Chroma needs Expert");
+		obs_data_set_bool(data, "expert", true);
+		obs_property_modified(obs_properties_get(props, "expert"), data);
 		check(obs_property_list_item_count(obs_properties_get(props, "hint_source")) == 3,
 		      "future hints hidden");
 		obs_data_set_string(data, "model_id", "ck2");
@@ -158,8 +186,8 @@ int main(int argc, char **argv)
 		caps.choices["hint_source"] = {"modnet", "distilled"};
 		auto *cap_props = corridorkey::create_filter_properties(nullptr, caps);
 		obs_properties_apply_settings(cap_props, data);
-		check(obs_property_list_item_count(obs_properties_get(cap_props, "hint_source")) == 4,
-		      "manifest reveals custom hint slot");
+		check(obs_property_list_item_count(obs_properties_get(cap_props, "hint_source")) == 3,
+		      "manifest reveals custom hint slot without Expert chroma");
 		auto *grids = obs_properties_get(cap_props, "grid");
 		for (size_t index = 0; index < obs_property_list_item_count(grids); ++index) {
 			const std::string grid = obs_property_list_item_string(grids, index);
