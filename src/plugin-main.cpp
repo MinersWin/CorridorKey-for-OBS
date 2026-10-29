@@ -4,6 +4,9 @@
 #include <obs-module.h>
 
 #include "filter.hpp"
+#ifdef CORRIDORKEY_MODEL_MANAGER
+#include "ui/model_manager.hpp"
+#endif
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE("corridorkey", "en-US")
@@ -29,11 +32,17 @@ bool obs_module_load(void)
 	// New optional APIs must be resolved at runtime before use. Keep pass-through
 	// available if inference, a provider, or a future UI capability is unavailable.
 	corridorkey::register_filter();
+#ifdef CORRIDORKEY_MODEL_MANAGER
+	corridorkey::ui::register_model_manager();
+#endif
 	blog(LOG_INFO, "[corridorkey] loaded (version %s; pass-through foundation)", CORRIDORKEY_VERSION);
 	return true;
 }
 
 void obs_module_unload(void)
 {
+#ifdef CORRIDORKEY_MODEL_MANAGER
+	corridorkey::ui::shutdown_model_manager();
+#endif
 	blog(LOG_INFO, "[corridorkey] unloaded");
 }

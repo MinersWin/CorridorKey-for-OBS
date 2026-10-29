@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
 #include "properties.hpp"
+#ifdef CORRIDORKEY_MODEL_MANAGER
+#include "ui/model_manager.hpp"
+#endif
 #include "filter_control.hpp"
 #include "settings/obs_settings.hpp"
 #include <obs-module.h>
@@ -77,7 +80,10 @@ void status(obs_properties_t *p, Form &form, const Settings &s)
 	auto state = form.control ? form.control->status_snapshot() : StatusSnapshot{};
 	std::string first = tr("Status.Missing"), second = tr("Status.Setup");
 	if (state) {
-		if (state->failure) {
+		if (state->failure.code == ErrorCode::model_missing) {
+			first = tr("Status.Missing");
+			second = tr("Status.Setup");
+		} else if (state->failure) {
 			first = tr("Status.Passthrough");
 			first += " · ";
 			first += error_id(state->failure.code);
@@ -350,9 +356,15 @@ bool button(obs_properties_t *p, obs_property_t *prop, void *opaque)
 		if (key == "reset_memory") {
 			if (form.control)
 				form.control->request_reset();
-		} else if (key == "manage_models")
+		} else if (key == "manage_models") {
+#ifdef CORRIDORKEY_MODEL_MANAGER
+			ui::open_model_manager();
+			visible(p, "action_notice", false);
+			return false;
+#else
 			info(p, "action_notice", tr("Models.Placeholder"));
-		else if (key == "diagnostics")
+#endif
+		} else if (key == "diagnostics")
 			info(p, "action_notice", tr("Diagnostics.Placeholder"));
 		visible(p, "action_notice", key != "reset_memory");
 		return true;
