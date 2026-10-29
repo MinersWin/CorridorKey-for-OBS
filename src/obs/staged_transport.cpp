@@ -87,9 +87,12 @@ StagedTransport::StagedTransport(obs_source_t *source, Extent native, Extent gri
 	path = obs_module_file("effects/post.effect");
 	if (path) {
 		reconstruction_ = std::make_unique<Reconstruction>(native, grid, path);
+		reconstruction_half_ = std::make_unique<Reconstruction>(native, Extent{grid.width / 2, grid.height / 2},
+									path, reconstruction_.get());
 		bfree(path);
 	}
-	if (!reconstruction_ || !reconstruction_->available())
+	if (!reconstruction_ || !reconstruction_->available() || !reconstruction_half_ ||
+	    !reconstruction_half_->available())
 		return;
 	for (auto &entry : slots_) {
 		entry = std::make_unique<Slot>();
@@ -276,14 +279,14 @@ bool StagedTransport::upload(const FrameResult &result, const std::vector<float>
 		return false;
 	auto &slot = *slots_[result.input.lease.id().index];
 	auto *model = extent == grid_ ? slot.model : slot.model_half;
+	auto &post = extent == grid_ ? *reconstruction_ : *reconstruction_half_;
 	gs_texture_set_image(model, reinterpret_cast<const std::uint8_t *>(rgba.data()),
 			     extent.width * 4 * sizeof(float), false);
 	const bool finished = result.input.settings &&
-			      reconstruction_->prepare(gs_texrender_get_texture(slot.native),
-						       gs_texrender_get_texture(slot.grid), model,
-						       *result.input.settings, result.transform.sampled_roi) &&
-			      reconstruction_->finish(slot.output, gs_texrender_get_texture(slot.native),
-						      *result.input.settings, result.transform.sampled_roi, debug_view);
+			      post.prepare(gs_texrender_get_texture(slot.native), gs_texrender_get_texture(slot.grid),
+					   model, *result.input.settings, result.transform.sampled_roi) &&
+			      post.finish(slot.output, gs_texrender_get_texture(slot.native), *result.input.settings,
+					  result.transform.sampled_roi, debug_view);
 	// Even a partially submitted post pass retains its native input until the
 	// GPU is done; presentation will extend this fence to include the draw.
 	if (!slot.drawn.signal()) {

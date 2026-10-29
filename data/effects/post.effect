@@ -14,6 +14,7 @@ uniform float2 texel;
 uniform float2 input_size;
 uniform float2 grid_size;
 uniform float2 model_size;
+uniform float2 guide_size;
 uniform float2 coarse_size;
 uniform float4 roi;
 uniform float4 user_cut;
@@ -75,6 +76,19 @@ float4 sample_Network(float2 uv)
     return lerp(lerp(safe4(model_image.SampleLevel(point_clamp, a, 0.0)), safe4(model_image.SampleLevel(point_clamp, a + float2(step_uv.x, 0.0), 0.0)), weight.x),
                 lerp(safe4(model_image.SampleLevel(point_clamp, a + float2(0.0, step_uv.y), 0.0)), safe4(model_image.SampleLevel(point_clamp, a + step_uv, 0.0)), weight.x), weight.y);
 }
+// Guide and model pixels share centres only after sampling the analysis image
+// onto the model grid. Averaging products on the analysis grid is a different filter.
+float4 sample_Guide(float2 uv)
+{
+    if (guide_size.x == grid_size.x && guide_size.y == grid_size.y)
+        return safe4(guide_image.SampleLevel(point_clamp, uv, 0.0));
+    float2 p = uv * guide_size - 0.5;
+    float2 base = floor(p), weight = p - base;
+    float2 a = (base + 0.5) / guide_size;
+    float2 step_uv = 1.0 / guide_size;
+    return lerp(lerp(safe4(guide_image.SampleLevel(point_clamp, a, 0.0)), safe4(guide_image.SampleLevel(point_clamp, a + float2(step_uv.x, 0.0), 0.0)), weight.x),
+                lerp(safe4(guide_image.SampleLevel(point_clamp, a + float2(0.0, step_uv.y), 0.0)), safe4(guide_image.SampleLevel(point_clamp, a + step_uv, 0.0)), weight.x), weight.y);
+}
 float4 sample_Coarse(float2 uv)
 {
     float2 p = uv * coarse_size - 0.5;
@@ -89,14 +103,14 @@ float4 sample_Coarse(float2 uv)
 float4 Solve(Vertex v) : TARGET
 {
     // A local origin keeps FP32 moments accurate on nearly constant guides.
-    float3 origin = saturate(safe4(guide_image.Sample(point_clamp, v.uv))).rgb;
+    float3 origin = saturate(sample_Guide(v.uv)).rgb;
     float3 mean = float3(0.0, 0.0, 0.0), cross_alpha = mean, diagonal = mean, off = mean;
     float mean_alpha = 0.0, count = 0.0;
     for (int y = -radius; y <= radius; ++y) {
         for (int x = -radius; x <= radius; ++x) {
             float2 uv = v.uv + float2(x, y) * texel;
             if (uv.x >= 0.0 && uv.y >= 0.0 && uv.x < 1.0 && uv.y < 1.0) {
-                float3 rgb = saturate(safe4(guide_image.Sample(point_clamp, uv))).rgb - origin;
+                float3 rgb = saturate(sample_Guide(uv)).rgb - origin;
                 float alpha = saturate(clean(sample_Network(uv).a));
                 mean += rgb; mean_alpha += alpha; cross_alpha += rgb * alpha;
                 diagonal += rgb * rgb; off += rgb.xxy * rgb.yzz; count += 1.0;
@@ -129,7 +143,7 @@ float4 Box(Vertex v) : TARGET
 }
 float4 Delta(Vertex v) : TARGET
 {
-    return float4(saturate(safe4(sample_Network(v.uv))).rgb - saturate(safe4(guide_image.Sample(point_clamp, v.uv))).rgb, 0.0);
+    return float4(saturate(safe4(sample_Network(v.uv))).rgb - saturate(sample_Guide(v.uv)).rgb, 0.0);
 }
 float4 Band(Vertex v) : TARGET
 {
@@ -148,7 +162,7 @@ float4 BackgroundSeed(Vertex v) : TARGET
 {
     float a = saturate(clean(sample_Network(v.uv).a));
     float weight = (1.0 - a) * (1.0 - a); weight *= weight;
-    return float4(decode(guide_image.Sample(point_clamp, v.uv).rgb) * weight, weight);
+    return float4(decode(sample_Guide(v.uv).rgb) * weight, weight);
 }
 float4 Reduce(Vertex v) : TARGET
 {
@@ -158,7 +172,7 @@ float4 Reduce(Vertex v) : TARGET
     float3 sum = float3(0.0, 0.0, 0.0); float count = 0.0, alpha = 0.0;
     for (int y = int(first.y); y < int(end.y); ++y) for (int x = int(first.x); x < int(end.x); ++x) {
         float2 uv = (float2(x, y) + 0.5) / grid_size;
-        sum += saturate(safe4(guide_image.SampleLevel(point_clamp, uv, 0.0))).rgb;
+        sum += saturate(sample_Guide(uv)).rgb;
         alpha = max(alpha, saturate(clean(sample_Network(uv).a))); count += 1.0;
     }
     return float4(sum / max(count, 1.0), alpha);
