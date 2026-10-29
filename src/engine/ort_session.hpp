@@ -25,6 +25,7 @@ struct SessionConfig {
 	bool require_adapter_match = true;
 	bool diagnostic_only = false;  // BF16 fixture exploration, never live preparation.
 	bool prebuilt_context = false; // EPContext graph + engine hashes supplied by the binder.
+	bool persistent_io = false;
 	// W11 may supply its matched DML device/queue; both must be provided together.
 	IDMLDevice *dml_device = nullptr;
 	ID3D12CommandQueue *dml_queue = nullptr;
@@ -47,6 +48,7 @@ public:
 	void finish_build(); // Publish compilation artifacts; does not claim first-run parity.
 	void close();        // Worker teardown; reports cache publication failures. Destructor is best effort.
 private:
+	std::map<std::string, std::size_t> finish_profile_unlocked();
 	struct Impl;
 	std::unique_ptr<Impl> impl_;
 };
