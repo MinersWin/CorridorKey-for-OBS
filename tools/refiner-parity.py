@@ -49,6 +49,8 @@ def render(args):
         prefix = Path(row["native"]).parent / args.label
         row.update(output=str(prefix), refiner_budget=args.budget)
         row["interop"] = args.interop
+        if args.dml_library:
+            row["dml_library"] = str(args.dml_library.resolve())
         if args.blend:
             row["refiner_centres"] = str(prefix) + ".centres.f32"
     manifest = args.output / f"{args.label}-render.json"
@@ -223,6 +225,7 @@ if __name__ == "__main__":
     p.add_argument("--obs", type=Path, default=Path("C:/Program Files/obs-studio"))
     p.add_argument("--blend", action="store_true")
     p.add_argument("--interop", action="store_true", help="Use CUDA texture transfers and atlas conversion in the native probe")
+    p.add_argument("--dml-library", type=Path, help="Use D3D11/D3D12 atlas transfers with this DirectML library")
     p.add_argument("--validator", type=Path)
     p.add_argument("--config", type=Path)
     p.add_argument("--backend", default="tensorrt")

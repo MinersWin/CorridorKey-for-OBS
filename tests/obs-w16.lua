@@ -12,6 +12,7 @@ void obs_frontend_reset_video(void);
 local core = ffi.load("obs")
 local frontend = ffi.load("obs-frontend-api")
 local directory, footage, previous = "", "", ""
+local backend = "tensorrt"
 local sources, items = {}, {}
 local scene, away, duplicate_item, real = nil, nil, nil, false
 local serial, ticks = 0, 0
@@ -26,7 +27,7 @@ local function add_filter(index)
     obs.obs_data_set_int(data, "settings_version", 2)
     obs.obs_data_set_string(data, "preset", profile)
     obs.obs_data_set_string(data, "profile", profile)
-    obs.obs_data_set_string(data, "backend", "tensorrt")
+    obs.obs_data_set_string(data, "backend", backend)
     obs.obs_data_set_string(data, "transport", "auto")
     obs.obs_data_set_string(data, "grid", index == 2 and "512x512" or "256x512")
     obs.obs_data_set_int(data, "refiner_max_tiles", index == 2 and 512 or 384)
@@ -218,6 +219,8 @@ function script_load(settings)
     end
     directory = obs.obs_data_get_string(settings, "directory")
     footage = obs.obs_data_get_string(settings, "footage")
+    local configured_backend = obs.obs_data_get_string(settings, "backend")
+    if configured_backend ~= "" then backend = configured_backend end
     -- Create scenes on the first command, after the frontend finishes loading
     -- its saved collection and releasing its temporary scene references.
     obs.timer_add(poll, 250)
