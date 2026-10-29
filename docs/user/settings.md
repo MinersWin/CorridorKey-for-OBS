@@ -60,7 +60,7 @@ The panel uses OBS's font, spacing and colours. These captures show a test sourc
 | --- | --- | --- | --- |
 | Edge refiner (`refiner_enabled`) | On (CK1: Off) | Standard; Off / On | Recover edges from native pixels. Requires a compatible refiner model and transfer path. CK1 needs an evaluated experimental package. |
 | Edge method (`guide_mode`) | Refiner (CK1: RGB guided) | Advanced; Refiner / RGB guided / Bilinear / Chroma legacy | RGB guided is the fallback if refinement is unavailable. Bilinear reveals the model detail limit. Chroma legacy is experimental. |
-| Refiner (`refiner_model`) | v12 | Advanced; Installed model or validated source ID | Use an installed compatible model: v12 is the reference; older versions are for comparison. Arbitrary checkpoint paths are not accepted. |
+| Refiner (`refiner_model`) | v15 | Advanced; Installed model | Edge Refiner v15 is the shipped model. Saved version choices use this verified package. Arbitrary checkpoint paths are not accepted. |
 | Hair radius (`guided_radius`) | 2 px | Advanced; 1 to 12 px; step 1 | Guided-filter neighborhood in low-grid pixels. Larger values can smooth detail. |
 | Edge smoothness (`guided_eps`) | 0.0005 | Expert; log10 epsilon −5 to −2; step 0.1; exact epsilon saved | Stored as exact epsilon; the UI uses log10 from −5 to −2. Larger values smooth more.  |
 | Matte contrast (`alpha_contrast`) | 1.05 | Advanced; 0.7 to 1.5; step 0.01 | Increase separation around mid-opacity. Too much removes translucent detail. |
@@ -77,7 +77,7 @@ The panel uses OBS's font, spacing and colours. These captures show a test sourc
 | Colour method (`unmix_mode`) | Delta | Advanced; Delta / Compositing equation | Delta transfers model colour correction onto native detail. Compositing equation is experimental. |
 | Interior colour (`unmix_inner`) | 1 | Advanced; 0 to 1; step 0.05 | Model colour correction in solid areas. Edges retain full correction. |
 | Despill (`despill_strength`) | 0.65 | Advanced; 0 to 1; step 0.02 | Remove screen-colour spill after reconstruction/refinement. CK1 Blue uses the blue channel. Reduce if neutral or coloured details shift. |
-| Screen (`screen_color`) | Green | Advanced; Green / Blue | CK1 uses a separate blue-screen checkpoint. CK2 v12 presets are evaluated for green. |
+| Screen (`screen_color`) | Green | Advanced; Green / Blue | CK1 uses a separate blue-screen checkpoint. CK2 presets use green-screen input. |
 
 ## Manual crop
 
@@ -153,7 +153,7 @@ Experiments stay unavailable until their implementation and graph support are de
 | Head tiles (`head_max_tiles`) | 256 | Expert; Installed fixed batches, 64 to 1536 in steps of 64 | Installed fixed refiner tile budget for the head pass. |
 | Min. head gain (`head_min_gain`) | 1.3 | Expert; 1 to 4; step 0.1 | Only run if head sampling improves by at least this factor. |
 
-Tile size is read-only in Expert: v12 has a 32-pixel center with a 10-pixel halo. Its upper alpha-band cutoff is 0.996. The installed graph defines these constants; they are not additional quality sliders.
+Tile size is read-only in Expert: v15 has a 32-pixel center with a 10-pixel halo. Its upper alpha-band cutoff is 0.996. The installed graph defines these constants; they are not additional quality sliders.
 
 ## Older settings
 

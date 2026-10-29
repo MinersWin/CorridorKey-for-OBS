@@ -17,7 +17,7 @@ See [design specifications](docs/design/) for the planned architecture, models, 
 - Experimental CK1 green/blue with MODNet, CK2 Stage-1 or Expert-only chroma hints.
   See the [CK1 guide](docs/user/ck1.md) for quality comparisons and costs.
 - Native matte reconstruction, despill and advanced controls in filter properties.
-- Optional learned Edge Refiner v12 with a tile budget selected in filter properties.
+- Optional learned Edge Refiner v15 with a tile budget selected in filter properties.
 - In-OBS model management with licence acceptance, resumable downloads and SHA-256 verification.
 - CK2 GPU inference through ONNX Runtime: NVIDIA TensorRT / CUDA and DirectML.
   Additional providers still need pipeline integration and hardware validation.

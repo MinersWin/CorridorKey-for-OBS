@@ -74,7 +74,7 @@ Populate `PropertyCapabilities::choices` with string values from the schema:
 | Entry | Values |
 | --- | --- |
 | `ck2.grid`, `ck1.grid` | Installed HxW variants, separately for each family |
-| `refiner_model` | Compatible package IDs, such as `v12` |
+| `refiner_model` | Compatible package IDs, such as `v15` |
 | `refiner_max_tiles`, `head_max_tiles`, `head_size` | Installed numeric variants represented as decimal strings |
 | `backend`, `precision`, `transport` | Successfully probed enum values; `auto` is always offered |
 | `device` | Probed adapter IDs; empty selects the OBS adapter |
@@ -116,7 +116,7 @@ properties. Opening properties or editing a control also refreshes the snapshot.
 | `auto_audio_source` | Active audio pairing by UUID; legacy names produce a reselection notice |
 | `output_width/height`, `engine_resolution` | Derived from the parent source; no fixed bridge size |
 | `async_4k_post` | Derived; worker scheduling is always asynchronous |
-| `refiner_tile`, halo, band upper cutoff | Derived model constants; v12 center 32, halo 10, upper cutoff .996 |
+| `refiner_tile`, halo, band upper cutoff | Derived model constants; v15 center 32, halo 10, upper cutoff .996 |
 | `refiner_max_tiles=0` | Retired unbounded live mode; clamp to 64 with a notice |
 | `use_cradio` | Retired, fixed off; a legacy true value produces a notice |
 | `post_v3`, `compile_post`, `triton_post`, `triton_dw`, `compile_refiner`, `compile_mode` | Retired Python switches; native post path and backend compilation own these choices |

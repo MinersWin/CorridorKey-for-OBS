@@ -5,7 +5,7 @@ Open **Manage models...** in a CorridorKey filter, or choose **Tools → Corrido
 Both open the same window. You can keep using OBS while it is open. Closing the
 manager leaves an installation running; **Cancel task** requests cancellation.
 
-The catalogue offers CK2 Facecam, CK2 Balanced / Quality, Edge Refiner v12,
+The catalogue offers CK2 Facecam, CK2 Balanced / Quality, Edge Refiner v15,
 experimental CK1 Green and Blue, and MODNet hint. Choose Set up CorridorKey for
 Balanced. For CK1, install the matching screen package and MODNet, then enable
 Advanced in the filter. Read the [CK1 guide](ck1.md) for its quality limits and
@@ -130,3 +130,12 @@ to reach the model actions; the bottom controls remain visible. See the
 [compact window](../images/model-manager/yami-light-compact.png),
 [100% scale](../images/model-manager/yami-first-run.png) and
 [150% scale](../images/model-manager/yami-1.5-first-run.png) examples.
+
+## Updating the edge refiner
+
+An installed v12 refiner shows **Update available** for Edge Refiner v15. Review
+the licence and install the update, then enable Edge refiner in the filter.
+The plugin selects v15 after its replacement pipeline prepares successfully.
+Keep the model manager open to clean up the old revision after its active readers
+finish. If you close it, cleanup resumes the next time you open it. A failed
+installation or preparation keeps the selected revision and its files.

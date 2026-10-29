@@ -125,9 +125,9 @@ Acceptance: native GL texture/PBO round-trip, correct context/device ownership, 
 
 ## W13: Native-resolution refiner, selection and tile transport (**HIGH RISK**)
 
-Goal: reproduce v12 detail without full-resolution neural tensors. Inputs: E01 refiner graph/contract, W08 coefficient/background maps, native RGB access. Files: `src/gpu/post/{band,tile_gather,tile_scatter}.*`, `src/engine/refiner_stage.*`, staged atlas transport. Dependencies: W08/W09/E01; W10/W11/W12 for fast native paths. Size: L/XL.
+Goal: reproduce v15 detail without full-resolution neural tensors. Inputs: E01 refiner graph/contract, W08 coefficient/background maps, native RGB access. Files: `src/gpu/post/{band,tile_gather,tile_scatter}.*`, `src/engine/refiner_stage.*`, staged atlas transport. Dependencies: W08/W09/E01; W10/W11/W12 for fast native paths. Size: L/XL.
 
-Acceptance: static batches 256/512/768, 32-pixel center/10-pixel halo/52 input for v12; 11 semantic channels and graph-defined padding. Deterministic top-K, valid-slot mask, no duplicate padded writes, correct image-border clamp and feathering toward unselected neighbors. Faint hair and dark/noisy backgrounds match sequence fixtures without seams. Despill/levels applied once after blending. Staged fallback transfers native RGB tiles from the original retained frame, shows added delay and may explicitly disable refinement for performance. Upscaled low-grid pixels cannot satisfy this acceptance. CK1 use remains gated on a separate quality report.
+Acceptance: static batches 256/384/512/768, 32-pixel center/10-pixel halo/52 input for v15; 11 semantic channels and graph-defined padding. Deterministic top-K, valid-slot mask, no duplicate padded writes, correct image-border clamp and feathering toward unselected neighbors. Faint hair and dark/noisy backgrounds match sequence fixtures without seams. Despill/levels applied once after blending. Staged fallback transfers native RGB tiles from the original retained frame, shows added delay and may explicitly disable refinement for performance. Upscaled low-grid pixels cannot satisfy this acceptance. CK1 use remains gated on a separate quality report.
 
 ## E02: CK1 and optional hint export packages
 

@@ -6,7 +6,7 @@ Design baseline: 28 October 2026. Status: implementation specification, not a cl
 ## Decisions
 
 - Build one native C++ video effect filter, `CorridorKey`, with an asynchronous inference worker and bounded frame ownership. Use OBS's supplied filter input; never call the target's video renderer recursively.
-- Default to CK2 Balanced: Stage 1, a 512×512 subject ROI, v12 native-resolution refinement with 512 tiles. Offer Facecam 60 and Quality as explicit alternatives. The name Facecam 60 is a target, not a hardware-independent promise.
+- Default to CK2 Balanced: Stage 1, a 512×512 subject ROI, v15 native-resolution refinement with 512 tiles. Offer Facecam 60 and Quality as explicit alternatives. The name Facecam 60 is a target, not a hardware-independent promise.
 - Present a completed foreground and alpha with their original RGB frame. Do not silently apply an old matte to current video. Drop work when busy to keep latency bounded.
 - Use GPU interop where verified; retain a staged small-grid transport as the portable baseline. The latter supports guided reconstruction, but native-detail refinement needs a separate tile or full-frame transport.
 - Download graphs separately; obtain weights from their publishers and bind them locally in C++. No Python, PyTorch, model weights, or CK-derived graphs in the plugin distribution.
@@ -154,7 +154,7 @@ Use a small C++ interface around `prepare`, `reset`, `submit`, `poll_result`, `c
 
 **CK1:** hint source → GreenFormer → shared reconstruction. Revision 4 takes sRGB RGB in [0,1] plus a linear coarse alpha hint; normalization is inside the graph. CK1 has no hint-confidence scalar. The owner decision makes MODNet the default and keeps chroma Expert-only, with a teal/uneven-screen warning. CK2 Stage-1 alpha is also available but loads the CK2 foundations and adds their cost. Explain that person hints can omit props or chairs. CK1 is Advanced-only and Experimental; recommend CK2 Facecam without refiner for weak GPUs. Learned refinement stays off until an evaluated CK1 package exists. See [verified contract](MODELS.md).
 
-**Refiner:** optional graph with fixed batch K and 52×52 tiles for v12: 32×32 valid center plus 10-pixel halo. Its 11 semantic channels are native sRGB I(3), estimated background B(3), transferred foreground F(3), network alpha(1), guided alpha(1). Internal channel padding to 16 belongs in the graph contract. v12's four dilations are 1,2,4,1; do not derive the halo from the Python class's different constructor defaults. Dummy slots are masked; duplicate padded tiles never write output. CK2-trained v12 on CK1 is **experimental until evaluated**.
+**Refiner:** optional graph with fixed batch K and 52×52 tiles for v15: 32×32 valid center plus 10-pixel halo. Its 11 semantic channels are native sRGB I(3), estimated background B(3), transferred foreground F(3), network alpha(1), guided alpha(1). Internal channel padding to 16 belongs in the graph contract. v15's four dilations are 1,2,4,1; do not derive the halo from the Python class's different constructor defaults. Dummy slots are masked; duplicate padded tiles never write output. Learned refinement is disabled for CK1.
 
 ## Shader / GPU pass list
 

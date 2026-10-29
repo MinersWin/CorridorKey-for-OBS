@@ -1,16 +1,19 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # Production catalogue inventory
 
-Revision 3: `5d88114f169cb082cda238426af47feffb9724af` in
+CK2 graphs use revision 3: `5d88114f169cb082cda238426af47feffb9724af` in
 `mantelmoritz/CorridorKey-ONNX-Graphs`. Counts are bytes. The graph/JSON pairs
 were downloaded anonymously and checked on 29 October 2026. Full machine-readable
 pins and verification notes are in [validation-w09b.json](validation-w09b.json).
+The refiner uses revision 5, `121984ec124141b9a1e42af05946fafe26205fec`;
+[its verification record](validation-r3-refiner-v15.json) includes the anonymous
+HF listing and native binding results. The catalogue sequence is 3.
 
 | Package | Download bytes | Bound bytes | Manifest SHA-256 |
 | --- | ---: | ---: | --- |
 | ck2-facecam | 3292123815 | 2332083292 | `f1e57bfd769efda18641698be4a99aed9d63420eb8a1cda60629b77783a7deb0` |
 | ck2-balanced | 3296058594 | 3139268972 | `46e3d4b8ed17039c25e39147f1886ae823b98f367f63f0a21a46aaf1e6cef789` |
-| refiner-v12 | 230644 | 374080 | `8274d32f8fa56ec2235501825dbd7984db3f16d414e1aa33a027710382fb344e` |
+| refiner-v12 (Edge Refiner v15) | 298736 | 645184 | `cbb6a1deae57bc0ae1f0ef0a629d2d5c8ab78c45f1202680725799720e134e9b` |
 
 Publisher checkpoints are shared as verified cache blobs across packages. The
 download counts include all required checkpoints; Facecam and Balanced overlap.
@@ -20,7 +23,7 @@ download counts include all required checkpoints; Facecam and Balanced overlap.
 | ck2 | 2661698720 | `c43596de98cc8866d577c8a9f9ea239acdf3f7a130ff24e25db4375a50590436` |
 | stats | 18864 | `924783ceddd293fd470126332ce328166faea6c4c8d2f36402d5b95187166af3` |
 | moge | 351063528 | `be74d978c6a69cb467c057aa8b736e4b3a8eb9b2ec41622edd6b26c756573e3b` |
-| refiner | 94336 | `377d7c60ab7f6a5691e9977a491bcea397ade1421bb6087f2bc79ad3a9ce315d` |
+| refiner | 162320 | `b38746544edbdaa207723ffe1dd6e799e1fa7f176bd74ad4c7c91d5dd84abf74` |
 | rvm | 270086372 | `8821ba9f5d983b9a3746bb5fe86b9c2ea834fe9985ab7b02438b917438bf2ede` |
 
 Full source revisions are in [sources-v1.json](../../data/models/sources-v1.json).
@@ -42,14 +45,14 @@ RVM retains publisher MD5 `ZJb6kj8+tasiJbVeplXu7Q==`; installation uses SHA-256.
 | `graphs/stage1nomask_512x512.json` | 141173 | `80ef9507231b096655e7b4ca4959146345fbee6e59fdf7760e9ce973e97466a2` |
 | `graphs/stage2nomask_512x512.onnx` | 3334405 | `d67141a67c4cd75062045525cf2088ff9aa0e697e9094a96c1cdea38c979d5b5` |
 | `graphs/stage2nomask_512x512.json` | 64733 | `bedd565daea725a97d5b7c78dc7d3cc8902b4763d1d7a88361aa0d202ab30404` |
-| `graphs/refiner_b256.onnx` | 30443 | `06bd74527b07f2ccbbbbf92e110f51f296d9140d86f48ebb0a3067b4acfc5108` |
-| `graphs/refiner_b256.json` | 3634 | `bc6c70df41b000e06c1975e309a6840da4deffed0f015c08860adcda711bc9d1` |
-| `graphs/refiner_b384.onnx` | 30443 | `82698ff62ba402a25ce7f4f28b0cbf27cb81dac3014f8ed320b4fa5fb6f4e823` |
-| `graphs/refiner_b384.json` | 3634 | `7b68782047a90499a9f9248a78521ba5354953c6df48b35487f63fe2a9ceb9e4` |
-| `graphs/refiner_b512.onnx` | 30443 | `784a5825ecab22f9040ec95ae992b972928475bb7cdd9849e8a85c639dc61a45` |
-| `graphs/refiner_b512.json` | 3634 | `2e10f73fbbc744303ed19dc6b58d4bac2c97d4e10fd2d36910fef6f374c209df` |
-| `graphs/refiner_b768.onnx` | 30443 | `739c5704be317d596ab8e283e68af8d9d41fe734ad591d017d5e3873aefd1224` |
-| `graphs/refiner_b768.json` | 3634 | `94e608108e9786d12673dc38de229b45facfb87d297a87f9726ed86cbef82e98` |
+| `graphs/refiner_b256.onnx` | 30456 | `e991f02184152dcf57a4ffc047dbbde0cbd8f4160a1d4c220f21a141eed6c69d` |
+| `graphs/refiner_b256.json` | 3648 | `62bbdfde0d87a6eb5deb5fd3932b18f2649f50e2ee10473d30a2187c3c2b254a` |
+| `graphs/refiner_b384.onnx` | 30456 | `01d0e348016e1187b668377fefa99feb5f1c0fd6dd2aa2494b4b0841c1f56d76` |
+| `graphs/refiner_b384.json` | 3648 | `10e9e51af7581ea0490c854786ee1119bafc139ba13ca673b32eda631d15a104` |
+| `graphs/refiner_b512.onnx` | 30456 | `62ee8f0bdef804dc5976f3a14a776711b42c5d0f53ac05c3f49af653358878a9` |
+| `graphs/refiner_b512.json` | 3648 | `cd8f13fc4f3185b3fe88d8a5e6edf8b04caeb5cdc363be8aad4255d0f8336b83` |
+| `graphs/refiner_b768.onnx` | 30456 | `7c76a54f62503b925548fa74cc817d2150e0300318774de9c9c6881d93272a7f` |
+| `graphs/refiner_b768.json` | 3648 | `2c77d36361ddc56335f28fbcdfebc1688eb1542c7bbabefbf80e0baa41f48a7b` |
 
 | Locally bound output | Bytes | Expected SHA-256 |
 | --- | ---: | --- |
@@ -60,12 +63,14 @@ RVM retains publisher MD5 `ZJb6kj8+tasiJbVeplXu7Q==`; installation uses SHA-256.
 | `graphs/rvm_512x512.weights` | 132893696 | `21b2f868e5b51297cc4803fa246219f808ea1cfc0bb1fb49c8e8918133709192` |
 | `graphs/stage1nomask_512x512.weights` | 1848139792 | `c0120dff1ad83d6f2417d33b75f5324c2f82f285072dc01f383c2abef00178e1` |
 | `graphs/stage2nomask_512x512.weights` | 807185680 | `ab218724cc9428b1273ccce58d081ccd023ba7bed4e716600aea587fcbb32f5d` |
-| `graphs/refiner_b256.weights` | 93520 | `05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b` |
-| `graphs/refiner_b384.weights` | 93520 | `05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b` |
-| `graphs/refiner_b512.weights` | 93520 | `05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b` |
-| `graphs/refiner_b768.weights` | 93520 | `05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b` |
+| `graphs/refiner_b256.weights` | 161296 | `0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603` |
+| `graphs/refiner_b384.weights` | 161296 | `0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603` |
+| `graphs/refiner_b512.weights` | 161296 | `0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603` |
+| `graphs/refiner_b768.weights` | 161296 | `0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603` |
 
-Bound-output pins were computed from the exporter's local files. The first-run
+CK2 bound-output pins were computed from the exporter's local files.
+Refiner pins were computed by W05 binding the anonymously downloaded v15 checkpoint;
+all four outputs match the exporter byte for byte. The first-run
 installation verifies the native binder's results against those pins before
 publishing the package. No model or graph payload is stored in Git.
 

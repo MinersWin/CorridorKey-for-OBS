@@ -74,6 +74,54 @@ TEST_CASE("SHA-256 and canonical cache identity")
 	CHECK(first.path() != newer.path());
 	CHECK(fs::exists(temp.path / sha256(key.canonical()) / "identity.json"));
 }
+TEST_CASE("v12 engine caches are reusable only until the refiner identity changes")
+{
+	Temp temp;
+	CacheIdentity v12;
+	v12.graph_hash = "82698ff62ba402a25ce7f4f28b0cbf27cb81dac3014f8ed320b4fa5fb6f4e823";
+	v12.manifest_hash = "7b68782047a90499a9f9248a78521ba5354953c6df48b35487f63fe2a9ceb9e4";
+	v12.weights_hash = "05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b";
+	v12.recipe_version = "export-v1";
+	v12.precision = "fp16";
+	v12.shapes = {384, 11, 52, 52};
+	const auto old_directory = temp.path / sha256(v12.canonical());
+	{
+		CacheLease build(temp.path, v12);
+		std::ofstream(build.path() / "refiner.engine") << "v12 engine";
+		build.commit();
+	}
+	{
+		CacheLease reuse(temp.path, v12);
+		CHECK(fs::exists(reuse.path() / "refiner.engine"));
+	}
+	auto v15 = v12;
+	v15.graph_hash = "01d0e348016e1187b668377fefa99feb5f1c0fd6dd2aa2494b4b0841c1f56d76";
+	v15.manifest_hash = "10e9e51af7581ea0490c854786ee1119bafc139ba13ca673b32eda631d15a104";
+	v15.weights_hash = "0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603";
+	for (const auto &changed : {v15,
+				    [&] {
+					    auto k = v12;
+					    k.weights_hash = v15.weights_hash;
+					    return k;
+				    }(),
+				    [&] {
+					    auto k = v12;
+					    k.manifest_hash = v15.manifest_hash;
+					    return k;
+				    }()}) {
+		CAPTURE(changed.canonical());
+		const auto directory = temp.path / sha256(changed.canonical());
+		CHECK(directory != old_directory);
+		CacheLease fresh(temp.path, changed);
+		CHECK_FALSE(fs::exists(fresh.path() / "refiner.engine"));
+		CHECK(fs::exists(directory / "identity.json"));
+		std::ofstream(fresh.path() / "v15.engine") << "new identity";
+		fresh.commit();
+	}
+	CacheLease rollback(temp.path, v12);
+	CHECK(fs::exists(rollback.path() / "refiner.engine"));
+	CHECK_FALSE(fs::exists(rollback.path() / "v15.engine"));
+}
 TEST_CASE("bundle paths and contents are verified")
 {
 	Temp temp;
@@ -284,6 +332,65 @@ TEST_CASE("per-graph alternatives retain precision and never promote BF16 or CPU
 	CHECK(prepare_graph(alternatives, probe, compiler, cancelled.get_token()).attempts.empty());
 	CHECK_FALSE(preparing);
 	CHECK(finished == 2);
+}
+TEST_CASE("real sessions isolate v12 and v15 caches even with identical graph bytes")
+{
+	const char *bundle_path = std::getenv("CK_TEST_BUNDLE");
+	const char *graph_path = std::getenv("CK_TEST_GRAPH");
+	if (!bundle_path || !graph_path)
+		return;
+	Temp temp;
+	SessionConfig config;
+	config.bundle = read_bundle(bundle_path);
+	config.graph = fs::absolute(graph_path);
+	config.cache_root = temp.path / "engines";
+	config.cache.manifest_hash = "7b68782047a90499a9f9248a78521ba5354953c6df48b35487f63fe2a9ceb9e4";
+	config.cache.weights_hash = "05e61731b9d37c31dd870197bdd08783eab446abfd5a6afa6ad6db1d94f3656b";
+	config.cache.recipe_version = "export-v1";
+	REQUIRE(config.bundle.backend == Backend::cpu_diagnostic);
+	auto workspace = [&] {
+		fs::path result;
+		for (const auto &entry : fs::directory_iterator(config.cache_root))
+			if (entry.path().filename().string().starts_with(".working-")) {
+				REQUIRE(result.empty());
+				result = entry.path();
+			}
+		REQUIRE_FALSE(result.empty());
+		return result;
+	};
+	{
+		Session build(config);
+		std::ofstream(workspace() / "v12.engine") << "session cache sentinel";
+		build.finish_build();
+		build.close();
+	}
+	{
+		Session reuse(config);
+		CHECK(fs::exists(workspace() / "v12.engine"));
+		reuse.finish_build();
+		reuse.close();
+	}
+	// Hold the graph and metadata constant to expose ORT's external-weights cache hazard.
+	config.cache.weights_hash = "0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603";
+	{
+		Session updated(config);
+		CHECK_FALSE(fs::exists(workspace() / "v12.engine"));
+		std::ofstream(workspace() / "v15.engine") << "v15 session cache";
+		updated.finish_build();
+		updated.close();
+	}
+	unsigned identities = 0;
+	for (const auto &entry : fs::directory_iterator(config.cache_root))
+		if (fs::exists(entry.path() / "identity.json"))
+			++identities;
+	CHECK(identities == 2);
+	{
+		Session reuse(config);
+		CHECK(fs::exists(workspace() / "v15.engine"));
+		CHECK_FALSE(fs::exists(workspace() / "v12.engine"));
+		reuse.finish_build();
+		reuse.close();
+	}
 }
 TEST_CASE("real optional CPU bundle probes before in-process IOBinding")
 {

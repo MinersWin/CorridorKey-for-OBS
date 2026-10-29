@@ -7,14 +7,22 @@ those downloads and runs the [native weight binder](binder.md); the inference lo
 probe the resulting graphs before using them for video.
 
 The bundled [catalogue](../../data/models/catalogue-v1.json) contains CK2 Facecam,
-CK2 Balanced / Quality, Edge Refiner v12, experimental CK1 green/blue, and the MODNet hint. The CK2 packages use separate
-MoGe, RVM and mask-free Stage 1 graphs; Quality adds `stage2nomask`. CK2 and refiner graphs
-pin revision `5d88114f169cb082cda238426af47feffb9724af`. CK1/MODNet pin
+CK2 Balanced / Quality, Edge Refiner v15, experimental CK1 green/blue, and the MODNet hint. The CK2 packages use separate
+MoGe, RVM and mask-free Stage 1 graphs; Quality adds `stage2nomask`. CK2 graphs pin revision `5d88114f169cb082cda238426af47feffb9724af`.
+Refiner graphs pin revision 5, `121984ec124141b9a1e42af05946fafe26205fec`. CK1/MODNet pin
 revision `082f53c75d275c10b1ddf3be2cb72c5ca559f30b`; each package includes
 256, 384 and 512 square grids, with 384 as the CK1 default. CK1 leases its
 selected hint package separately, with its own licence acceptance. The optional merged
 graphs are excluded. With Edge refiner enabled, activation leases the refiner
 package alongside CK2 and selects the graph matching the tile budget.
+
+Edge Refiner v15 keeps the package ID `refiner-v12` so existing installations show
+**Update available**. Only the v15 revision is offered for download. Installing
+it preserves the selected v12 revision until the replacement pipeline prepares
+successfully. Activation selects v15; the model manager then removes superseded
+refiner revisions on its next disk refresh, once their reader leases are released.
+Closing the manager defers that cleanup until it is opened again. The selected
+revision stays protected by W04's removal rules. See [v15 validation](refiner-v15.md).
 
 Development and ordinary CI builds use an unsigned, installer-only catalogue.
 CMake hashes its exact bytes into `CORRIDORKEY_BUNDLED_CATALOGUE_SHA256`.
@@ -52,7 +60,7 @@ never skips content verification or licence acceptance.
 
 [Production inventory](catalogue-v1-inventory.md) lists every size and digest,
 including bound outputs. Graph pairs were downloaded anonymously once and
-verified against the coordinator's revision-3 hash list and the HF API sizes.
+verified against the pinned release hashes and the HF API sizes.
 Source metadata was checked against the HF API and CK2/RVM local hashes. The
 pinned HF licence files match the bundled registry. Parity references retain
 `unverified`: the existing measurements do not establish every packaged profile,

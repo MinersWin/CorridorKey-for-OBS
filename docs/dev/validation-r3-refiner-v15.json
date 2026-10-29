@@ -1,0 +1,246 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later",
+  "verification": "Anonymous HTTPS downloads; SHA-256, byte count, HF LFS digest or Git blob ID checked against anonymous API listing.",
+  "graphs": {
+    "repo": "mantelmoritz/CorridorKey-ONNX-Graphs",
+    "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+    "files": {
+      "LICENSE": {
+        "bytes": 26650,
+        "sha256": "c92ce56f64162b231c7ce08ce3ed7d8cae15f01a560ca05a8e8db67878eb0065",
+        "listing": {
+          "type": "file",
+          "oid": "c88c7ebf9d29f59f64da5ccded10e1f0a6b269f6",
+          "size": 26650,
+          "path": "LICENSE"
+        }
+      },
+      "README.md": {
+        "bytes": 16492,
+        "sha256": "0e74a4532fc5a253d1afbd769eaaacf920c02a2ba9b8b7b8403892b4ab22096f",
+        "listing": {
+          "type": "file",
+          "oid": "8d18e63d0cf7f601209f1f7314e6bf6e8b72be0d",
+          "size": 16492,
+          "path": "README.md"
+        }
+      },
+      "graphs/refiner_b256.json": {
+        "bytes": 3648,
+        "sha256": "62bbdfde0d87a6eb5deb5fd3932b18f2649f50e2ee10473d30a2187c3c2b254a",
+        "listing": {
+          "type": "file",
+          "oid": "640396d78605231ca2f9c2bb5be2be7c9af53e50",
+          "size": 3648,
+          "path": "graphs/refiner_b256.json"
+        }
+      },
+      "graphs/refiner_b256.onnx": {
+        "bytes": 30456,
+        "sha256": "e991f02184152dcf57a4ffc047dbbde0cbd8f4160a1d4c220f21a141eed6c69d",
+        "listing": {
+          "type": "file",
+          "oid": "381900ae9925aea1cef65d41e267ec3e71b070e7",
+          "size": 30456,
+          "lfs": {
+            "oid": "e991f02184152dcf57a4ffc047dbbde0cbd8f4160a1d4c220f21a141eed6c69d",
+            "size": 30456,
+            "pointerSize": 130
+          },
+          "xetHash": "a1ad75c9c6b3906499e5378550b5148860bdcca517e359a53ff99319f1d5c91f",
+          "path": "graphs/refiner_b256.onnx"
+        }
+      },
+      "graphs/refiner_b384.json": {
+        "bytes": 3648,
+        "sha256": "10e9e51af7581ea0490c854786ee1119bafc139ba13ca673b32eda631d15a104",
+        "listing": {
+          "type": "file",
+          "oid": "a386a3bd75d0595184be01479433b6037f196bff",
+          "size": 3648,
+          "path": "graphs/refiner_b384.json"
+        }
+      },
+      "graphs/refiner_b384.onnx": {
+        "bytes": 30456,
+        "sha256": "01d0e348016e1187b668377fefa99feb5f1c0fd6dd2aa2494b4b0841c1f56d76",
+        "listing": {
+          "type": "file",
+          "oid": "2c2f5d24190908598c77fd0bee16cade9dcf17ef",
+          "size": 30456,
+          "lfs": {
+            "oid": "01d0e348016e1187b668377fefa99feb5f1c0fd6dd2aa2494b4b0841c1f56d76",
+            "size": 30456,
+            "pointerSize": 130
+          },
+          "xetHash": "39c3321240aed91e4b5b4587e2dd17c685d93c74e9e4b9078781e4a366265049",
+          "path": "graphs/refiner_b384.onnx"
+        }
+      },
+      "graphs/refiner_b512.json": {
+        "bytes": 3648,
+        "sha256": "cd8f13fc4f3185b3fe88d8a5e6edf8b04caeb5cdc363be8aad4255d0f8336b83",
+        "listing": {
+          "type": "file",
+          "oid": "e1fbe76f2216d72d8ff248eb65c3878e513070c6",
+          "size": 3648,
+          "path": "graphs/refiner_b512.json"
+        }
+      },
+      "graphs/refiner_b512.onnx": {
+        "bytes": 30456,
+        "sha256": "62ee8f0bdef804dc5976f3a14a776711b42c5d0f53ac05c3f49af653358878a9",
+        "listing": {
+          "type": "file",
+          "oid": "1d5aad880510a76a6d80da916646e43ca2c80cfc",
+          "size": 30456,
+          "lfs": {
+            "oid": "62ee8f0bdef804dc5976f3a14a776711b42c5d0f53ac05c3f49af653358878a9",
+            "size": 30456,
+            "pointerSize": 130
+          },
+          "xetHash": "c1749b52d771a04fab6b58834884b4a90a0e47513be7051053624af3e7695f1c",
+          "path": "graphs/refiner_b512.onnx"
+        }
+      },
+      "graphs/refiner_b768.json": {
+        "bytes": 3648,
+        "sha256": "2c77d36361ddc56335f28fbcdfebc1688eb1542c7bbabefbf80e0baa41f48a7b",
+        "listing": {
+          "type": "file",
+          "oid": "cf85d3b816e96f4cc37d9aca90933dacdae04f6e",
+          "size": 3648,
+          "path": "graphs/refiner_b768.json"
+        }
+      },
+      "graphs/refiner_b768.onnx": {
+        "bytes": 30456,
+        "sha256": "7c76a54f62503b925548fa74cc817d2150e0300318774de9c9c6881d93272a7f",
+        "listing": {
+          "type": "file",
+          "oid": "a351fcd5dffa640f29fb12644a27ef1bca2a7c29",
+          "size": 30456,
+          "lfs": {
+            "oid": "7c76a54f62503b925548fa74cc817d2150e0300318774de9c9c6881d93272a7f",
+            "size": 30456,
+            "pointerSize": 130
+          },
+          "xetHash": "6f7390d29042dd093c44c2f47c26e1f019142ccac962b35ed2ca8b414823d8cb",
+          "path": "graphs/refiner_b768.onnx"
+        }
+      }
+    }
+  },
+  "refiner": {
+    "repo": "mantelmoritz/CorridorKey-Realtime-EdgeRefiner",
+    "revision": "db3adf8820653508bc617ff9a1f994dc273d08cb",
+    "files": {
+      "LICENSE": {
+        "bytes": 26650,
+        "sha256": "c92ce56f64162b231c7ce08ce3ed7d8cae15f01a560ca05a8e8db67878eb0065",
+        "listing": {
+          "type": "file",
+          "oid": "c88c7ebf9d29f59f64da5ccded10e1f0a6b269f6",
+          "size": 26650,
+          "path": "LICENSE"
+        }
+      },
+      "README.md": {
+        "bytes": 12619,
+        "sha256": "4749ca44cd23616dd90806d894b1fea4a6f53bd201c7d10cc00f4fe78233ae67",
+        "listing": {
+          "type": "file",
+          "oid": "a874866b0d45a2d62bb51661559a8d12c85134c7",
+          "size": 12619,
+          "path": "README.md"
+        }
+      },
+      "corridorkey_edge_refiner_v15.safetensors": {
+        "bytes": 162320,
+        "sha256": "b38746544edbdaa207723ffe1dd6e799e1fa7f176bd74ad4c7c91d5dd84abf74",
+        "listing": {
+          "type": "file",
+          "oid": "7797c491c326685b84bd7b21c58f9d195733d70c",
+          "size": 162320,
+          "lfs": {
+            "oid": "b38746544edbdaa207723ffe1dd6e799e1fa7f176bd74ad4c7c91d5dd84abf74",
+            "size": 162320,
+            "pointerSize": 131
+          },
+          "xetHash": "d6f606ac53f94b153ac6793b85ea069649277e60c89d4b4ec37e66c4f5f00fbc",
+          "path": "corridorkey_edge_refiner_v15.safetensors"
+        }
+      }
+    }
+  },
+  "binding": {
+    "implementation": "W05 native corridorkey_bind_weights",
+    "bytes_per_graph": 161296,
+    "sha256": "0247c1a6af261187b4befb8fbed4023149063ab6945502c0411c62f4eab8f603",
+    "exporter_byte_identical": [
+      "refiner_b256.weights",
+      "refiner_b384.weights",
+      "refiner_b512.weights",
+      "refiner_b768.weights"
+    ]
+  },
+  "package": {
+    "id": "refiner-v12",
+    "revision": "121984ec124141b9a1e42af05946fafe26205fec",
+    "manifest_sha256": "cbb6a1deae57bc0ae1f0ef0a629d2d5c8ab78c45f1202680725799720e134e9b",
+    "manifest_bytes": 13586,
+    "download_bytes": 298736,
+    "bound_bytes": 645184
+  },
+  "licence": {
+    "registry_unchanged": true,
+    "text_sha256": "c92ce56f64162b231c7ce08ce3ed7d8cae15f01a560ca05a8e8db67878eb0065"
+  },
+  "native_install": {
+    "refiner-v12": {
+      "accepted_and_acquired": true,
+      "bound_graphs": 4,
+      "manifest_sha256": "cbb6a1deae57bc0ae1f0ef0a629d2d5c8ab78c45f1202680725799720e134e9b",
+      "missing_acceptance_rejected": true
+    }
+  },
+  "tests": {
+    "ci_selected_ctest_groups": 14,
+    "passed": 14,
+    "real_ort_session_cases": 2,
+    "real_ort_session_assertions": 26,
+    "session_runtime": "ORT 1.24.4 CPU diagnostic; identical synthetic graph bytes with v12/v15 external-weight identities",
+    "format": "clang-format 19 --dry-run --Werror on all tracked C/C++ files; gersemi 0.22.2 --check on all tracked CMake files"
+  },
+  "live": {
+    "host": "OBS Studio 33.0.0 portable",
+    "obs_sdk": "30.2",
+    "backend": "DirectML; ORT 1.24.4; DirectML 1.15.4",
+    "gpu": "RTX 5070 Ti",
+    "source_hw": [
+      1080,
+      1920
+    ],
+    "analysis_hw": [
+      512,
+      512
+    ],
+    "tiles": 384,
+    "refiner_enabled": true,
+    "profile": "custom",
+    "activation_log": "17:15:45.486: [corridorkey] Active refiner: Edge Refiner v15; revision 121984ec124141b9a1e42af05946fafe26205fec; manifest cbb6a1deae57bc0ae1f0ef0a629d2d5c8ab78c45f1202680725799720e134e9b",
+    "graph_ready_logs": [
+      "17:15:36.499: [corridorkey] stage1nomask_512x512 ready in 10853.346000 ms; capture=off",
+      "17:15:38.462: [corridorkey] rvm_512x512 ready in 1962.782800 ms; capture=off",
+      "17:15:40.805: [corridorkey] moge_512x512 ready in 2342.420100 ms; capture=off",
+      "17:15:41.779: [corridorkey] refiner_b384 ready in 974.251200 ms; capture=off"
+    ],
+    "refiner_samples": 18,
+    "first_refiner_log": "17:15:45.692: [corridorkey:w13] instance=1 tiles=384 inference_ms=19.867 cuda_interval_ms=-1.000 gather_wait_ms=8.341 read_ms=0.000 unpack_ms=28.791 pack_ms=5.802 total_ms=70.227 readback_bytes=0 upload_bytes=0",
+    "last_refiner_log": "17:16:36.976: [corridorkey:w13] instance=1 tiles=384 inference_ms=18.123 cuda_interval_ms=-1.000 gather_wait_ms=1.071 read_ms=0.000 unpack_ms=11.220 pack_ms=0.634 total_ms=33.370 readback_bytes=0 upload_bytes=0",
+    "last_pipeline_log": "17:16:35.551: [corridorkey:w09] instance=1 frames=199 published=992 keyed_fps=19.97 moge_ms=3.371 rvm_ms=3.627 stage1_ms=22.613 stage2_ms=0.000 worker_ms=46.347",
+    "gpu_lock": "gpu-window.lock held only during OBS runs; removed after stopping owned process",
+    "shutdown": "Owned hidden OBS process terminated after completed refined frames; this run does not establish clean-shutdown behaviour.",
+    "scope": "Activation/execution smoke check; no performance or full-pipeline quality claim."
+  }
+}

@@ -1,7 +1,11 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # Native-resolution edge refiner
 
-W13 adds the v12 refiner after native reconstruction. The Edge refiner checkbox
+The shipped refiner is [Edge Refiner v15](refiner-v15.md), using graph revision 5.
+The measurements and captures below describe the earlier W13 v12 validation.
+They have not been rerun as full-pipeline quality evidence for v15.
+
+W13 added the v12 refiner after native reconstruction. The Edge refiner checkbox
 switches it live; disabling it uses the existing Q1 reconstruction path. Facecam
 uses 384 tiles, Balanced 512 and Quality 768. The 256-tile export also works as
 an advanced budget.

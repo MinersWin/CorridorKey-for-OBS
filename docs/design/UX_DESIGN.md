@@ -41,7 +41,7 @@ All dimensions below are **H×W**. F/B/Q means Facecam 60 / Balanced / Quality. 
 | Grid | 256×512 | 512×512 | 512×512 |
 | Subject ROI | Off; full user crop | On | On |
 | Stage 2 | Off | Off | Every frame |
-| Refiner | v12, on | v12, on | v12, on |
+| Refiner | v15, on | v15, on | v15, on |
 | Tile budget | 384 | 512 | 768 |
 | Target key rate | Up to 60 FPS, capped by OBS | Follow OBS | Follow OBS |
 | MoGe interval / motion | 3 / 0.05 | 3 / 0.05 | 3 / 0.05 |
@@ -97,7 +97,7 @@ The old five `QualityPreset` values map as follows: `fast_4k_512x256_s1s2` → H
 |---|---|---|---|---|
 | `refiner_enabled`, derived from `guide_mode` | Refine edges | D; boolean | On for CK2 | Recover fine edges from native camera pixels. Needs the edge-refiner model and a supported transfer path. |
 | `guide_mode` | Edge method | A; Refiner / RGB guided / Bilinear; E adds Chroma legacy | Refiner | RGB guided is the fallback when refinement is unavailable. Bilinear shows the raw model detail limit. |
-| `refiner_model` / `refiner_path` | Refiner | A; installed v12, v10w, v9b; legacy v4 only if a compatible graph exists | v12 | v12 is the current reference. Older versions are for comparison and compatibility. |
+| `refiner_model` / `refiner_path` | Refiner | A; installed v15 | v15 | Saved version choices use the verified v15 package. |
 | `guided_radius` | Hair radius | A; 1-12 low-grid pixels, step 1 | 2 | Neighborhood used for the guided filter. Larger values can smooth detail. The effect scales with the grid. |
 | `guided_log_eps` / `guided_eps` | Edge smoothness | E; log10 epsilon −5 to −2, step .1; exact epsilon stored | log10(.0005) ≈ −3.30103 | Regularize the guided filter. Larger epsilon smooths more. Default is 0.0005. |
 | `alpha_contrast` | Matte contrast | D; .70-1.50, step .01 | 1.05 | Increase separation around mid-opacity. Too much removes translucent detail. |
@@ -106,11 +106,11 @@ The old five `QualityPreset` values map as follows: `fast_4k_512x256_s1s2` → H
 | `clip_white` / `alpha_clip[1]` | White point | A; .50-1, step .005 | 1 | Opacity at or above this value becomes solid. Must exceed Black point by at least .01. |
 | `refiner_band_lo` | Band minimum | E; 0-.10, step .001; exact .004 allowed | .004 | Lowest network alpha considered for edge refinement. Raising it can lose faint hair. |
 | `refiner_band_gain` | Band gain | E; 0-20, step .5 | 10 | Weight refinement by nearby foreground. Larger positive values allow more weight at low alpha. Zero disables this weighting. |
-| `refiner_tile` | Tile size | R, E; manifest-defined, 32 for v12 | 32 | Native center size; halo and batch shape are fixed by the installed refiner graph. |
+| `refiner_tile` | Tile size | R, E; manifest-defined, 32 for v15 | 32 | Native center size; halo and batch shape are fixed by the installed refiner graph. |
 | `unmix_mode` | Colour method | A; Delta / Compositing equation | Delta | Delta transfers model color correction onto native detail. The alternative is experimental. |
 | `unmix_inner` | Interior colour | A; 0-1, step .05 | 1 | Amount of model color correction in solid areas. Edges retain full correction. |
 | `despill_strength` | Despill | D; 0-1, step .02 | .65 | Remove green spill after refinement. Reduce if neutral or colored details shift. |
-| `screen_color` (new) | Screen | D for CK1; Green/Blue | Green | CK1 uses a separate checkpoint for blue screens. CK2 v12's current presets are validated for green. |
+| `screen_color` (new) | Screen | D for CK1; Green/Blue | Green | CK1 uses a separate checkpoint for blue screens. CK2 presets use green-screen input. |
 | `cut_left` | Left | D; 0-45%, step .5 | 0% | Cut this edge before model inference. Pixels outside the crop become transparent. |
 | `cut_right` | Right | D; 0-45%, step .5 | 0% | Remove room edges outside the screen. The camera output size stays unchanged. |
 | `cut_top` | Top | D; 0-45%, step .5 | 0% | Cut from the top. Keep space for hair and movement. |
@@ -120,7 +120,7 @@ The old five `QualityPreset` values map as follows: `fast_4k_512x256_s1s2` → H
 
 Enforce valid crop extents after migration. Legacy right/bottom are absolute boundaries, not cut percentages: convert `cut_right = 100*(1-right)`, likewise bottom. Do not multiply normalized crop fields twice. Avoid resetting temporal state on every intermediate mouse event: debounce expensive changes and carry a generation ID.
 
-Two deliberate prototype corrections: the original epsilon slider extended below the engine's effective 1e-5 floor, so the new UI does not offer ineffective values; the old band-gain tooltip said larger is stricter, whereas the actual clamped multiplication allows more weight as gain increases. The band upper cutoff .996 and v12 halo 10 are model contract constants, not additional ordinary sliders.
+Two deliberate prototype corrections: the original epsilon slider extended below the engine's effective 1e-5 floor, so the new UI does not offer ineffective values; the old band-gain tooltip said larger is stricter, whereas the actual clamped multiplication allows more weight as gain increases. The band upper cutoff .996 and v15 halo 10 are model contract constants, not additional ordinary sliders.
 
 ## Controls: hints and output
 
@@ -226,7 +226,7 @@ Models run on this computer. Camera video is not uploaded.
 
 Model                         State          Download   Installed
 > CorridorKey 2.0              Ready             --       5.8 GiB*
-  Edge Refiner v12             Ready             --        92 KiB*
+  Edge Refiner v15             Ready             --            --
   CorridorKey 1.0              Not installed   380 MiB*       --
   MODNet hint                 Not installed      ...         --
 ----------------------------------------------------------------
@@ -283,7 +283,7 @@ Do not ship a custom font, purple gradients, glass panels, huge rounded cards, a
 ## First-run and recovery sequence
 
 1. Add filter; show live camera and Balanced selected. Detect GPU features asynchronously; “Detecting backend…” is a state, not a stalled property window.
-2. Open Models; recommend CK2 plus v12, explain the one-time download and actual available space. Offer change location before download.
+2. Open Models; recommend CK2 plus v15, explain the one-time download and actual available space. Offer change location before download.
 3. Accept exact model licences. Download/resume, verify and bind with persistent progress; closing the dialog keeps the explicit task running.
 4. Test a compatible backend and build the selected profile only. If a preferred EP fails, try a supported fallback and state it. Unknown versions are allowed through capability tests.
 5. Activate the result atomically. A concise message identifies Key, Backend and Delay. No performance promises from the PyTorch prototype appear in the setup flow.
