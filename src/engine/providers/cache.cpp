@@ -3,6 +3,9 @@
 #include <fstream>
 #include <random>
 #include <stdexcept>
+#include <chrono>
+#include <thread>
+#include <cerrno>
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
@@ -24,21 +27,33 @@ void copy_artifacts(const fs::path &source, const fs::path &target)
 } // namespace
 void CacheLease::lock()
 {
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+	for (;;) {
 #ifdef _WIN32
-	const auto handle = CreateFileW((shared_ / "cache.lock").c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
-					OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (handle == INVALID_HANDLE_VALUE)
-		throw std::runtime_error("Backend cache busy");
-	lock_ = reinterpret_cast<std::intptr_t>(handle);
+		const auto handle = CreateFileW((shared_ / "cache.lock").c_str(), GENERIC_READ | GENERIC_WRITE, 0,
+						nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (handle != INVALID_HANDLE_VALUE) {
+			lock_ = reinterpret_cast<std::intptr_t>(handle);
+			return;
+		}
+		const auto problem = GetLastError();
+		if (problem != ERROR_SHARING_VIOLATION && problem != ERROR_LOCK_VIOLATION)
+			throw std::runtime_error("Backend cache lock failed");
 #else
-	lock_ = open((shared_ / "cache.lock").c_str(), O_CREAT | O_RDWR | O_CLOEXEC, 0600);
-	if (lock_ < 0)
-		throw std::runtime_error("Backend cache lock failed");
-	if (flock(static_cast<int>(lock_), LOCK_EX | LOCK_NB) != 0) {
+		lock_ = open((shared_ / "cache.lock").c_str(), O_CREAT | O_RDWR | O_CLOEXEC, 0600);
+		if (lock_ < 0)
+			throw std::runtime_error("Backend cache lock failed");
+		if (flock(static_cast<int>(lock_), LOCK_EX | LOCK_NB) == 0)
+			return;
+		const auto problem = errno;
 		unlock();
-		throw std::runtime_error("Backend cache busy");
-	}
+		if (problem != EWOULDBLOCK && problem != EAGAIN && problem != EINTR)
+			throw std::runtime_error("Backend cache lock failed");
 #endif
+		if (std::chrono::steady_clock::now() >= deadline)
+			throw std::runtime_error("Backend cache busy for 30 seconds");
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 }
 void CacheLease::unlock() noexcept
 {

@@ -7,6 +7,8 @@
 #include <fstream>
 #include <random>
 #include <thread>
+#include <barrier>
+#include <atomic>
 #ifdef CK_TEST_ORT
 #include "engine/providers/loader.hpp"
 #include "engine/ort_session.hpp"
@@ -121,6 +123,32 @@ TEST_CASE("interrupted and mismatched caches rebuild without reusing partial eng
 		CacheLease lease(temp.path, key);
 		CHECK_FALSE(fs::exists(lease.path() / "good.engine"));
 	}
+}
+TEST_CASE("concurrent engine readers and publishers tolerate cache lock contention")
+{
+	Temp temp;
+	CacheIdentity key;
+	key.graph_hash = "shared-graph";
+	std::atomic<unsigned> failures{0};
+	std::barrier start(4);
+	std::vector<std::thread> workers;
+	for (unsigned i = 0; i < 4; ++i)
+		workers.emplace_back([&, i] {
+			start.arrive_and_wait();
+			for (unsigned n = 0; n < 10; ++n)
+				try {
+					CacheLease lease(temp.path, key);
+					std::ofstream(lease.path() / "graph.engine") << i;
+					lease.commit();
+				} catch (...) {
+					++failures;
+				}
+		});
+	for (auto &worker : workers)
+		worker.join();
+	CHECK(failures == 0);
+	CacheLease final(temp.path, key);
+	CHECK(fs::file_size(final.path() / "graph.engine") == 1);
 }
 TEST_CASE("explicit cache rebuild discards a published snapshot with the same identity")
 {

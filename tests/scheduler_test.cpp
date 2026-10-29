@@ -2,7 +2,11 @@
 // Copyright (C) 2026 Moritz Mantel <admin@moritz-mantel.de>
 #include <doctest/doctest.h>
 #include "runtime/scheduler.hpp"
+#include "runtime/preparation_gate.hpp"
 #include "engine/fake_pipeline.hpp"
+#include <barrier>
+#include <thread>
+#include <vector>
 
 using namespace corridorkey;
 namespace {
@@ -118,6 +122,7 @@ TEST_CASE("generation invalidation leaves running storage pinned until reset")
 	CHECK(pool.in_use() == 1);
 	scheduler.reset();
 	prepare(pipeline, pool.generation());
+	scheduler.completed();
 	CHECK(pool.in_use() == 0);
 	CHECK_FALSE(pipeline.poll_result());
 }
@@ -138,4 +143,143 @@ TEST_CASE("late staging completion cannot replace a newer pending capture")
 	auto result = pipeline.poll_result();
 	REQUIRE(result);
 	CHECK(result->identity.sequence == 3);
+}
+
+TEST_CASE("cancelling one instance keeps admission until its in-flight job drains")
+{
+	FairAdmission gate;
+	Scheduler a(gate), b(gate);
+	FramePool pool_a, pool_b;
+	FakeOptions options;
+	options.delay = std::chrono::seconds(1);
+	FakePipeline first(options, FakeExecution::manual), second({}, FakeExecution::manual);
+	prepare(first, pool_a.generation());
+	prepare(second, pool_b.generation());
+	const auto now = Clock::now();
+	a.offer(frame(pool_a, 1, 1, now));
+	b.offer(frame(pool_b, 1, 1, now));
+	REQUIRE_FALSE(a.submit(first, 1, now));
+	CHECK(b.submit(second, 1, now).code == ErrorCode::busy);
+	pool_a.advance_generation();
+	first.cancel();
+	a.reset();
+	CHECK(a.running());
+	CHECK(b.submit(second, 2, now).code == ErrorCode::busy);
+	CHECK(pool_a.in_use() == 1);
+	first.advance(now);
+	auto old = first.poll_result();
+	CHECK_FALSE(old); // The fake discards an invalidated generation before publication.
+	CHECK(first.diagnostics().outstanding == 0);
+	a.completed();
+	REQUIRE_FALSE(b.submit(second, 3, now));
+	old.reset();
+	CHECK(pool_a.in_use() == 0);
+	CHECK(pool_b.in_use() == 1);
+}
+
+TEST_CASE("admission and independent pools survive concurrent registration and generation churn")
+{
+	FairAdmission gate;
+	constexpr unsigned count = 8, rounds = 2000;
+	std::barrier start(count);
+	std::atomic<unsigned> inside{0}, violations{0}, finished{0};
+	std::vector<std::thread> workers;
+	for (unsigned i = 0; i < count; ++i)
+		workers.emplace_back([&] {
+			FramePool pool(FramePool::maximum_capacity);
+			const auto id = gate.attach();
+			start.arrive_and_wait();
+			for (unsigned n = 0; n < rounds; ++n) {
+				while (!gate.acquire(id))
+					std::this_thread::yield();
+				if (inside.fetch_add(1) != 0)
+					++violations;
+				auto lease = pool.try_acquire();
+				if (!lease || !lease->current())
+					++violations;
+				pool.advance_generation();
+				if (!lease || lease->current() || pool.in_use() != 1)
+					++violations;
+				lease.reset();
+				if (pool.in_use())
+					++violations;
+				--inside;
+				gate.release(id);
+			}
+			gate.detach(id);
+			++finished;
+		});
+	for (auto &worker : workers)
+		worker.join();
+	CHECK(finished == count);
+	CHECK(violations == 0);
+}
+
+TEST_CASE("a full admission registry recovers slots without admitting invalid clients")
+{
+	FairAdmission gate;
+	std::array<unsigned, FairAdmission::capacity> ids{};
+	for (auto &id : ids)
+		id = gate.attach();
+	CHECK(gate.attach() == FairAdmission::capacity);
+	CHECK_FALSE(gate.acquire(FairAdmission::capacity));
+	gate.detach(ids[17]);
+	CHECK(gate.attach() == ids[17]);
+	for (auto id : ids)
+		gate.detach(id);
+}
+
+TEST_CASE("same graph preparation serializes and cancellation releases its waiter")
+{
+	PreparationGate gate;
+	std::stop_source stop;
+	std::atomic<bool> entered{false}, cancelled{false};
+	std::thread waiter;
+	{
+		auto first = gate.acquire("graph-a", {});
+		REQUIRE(bool(first));
+		auto other = gate.acquire("graph-b", {});
+		CHECK(bool(other));
+		waiter = std::thread([&] {
+			entered = true;
+			auto second = gate.acquire("graph-a", stop.get_token());
+			cancelled = !second;
+		});
+		while (!entered)
+			std::this_thread::yield();
+		stop.request_stop();
+		waiter.join();
+		CHECK(cancelled);
+	}
+	auto again = gate.acquire("graph-a", {});
+	CHECK(bool(again));
+}
+
+TEST_CASE("shared frame pool never reuses a pinned slot during concurrent resets")
+{
+	FramePool pool(FramePool::maximum_capacity);
+	std::array<std::atomic<bool>, FramePool::maximum_capacity> held{};
+	std::atomic<unsigned> collisions{0};
+	std::vector<std::thread> workers;
+	for (unsigned i = 0; i < 8; ++i)
+		workers.emplace_back([&] {
+			for (unsigned n = 0; n < 2000; ++n) {
+				std::optional<FrameLease> lease;
+				while (!(lease = pool.try_acquire()))
+					std::this_thread::yield();
+				auto &slot = held[lease->id().index];
+				if (slot.exchange(true))
+					++collisions;
+				pool.advance_generation();
+				for (auto state : {FrameState::ready, FrameState::processing, FrameState::complete,
+						   FrameState::presenting, FrameState::retired})
+					if (!lease->transition(state))
+						++collisions;
+				slot = false;
+			}
+		});
+	for (auto &worker : workers)
+		worker.join();
+	CHECK(collisions == 0);
+	CHECK(pool.in_use() == 0);
 }
