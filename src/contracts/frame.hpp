@@ -87,7 +87,7 @@ struct FrameResult {
 	InputFrame input; // Ownership travels with the result, including failed results.
 	FrameIdentity identity;
 	FrameTransform transform;
-	Image foreground; // Straight sRGB RGB; alpha is a separate linear plane.
+	Image foreground; // Straight sRGB RGB; alpha is a separate linear plane. Full or half analysis grid.
 	Image alpha;
 	FrameTimings timings;
 	std::shared_ptr<const Completion> output_complete;

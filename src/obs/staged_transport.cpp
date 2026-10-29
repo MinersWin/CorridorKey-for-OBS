@@ -49,7 +49,7 @@ void set_crop(gs_eparam_t *parameter, const Crop &crop)
 struct StagedTransport::Slot {
 	gs_texrender_t *native = nullptr, *grid = nullptr;
 	gs_stagesurf_t *stage = nullptr;
-	gs_texture_t *model = nullptr;
+	gs_texture_t *model = nullptr, *model_half = nullptr;
 	gs_texrender_t *output = nullptr;
 	GpuFence captured, drawn;
 	std::shared_ptr<const ImageStorage> original;
@@ -62,6 +62,7 @@ struct StagedTransport::Slot {
 		gs_texrender_destroy(grid);
 		gs_stagesurface_destroy(stage);
 		gs_texture_destroy(model);
+		gs_texture_destroy(model_half);
 		gs_texrender_destroy(output);
 	}
 };
@@ -99,10 +100,12 @@ StagedTransport::StagedTransport(obs_source_t *source, Extent native, Extent gri
 		slot.grid = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
 		slot.stage = gs_stagesurface_create(grid.width, grid.height, GS_RGBA);
 		slot.model = gs_texture_create(grid.width, grid.height, GS_RGBA32F, 1, nullptr, GS_DYNAMIC);
+		slot.model_half =
+			gs_texture_create(grid.width / 2, grid.height / 2, GS_RGBA32F, 1, nullptr, GS_DYNAMIC);
 		slot.output = gs_texrender_create(GS_RGBA16F, GS_ZS_NONE);
 		slot.bytes.resize(static_cast<std::size_t>(grid.width) * grid.height * 4);
 		if (!prime(slot.native, native) || !prime(slot.grid, grid) || !slot.stage || !slot.model ||
-		    !prime(slot.output, native))
+		    !slot.model_half || !prime(slot.output, native))
 			return;
 		slot.original = std::make_shared<TextureView>(gs_texrender_get_texture(slot.native));
 	}
@@ -266,14 +269,18 @@ Image StagedTransport::analysis(const InputFrame &input) const
 }
 bool StagedTransport::upload(const FrameResult &result, const std::vector<float> &rgba, int debug_view)
 {
-	if (rgba.size() != static_cast<std::size_t>(grid_.width) * grid_.height * 4)
+	const auto extent = result.alpha.size;
+	const Extent half{grid_.width / 2, grid_.height / 2};
+	if ((extent != grid_ && extent != half) || result.foreground.size != extent ||
+	    rgba.size() != static_cast<std::size_t>(extent.width) * extent.height * 4)
 		return false;
 	auto &slot = *slots_[result.input.lease.id().index];
-	gs_texture_set_image(slot.model, reinterpret_cast<const std::uint8_t *>(rgba.data()),
-			     grid_.width * 4 * sizeof(float), false);
+	auto *model = extent == grid_ ? slot.model : slot.model_half;
+	gs_texture_set_image(model, reinterpret_cast<const std::uint8_t *>(rgba.data()),
+			     extent.width * 4 * sizeof(float), false);
 	const bool finished = result.input.settings &&
 			      reconstruction_->prepare(gs_texrender_get_texture(slot.native),
-						       gs_texrender_get_texture(slot.grid), slot.model,
+						       gs_texrender_get_texture(slot.grid), model,
 						       *result.input.settings, result.transform.sampled_roi) &&
 			      reconstruction_->finish(slot.output, gs_texrender_get_texture(slot.native),
 						      *result.input.settings, result.transform.sampled_roi, debug_view);

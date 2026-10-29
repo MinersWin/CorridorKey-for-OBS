@@ -133,7 +133,11 @@ Error validate_result(const FrameResult &result) noexcept
 	if (result.identity != result.input.identity || result.transform != result.input.transform ||
 	    !result.input.lease.current())
 		return error(ErrorCode::stale_generation);
-	if (result.foreground.size != result.alpha.size || result.alpha.size != result.input.analysis.size ||
+	const auto grid = result.input.analysis.size;
+	const Extent half{grid.width / 2, grid.height / 2};
+	const bool supported_size = result.alpha.size == grid ||
+				    ((grid.width % 2 == 0) && (grid.height % 2 == 0) && result.alpha.size == half);
+	if (result.foreground.size != result.alpha.size || !supported_size ||
 	    result.foreground.format != PixelFormat::rgb_f32 || result.alpha.format != PixelFormat::alpha_f32 ||
 	    result.foreground.color != ColorSpace::srgb || result.foreground.alpha != AlphaMode::straight ||
 	    result.alpha.color != ColorSpace::linear_srgb || !valid_image(result.foreground, 3, true) ||
