@@ -38,6 +38,7 @@ jobs:
             python3 qt6-base-dev extra-cmake-modules libsimde-dev uthash-dev \
             libjansson-dev libx11-dev libx11-xcb-dev libxcb1-dev libxcb-xinput-dev \
             libdrm-dev libegl1-mesa-dev libgl1-mesa-dev libglib2.0-dev uuid-dev zlib1g-dev \
+            libcurl4-openssl-dev libssl-dev nlohmann-json3-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev
       - name: Build baseline OBS SDK
         run: python3 tools/bootstrap-linux-sdk.py --sdk baseline
