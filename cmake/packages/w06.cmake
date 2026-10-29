@@ -1,21 +1,30 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-include(FetchContent)
-FetchContent_Declare(
-  ck_runtime_json
-  URL https://codeload.github.com/nlohmann/json/tar.gz/refs/tags/v3.11.3
-  URL_HASH SHA256=0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
-  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(ck_runtime_json)
-if(TARGET corridorkey)
+# nlohmann/json may already come from the system or from the model catalogue package.
+if(NOT TARGET nlohmann_json::nlohmann_json)
+  include(FetchContent)
+  FetchContent_Declare(
+    ck_runtime_json
+    URL https://codeload.github.com/nlohmann/json/tar.gz/refs/tags/v3.11.3
+    URL_HASH SHA256=0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
+  set(JSON_Install OFF CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(ck_runtime_json)
+endif()
+if(DEFINED ck_json_SOURCE_DIR)
+  set(_w06_json_source "${ck_json_SOURCE_DIR}")
+elseif(DEFINED ck_runtime_json_SOURCE_DIR)
+  set(_w06_json_source "${ck_runtime_json_SOURCE_DIR}")
+endif()
+if(TARGET corridorkey AND DEFINED _w06_json_source)
   if(WIN32)
     set(_w06_license_dir "${CMAKE_PROJECT_NAME}/data/licenses/nlohmann-json")
   else()
     include(GNUInstallDirs)
     set(_w06_license_dir "${CMAKE_INSTALL_DATAROOTDIR}/obs/obs-plugins/${CMAKE_PROJECT_NAME}/licenses/nlohmann-json")
   endif()
-  install(FILES "${ck_runtime_json_SOURCE_DIR}/LICENSE.MIT" DESTINATION "${_w06_license_dir}")
+  install(FILES "${_w06_json_source}/LICENSE.MIT" DESTINATION "${_w06_license_dir}")
 endif()
 target_sources(
   corridorkey_core
