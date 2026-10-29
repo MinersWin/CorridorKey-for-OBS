@@ -20,7 +20,9 @@ def summarize(path):
             transferred = row["readback_bytes"] + row["upload_bytes"]
             if (case["transport"] == "auto") != (transferred == 0):
                 raise ValueError(f"Wrong atlas transport: {path}")
-    if (case["profile"] == "quality") != all(row["stage2_ms"] > 0 for row in stages):
+    elif refiner:
+        raise ValueError(f"Refiner still active: {path}")
+    if any((case["profile"] == "quality") != (row["stage2_ms"] > 0) for row in stages):
         raise ValueError(f"Wrong Stage 2 activation: {path}")
     before, after = data["obs_before"], data["obs_after"]
     result = dict(case=case, started_utc=data["started_utc"], ended_utc=data["ended_utc"],
