@@ -1,0 +1,25 @@
+{
+    "schema_version":  1,
+    "$comment":  "SPDX-License-Identifier: GPL-3.0-or-later. Signed synthetic test catalogue only.",
+    "sequence":  1,
+    "packages":  [
+                     {
+                         "revision":  "1111111111111111111111111111111111111111",
+                         "id":  "synthetic-test-only",
+                         "manifest":  {
+                                          "id":  "test-manifest",
+                                          "bytes":  3669,
+                                          "licenses":  [
+                                                           "LicenseRef-Test"
+                                                       ],
+                                          "path":  "package-v1.json",
+                                          "sha256":  "a33ffe680b131216be0e083152486e81cf5bf5cb26ce81332ad26a98a5bb94e0",
+                                          "origin":  {
+                                                         "revision":  "a33ffe680b131216be0e083152486e81cf5bf5cb26ce81332ad26a98a5bb94e0",
+                                                         "url":  "https://example.invalid/synthetic-test-only/package-v1.json"
+                                                     },
+                                          "format":  "manifest-json"
+                                      }
+                     }
+                 ]
+}

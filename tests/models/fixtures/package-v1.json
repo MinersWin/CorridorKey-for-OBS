@@ -1,0 +1,143 @@
+{
+  "$comment": "SPDX-License-Identifier: GPL-3.0-or-later. Synthetic test package only.",
+  "artifacts": [
+    {
+      "bytes": 36,
+      "format": "onnx",
+      "id": "graph",
+      "licenses": [
+        "LicenseRef-Test"
+      ],
+      "origin": {
+        "revision": "74b231d81b8459fa7bd9fe9aafe833acb6a25cf980af70dea44f0c7a182b2c82",
+        "url": "https://example.invalid/graph"
+      },
+      "path": "graphs/tiny.onnx",
+      "sha256": "74b231d81b8459fa7bd9fe9aafe833acb6a25cf980af70dea44f0c7a182b2c82"
+    },
+    {
+      "bytes": 515,
+      "format": "export-json",
+      "id": "metadata",
+      "licenses": [
+        "LicenseRef-Test"
+      ],
+      "origin": {
+        "revision": "7d36c6ab4d3bc9984e07401503557cbda2b3a30430fa1e78ae3f44307194f1aa",
+        "url": "https://example.invalid/metadata"
+      },
+      "path": "graphs/tiny.json",
+      "sha256": "7d36c6ab4d3bc9984e07401503557cbda2b3a30430fa1e78ae3f44307194f1aa"
+    },
+    {
+      "bytes": 4,
+      "format": "safetensors",
+      "id": "test-source",
+      "licenses": [
+        "LicenseRef-Test"
+      ],
+      "origin": {
+        "revision": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+        "url": "https://example.invalid/source"
+      },
+      "path": "sources/source.safetensors",
+      "sha256": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"
+    }
+  ],
+  "budgets": {
+    "bound_bytes": 4,
+    "engine_bytes": 1024,
+    "margin_bytes": 0,
+    "workspace_bytes": 1024
+  },
+  "compatibility": [
+    {
+      "backend": "cpu-diagnostic",
+      "evidence": "Synthetic fixture; never executes inference.",
+      "required_features": [],
+      "test_status": "unverified"
+    }
+  ],
+  "description": "Independently authored bytes for installation tests.",
+  "display_name": "Synthetic test fixture",
+  "export_contract": 1,
+  "graphs": [
+    {
+      "color_contract": "Synthetic scalar; no color transform.",
+      "external_data": "graphs/tiny.weights",
+      "graph": "graph",
+      "id": "tiny",
+      "interface": {
+        "inputs": [
+          {
+            "dtype": "float32",
+            "name": "x",
+            "shape": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "dtype": "float32",
+            "name": "y",
+            "shape": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ]
+      },
+      "ir_version": 8,
+      "metadata": "metadata",
+      "opset": 18,
+      "parity": {
+        "report_sha256": "f150ce464a2c4044b0000cb63874444f5d189dd3d8b26a480c95494f95dad4dc",
+        "report_url": "https://example.invalid/parity",
+        "status": "unverified"
+      },
+      "precision": "fp32",
+      "role": "hint",
+      "sources": [
+        "test-source"
+      ],
+      "weights_bytes": 4,
+      "weights_sha256": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"
+    }
+  ],
+  "id": "synthetic-test-only",
+  "licenses": [
+    {
+      "id": "LicenseRef-Test",
+      "text_sha256": "70c4c1d485c1090a0792965d773a313d5bd9f46616c56683d2244fd82acca9f5"
+    }
+  ],
+  "pipeline": "synthetic",
+  "profiles": [
+    {
+      "graphs": [
+        "tiny"
+      ],
+      "grid_hw": [
+        1,
+        1
+      ],
+      "id": "test",
+      "refiner_tiles": 0,
+      "roi": false,
+      "settings_schema": 1
+    }
+  ],
+  "provenance": {
+    "export_revision": "1111111111111111111111111111111111111111",
+    "source_url": "https://example.invalid/tests"
+  },
+  "publisher": "Test authors",
+  "revision": "1111111111111111111111111111111111111111",
+  "schema_version": 1
+}
