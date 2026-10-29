@@ -65,12 +65,12 @@ They are not GPL-licensed by this project.
   the registry retains the CorridorKey attribution. No checkpoint is included here.
 - MODNet: Apache-2.0 for code, models and demos, excluding the upstream GIF files.
   [Published statement at the reviewed revision](https://github.com/ZHKKKe/MODNet/tree/28165a451e4610c9d77cfdf925a94610bb2810fb#license).
-  No exact hint checkpoint or model package is enabled yet.
+  The pinned webcam conversion and its LICENSE/NOTICE are admitted by the MODNet hint package.
 
 Full model texts, hashes and attribution are in `data/models/licenses-v1.json`.
-The production catalogue remains empty until graph releases and their signatures
-are available. CK1's GitHub v1 terms and HF metadata need reconciliation before
-admitting a CK1 package.
+The bundled catalogue admits CK2, CK1 green/blue, MODNet and Edge Refiner packages.
+It uses an installer digest until release signing is provisioned. CK1 acceptance
+records both the HF metadata and the published v1 additional terms.
 
 Attribution here is informational and grants no model rights. Verify each
 model's exact revision, licence and required notices before adding it to a

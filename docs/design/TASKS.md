@@ -139,7 +139,7 @@ Acceptance: code/weights licence scope recorded; CK1 RGB normalization in graph 
 
 Goal: host CK1 through the same engine abstraction with useful hint controls. Inputs: E02, MODELS hint recommendations, W08 reconstruction. Files: `src/engine/ck1_pipeline.*`, `src/engine/hints/*`, chroma effect, hint preview. Dependencies: W05/W06/W08/E02; W09 only for optional CK2 hint. Size: L. Risk: medium/high.
 
-Acceptance: default chroma hint keeps props; optional MODNet works without requiring CK2; hint/crop transforms align; no invented CK1 confidence tensor. CK2 Stage-1 hint shows dependencies and cost. External mask sources reject dependency cycles and stale/missing frames. Blue selection uses blue checkpoint, correct hint and despill channel. Validate transparency, props and motion alongside the solid person silhouette. CK1-to-refiner validation is separate. Future distilled model slot exists in schema without a fake download row.
+Acceptance (revision-4 owner decision): Advanced-only CK1 is labelled Experimental and recommends CK2 Facecam without refiner for weak GPUs. MODNet is the default hint and works without CK2; chroma is Expert-only with a teal/uneven-screen warning; hint/crop transforms align; no invented CK1 confidence tensor. CK2 Stage-1 hint shows dependencies and cost. External mask sources reject dependency cycles and stale/missing frames. Blue selection uses blue checkpoint, correct hint and despill channel. Validate transparency, props and motion alongside the solid person silhouette. CK1-to-refiner validation is separate. Future distilled model slot exists in schema without a fake download row.
 
 ## W15: Delay measurement and auto lip-sync
 

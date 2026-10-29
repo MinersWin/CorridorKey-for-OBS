@@ -16,7 +16,7 @@ Install the required model through Manage models before expecting a keyed image.
 
 Editing a quality control selects Custom. Choosing a named preset explicitly restores that preset. Manual crop, microphone pairing, sync trim, output view survive. Reset quality restores the selected preset; from Custom it restores Balanced.
 
-CK1 starts in Custom with a proposed 384 × 384 grid, Chroma hint and RGB guided edges. Its refiner defaults off. These CK1 choices still need export evaluation; the CK2 prototype's speed measurements do not apply to CK1. Switching between CK1 and CK2 restores each pipeline's saved quality, backend, hints and experiments.
+CK1 starts in Custom at 384 x 384 with a MODNet hint and RGB guided edges. Its learned refiner stays off. It is experimental and has worse edges than CK2; try CK2 Facecam with Edge refiner off for a weak GPU. Switching models restores each pipeline's saved quality, backend, hints and experiments. The [CK1 guide](ck1.md) covers quality measurements and hint examples.
 
 Manage models opens installation, licence review and backend tests. Selecting a model or hint in the properties never starts a download.
 
@@ -37,7 +37,7 @@ The panel uses OBS's font, spacing and colours. These captures show a test sourc
 | Option | Default | Visibility and range | Effect |
 | --- | --- | --- | --- |
 | Preset (`profile`) | Balanced | Standard; Facecam 60 / Balanced / Quality / Custom | Start with Balanced. Facecam 60 prioritizes speed; Quality adds a detail stage. Editing quality selects Custom. |
-| Model (`model_id`) | CK2 | Standard; CK2 / CK1 | Choose a pipeline. Each keeps its own quality settings and requires separate model installation. |
+| Model (`model_id`) | CK2 | Advanced; CK2 / CK1 (Experimental) | Choose a pipeline. Each keeps its own quality settings and requires separate model installation. |
 | Model revision (`model_revision`) | Saved verified revision | Saved, hidden; Verified revision | Retains the model revision used by the saved settings. Choosing a preset within CK2 preserves it. |
 
 ## Quality and speed
@@ -76,7 +76,7 @@ The panel uses OBS's font, spacing and colours. These captures show a test sourc
 | --- | --- | --- | --- |
 | Colour method (`unmix_mode`) | Delta | Advanced; Delta / Compositing equation | Delta transfers model colour correction onto native detail. Compositing equation is experimental. |
 | Interior colour (`unmix_inner`) | 1 | Advanced; 0 to 1; step 0.05 | Model colour correction in solid areas. Edges retain full correction. |
-| Despill (`despill_strength`) | 0.65 | Advanced; 0 to 1; step 0.02 | Remove green spill after refinement. Reduce if neutral or coloured details shift. |
+| Despill (`despill_strength`) | 0.65 | Advanced; 0 to 1; step 0.02 | Remove screen-colour spill after reconstruction/refinement. CK1 Blue uses the blue channel. Reduce if neutral or coloured details shift. |
 | Screen (`screen_color`) | Green | Advanced; Green / Blue | CK1 uses a separate blue-screen checkpoint. CK2 v12 presets are evaluated for green. |
 
 ## Manual crop
@@ -94,14 +94,14 @@ Each cut removes a percentage before inference. Pixels outside the crop become t
 
 ## Hints
 
-CK1 always lists Chroma, CK2 Stage 1 and MODNet. Learned hints remain unavailable until their dependencies are installed. MediaPipe, imported masks and the future Custom hint appear only when a manifest declares them. A person-only hint can omit chairs, props or other people. CK2 hint controls require Expert.
+CK1 defaults to MODNet. CK2 Stage 1 is also available when its dependencies are installed; it adds MoGe, RVM and a 512 x 512 Stage-1 pass. The last hint time appears separately and is included in the total inference time. A person hint can omit props or chairs. Chroma requires Expert and warns about teal objects and uneven screens. MediaPipe and future hint slots have no implementation or download package.
 
 | Option | Default | Visibility and range | Effect |
 | --- | --- | --- | --- |
-| Hint source (`hint_source`) | Chroma | Advanced; Chroma / CK2 Stage 1 / MODNet / MediaPipe / Imported mask / Custom hint | Chroma is cheap. CK2 Stage 1 needs its full dependencies. Person models such as MODNet may exclude props or chairs. Selecting a row never downloads a model. |
-| Screen match (`hint_similarity`) | 0.40 | Advanced; 0 to 1; step 0.01 | Chroma similarity used to seed background. Calibration is provisional; inspect Hint output. |
-| Hint softness (`hint_smoothness`) | 0.10 | Advanced; 0.01 to 0.5; step 0.01 | Width of the chroma transition, not final matte sharpness. |
-| Hint rate (`hint_refresh`) | 1 frame | Advanced; 1 to 8; step 1 | Refresh every N accepted frames. Reuse may expose delayed guides during motion. |
+| Hint source (`hint_source`) | MODNet | Advanced; MODNet / CK2 Stage 1; Expert: Chroma | MODNet may exclude props or chairs. CK2 Stage 1 adds a complete keying pass. Chroma can fail on teal or uneven screens. Selecting a row never downloads a model. |
+| Screen match (`hint_similarity`) | 0.40 | Expert; 0 to 1; step 0.01 | Chroma similarity used to seed background. Calibration is provisional; inspect Hint output. |
+| Hint softness (`hint_smoothness`) | 0.10 | Expert; 0.01 to 0.5; step 0.01 | Width of the chroma transition, not final matte sharpness. |
+| Hint rate (`hint_refresh`) | 1 frame | Advanced; disabled | Every hint uses the same capture as CK1. Older hints are never reused. |
 | Mask source (`hint_mask`) | None | Expert; Installed model or validated source ID | Use a validated full-frame linear mask aligned with this frame and crop. A source that creates a filter loop cannot be used. |
 | Hint mode (`hint_mode`) | Off | Expert; Off / Previous / Chroma / Blend / External | CK2 hints are experimental. Measured profiles use Off. |
 | Previous hint (`temporal_hint_quality`) | 0 | Expert; 0 to 0.95; step 0.05 | Trust in previous alpha. Zero disables it; high values can leave trails. |

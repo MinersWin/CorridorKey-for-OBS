@@ -3,7 +3,8 @@
 
 **Pre-alpha / work in progress.** The native CK2 pipeline and model manager are
 available on Windows. Missing models or unavailable backends leave video in
-passthrough. CK1 is still being implemented.
+passthrough. CK1 is available under Advanced as an experimental option. Its edge
+quality is below CK2; try CK2 Facecam with Edge refiner off for a weak GPU.
 
 A native OBS Studio video filter for neural background keying on Windows x64
 and Linux x86_64. No model weights or derived graphs are included.
@@ -12,7 +13,9 @@ See [design specifications](docs/design/) for the planned architecture, models, 
 
 ## Features and remaining work
 
-- CorridorKey 2.0 with Facecam, Balanced and Quality profiles. CK1 is planned.
+- CorridorKey 2.0 with Facecam, Balanced and Quality profiles.
+- Experimental CK1 green/blue with MODNet, CK2 Stage-1 or Expert-only chroma hints.
+  See the [CK1 guide](docs/user/ck1.md) for quality comparisons and costs.
 - Native matte reconstruction, despill and advanced controls in filter properties.
 - Optional learned Edge Refiner v12 with a tile budget selected in filter properties.
 - In-OBS model management with licence acceptance, resumable downloads and SHA-256 verification.
@@ -27,7 +30,7 @@ flowchart LR
   input[OBS source] --> filter[CorridorKey filter]
   filter --> passthrough[Passthrough while unavailable] --> output[OBS output]
   filter --> prep[Prepare accepted and verified model package]
-  prep --> model[CorridorKey 2.0]
+  prep --> model[CK2 or experimental CK1]
   model --> composite[Native reconstruction and despill]
   composite --> output
 ```
