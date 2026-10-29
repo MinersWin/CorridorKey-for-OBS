@@ -5,11 +5,14 @@ Open **Manage models...** in a CorridorKey filter, or choose **Tools → Corrido
 Both open the same window. You can keep using OBS while it is open. Closing the
 manager leaves an installation running; **Cancel task** requests cancellation.
 
-The catalogue offers CK2 Facecam, CK2 Balanced / Quality, and Edge Refiner v12.
-Choose Set up CorridorKey for Balanced. CK1 and hint packages remain unavailable.
+The catalogue offers CK2 Facecam, CK2 Balanced / Quality, Edge Refiner v12,
+experimental CK1 Green and Blue, and MODNet hint. Choose Set up CorridorKey for
+Balanced. For CK1, install the matching screen package and MODNet, then enable
+Advanced in the filter. Read the [CK1 guide](ck1.md) for its quality limits and
+the recommended CK2 Facecam fallback.
 The [first-run guide](first-run.md) explains setup, licence acceptance and recovery.
 
-![Production catalogue in OBS](../images/first-run/yami-first-run.png)
+![Earlier CK2 catalogue capture in OBS](../images/first-run/yami-first-run.png)
 
 ## Installing a package
 
@@ -27,6 +30,11 @@ CorridorKey attribution credits Corridor Digital / Niko Pueringer. CK2 packages
 also carry the Microsoft/MoGe MIT text and DINOv2 Apache notice, and the DeepMind
 RVM CC BY 4.0 text. Scroll through the review window to read each dependency's
 terms. The plugin's GPL licence does not change the model licences.
+
+CK1 has the publisher's Corridor Key Licence v1 terms. MODNet includes its
+Apache-2.0 LICENSE and NOTICE. The downloaded graphs have a separate Corridor
+Key licence record. The review window includes every required record before
+acceptance.
 
 ![Bundled CorridorKey licence text in OBS](../images/model-manager/yami-corridorkey-licence.png)
 

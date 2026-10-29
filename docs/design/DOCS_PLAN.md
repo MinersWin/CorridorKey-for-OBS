@@ -18,7 +18,7 @@ Use repository Markdown as the canonical source. A small static documentation si
 | `docs/options/{model,performance,edges,colour,crop,hints,output,sync,expert}.md` | Every setting in UX_DESIGN, including unit, default per preset, effect, when to change it, cost, dependency and failure/fallback. Cover preset changes as well as individual sliders. |
 | `docs/how-to/hair.md` | Improve hair with a comparison of Balanced, refiner off/on, tile budgets and matte levels; inspect alpha over black/white/checker backgrounds. |
 | `docs/how-to/crop.md` | Remove off-screen room edges, keep full output bounds, handle moving subjects and automatic ROI; explicit preview may affect stream. |
-| `docs/how-to/props-and-hints.md` | Keep chairs, microphones, held objects and second people; contrast chroma hint with optional portrait hints. CK1 requires a hint; CK2 defaults to none. |
+| `docs/how-to/props-and-hints.md` | Inspect chairs, microphones, held objects and second people with the default MODNet hint. Explain CK2 Stage-1 cost and Expert chroma failures on teal/uneven screens. CK1 requires a hint; CK2 defaults to none. |
 | `docs/how-to/blue-screen.md` | CK1 blue checkpoint and matching despill/hint; current CK2/refiner validation limitations; no green/blue channel-swap workaround. |
 | `docs/how-to/lip-sync.md` | Measured filter-added delay vs total camera/encoder delay, select audio, clap test, baseline/trim, manual-edit ownership and shared-microphone conflicts. |
 | `docs/how-to/two-cameras.md` | Independent filters/state, shared downloads, GPU contention, per-source sizing, avoiding two controllers on one microphone. |

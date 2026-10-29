@@ -31,6 +31,22 @@ No weights, graphs or upstream model implementation are stored in Git.
 
 ## Frame path
 
+```mermaid
+flowchart LR
+    capture[Same captured square RGB] --> modnet[MODNet at selected grid]
+    capture --> key[CK1 green or blue]
+    modnet --> hint[Current-frame hint]
+    capture --> stage1[Optional CK2 Stage 1]
+    stage1 --> hint
+    capture --> chroma[Expert chroma shader]
+    chroma --> hint
+    hint --> key
+    key --> maps[Alpha and straight foreground]
+    maps --> reconstruction[Native guided reconstruction and despill]
+    original[Retained original frame] --> reconstruction
+    reconstruction --> output[OBS output]
+```
+
 Capture squashes the manually cropped frame to the selected square grid. RGB
 is planar sRGB in [0,1]. Normalization runs inside the graph. CK1 consumes
 `rgb [1,3,S,S]` and `hint [1,1,S,S]`, and emits linear `alpha [1,1,S,S]` plus
@@ -104,7 +120,7 @@ corridorkey_ck1_catalogue DATA EXPORTS SOURCE_MAP.json CACHE REPORT.json
 ```
 
 The parity tool reads every reference `in_*` and compares every `out_*` from
-the exporter's read-only `.ref.npz`. It records 21 host-inclusive runs, graph
+the exporter's read-only `.ref.npz`. It records 101 host-inclusive runs, graph
 and weight hashes, precision, capture mode and provider partitions. The
 chain mode feeds MODNet into CK1, using the matching reference RGB and matte.
 The `ck2hint` mode exercises the full CK2 hint path and reports ranges and cost;
@@ -114,3 +130,7 @@ the production catalogue, checks missing-acceptance rejection, imports through
 `CatalogueService`, runs the native binder, and acquires the verified leases.
 Its licence acceptance is for local validation. Distributed builds have no
 development override or validation tools.
+
+Measured parity differences, timings, live checks and remaining limits are in
+[CK1 validation](ck1-validation.md). The [user guide](../user/ck1.md) includes
+real OBS source renders and the release's CK1/CK2 quality comparison.
